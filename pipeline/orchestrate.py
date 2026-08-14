@@ -284,6 +284,12 @@ def cmd_plan(cfg, mode):
         plan['products'][name] = {'tile_key': key}
         cache_key = f'{tiles["cache"]}-{CACHE_VERSION}-{key or "unplanned"}'
         gh_output(f'cache-key-{tiles["cache"]}', cache_key)
+        # Version-scoped, so a light run's prefix restore can never reach
+        # across a CACHE_VERSION bump — a format change is exactly when
+        # yesterday's tiles under today's refTime would fool the content
+        # check.
+        gh_output(f'cache-prefix-{tiles["cache"]}',
+                  f'{tiles["cache"]}-{CACHE_VERSION}-')
         paths = '\n'.join(f'site/public/map/{d}' for d, _ in tiles['match'])
         gh_output(f'cache-paths-{tiles["cache"]}', paths)
         log(f'plan: {name} -> {cache_key}')
