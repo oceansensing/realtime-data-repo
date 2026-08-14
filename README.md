@@ -70,14 +70,19 @@ predecessor trusted cache keys, and a cache that stored an incomplete artifact
 under a key claiming completeness could not heal — the key kept hitting, the
 build kept being skipped, and every subsequent run looked healthy.
 
-**Coherence groups.** The currents and the Navy fields come from the same
-model and the map's contract requires them to be the same hour — one hour of
-temperature must not sit under another hour of current. They are declared as a
-group, and if either lands an hour the other cannot match, both are held to
-their last agreeing pair. The OISST fields are deliberately *not* in the
-group: they are a daily product from a different source, and splitting them
-into their own product means a Navy outage no longer touches them — even
-though one script fetches both.
+**Cross-product rules belong to the contract, and only to it.** The currents
+and the Navy fields come from the same model, and the map's contract requires
+a Navy grid from the currents' run to sit at one of the currents' published
+hours — a rule with real subtlety in it: the currents' base file is by design
+the *earlier* of two frames, and a grid from a different model run is a note
+rather than a failure, because upstream raggedness is the ordinary state.
+The orchestrator carried its own simplified copy of that rule for exactly one
+run, and the copy was wrong — it held two healthy products with a loud reason,
+which is the safe direction, and it is also why the copy is gone. When the
+contract objects, the gate maps the failure to its product and demotes just
+that one. The OISST fields are their own product for the same spirit of
+isolation: a daily analysis from a different source, so a Navy outage cannot
+touch it even though one script fetches both.
 
 **Two tiers of storage, each doing the one thing it is good at.**
 
@@ -141,16 +146,15 @@ the map's own gate has the last word.
    compete). A step failing marks its products held and restores their
    namespaces from the seed. A step writing outside every declared namespace
    fails the run outright — that is a bug, not weather.
-4. **Group coherence** — before any tiles are built, so nothing builds tiles
-   for a grid about to be held.
+4. **Validate** — per product: roots parse, and every file the headers
+   advertise exists.
 5. **Tiles** — restored tiles verified by content; wrong or missing tiers
    rebuilt for fresh products only; still-incoherent tiers withheld.
-6. **Validate** — per product: roots parse, every file the headers advertise
-   exists, hours agree with the tiles above them.
-7. **Assemble and gate** — static seeds + the stage become the candidate;
-   manifests and status are written; the site's contract check runs; failures
-   demote products, not the tree.
-8. **Publish** — the small products and status force-push to `published`;
+6. **Assemble and gate** — static seeds + the stage become the candidate,
+   the site's contract check runs over it, and a failure demotes the
+   product it names rather than the tree; manifests and status record what
+   finally stood.
+7. **Publish** — the small products and status force-push to `published`;
    the whole tree deploys to Pages. A light run that would deploy a tree
    without tiles skips the deploy but still pushes the branch, so nothing
    fetched is ever thrown away.

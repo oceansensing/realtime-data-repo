@@ -64,8 +64,13 @@ timeout_minutes = 20
 #   which is what makes the restore exact rather than a hand-kept list.
 # `max_age_hours` is how old `updated` may grow before the status calls the
 #   product stale — sized to each product's own cadence, not to the cron.
-# `group` declares a coherence group: members must land the same model hour
-#   or both hold. `checked` going quiet is flagged for every product alike.
+#   `checked` going quiet is flagged for every product alike.
+#
+# There is no cross-product agreement declared here, on purpose. How the
+# ESPC members must relate is the consumer contract's rule (test-schema.mjs
+# owns it, frames and run-raggedness included), and a copy of it here was
+# wrong on the first live run. The gate demotes the offending product when
+# the contract objects; see the note in orchestrate.py's cmd_run.
 
 [products.assets]
 title = "Storms, gliders, USVs and Argo floats"
@@ -79,7 +84,6 @@ title = "Surface and 60 m currents (ESPC)"
 step = "currents"
 roots = ["currents.json", "currents-60m.json"]
 writes = ["currents*.json"]
-group = "espc"
 max_age_hours = 9
 
 [products.currents.tiles]
@@ -101,7 +105,6 @@ title = "Navy ESPC temperature, salinity and ice"
 step = "fields"
 roots = ["sst-navy.json", "sss-navy.json", "sic-navy.json", "sit-navy.json"]
 writes = ["sst-navy*.json", "sss-navy*.json", "sic-navy*.json", "sit-navy*.json"]
-group = "espc"
 max_age_hours = 9
 
 [products.fields-navy.tiles]

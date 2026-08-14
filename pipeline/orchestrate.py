@@ -410,26 +410,6 @@ class Run:
                 return f'advertises {name}, which is not in the stage'
         return None
 
-    # -- group coherence -------------------------------------------------------
-
-    def enforce_groups(self):
-        groups = {}
-        for name, spec in self.products.items():
-            if 'group' in spec:
-                groups.setdefault(spec['group'], []).append(name)
-        for gname, members in groups.items():
-            hours = {m: hour_of(self.products[m]) for m in members}
-            if len(set(hours.values())) <= 1:
-                continue
-            stated = ', '.join(f'{m} at {h}' for m, h in hours.items())
-            # Hold every fresh member back to the seed: the last publish
-            # passed the contract, so the restored set agrees by
-            # construction. Holding only the odd one out would need to know
-            # which one is wrong, and "newest" is not the same as "right".
-            for m in members:
-                if self.fate[m] == 'fresh':
-                    self.hold(m, f'group {gname} disagrees ({stated})')
-
     # -- tiles -----------------------------------------------------------------
 
     def settle_tiles(self):
@@ -660,10 +640,23 @@ def cmd_run(cfg):
     # The record is written last, after the gate and the guard have had
     # their say: a receipt describing what the run intended rather than what
     # it did is the predecessor's cache bug wearing a new hat.
+    #
+    # There is deliberately no cross-product agreement check here. There was
+    # one — a "coherence group" comparing the ESPC members' base hours — and
+    # it was wrong on the very first live run: the currents' base file is by
+    # design the *earlier* of two frames, the contract measures the Navy
+    # fields against the currents' full set of published hours, and a
+    # different model run is a note rather than a failure because upstream
+    # raggedness is the ordinary state. Rules about how products relate are
+    # the consumer's contract's to own, and duplicating one here is how two
+    # copies drift. The gate below already maps a contract failure back to
+    # its product and demotes exactly that one; the cost is that a doomed
+    # product may build tiles before the gate speaks, which settle_tiles
+    # then withholds — wasted minutes in a case the fetchers' own selection
+    # already refuses, against a rule that cannot drift.
     run = Run(cfg, plan)
     run.fetch_all()
     run.validate_products()
-    run.enforce_groups()
     run.settle_tiles()
     run.assemble()
     run.contract_gate()

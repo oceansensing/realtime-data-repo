@@ -94,7 +94,6 @@ title = "Alpha"
 step = "alpha"
 roots = ["alpha.json"]
 writes = ["alpha*.json"]
-group = "g"
 max_age_hours = 4
 
 [products.alpha.tiles]
@@ -108,7 +107,6 @@ title = "Beta"
 step = "beta"
 roots = ["beta.json"]
 writes = ["beta*.json"]
-group = "g"
 '''
 
 PREV_CHECKED = '2025-12-31T23:00:00Z'
@@ -216,16 +214,6 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(alpha['updated'], PREV_UPDATED)
         self.assertNotEqual(alpha['checked'], PREV_CHECKED)
         self.assertTrue(alpha['stale'])  # months-old content, said out loud
-
-    def test_group_disagreement_holds_both(self):
-        self.env.ctl('hour-alpha', H1)  # beta stays at H0
-        self.assertEqual(self.env.run(), 0)
-        st = self.env.status()
-        self.assertEqual(st['products']['alpha']['fate'], 'held')
-        self.assertEqual(st['products']['beta']['fate'], 'held')
-        self.assertIn('group g', st['products']['alpha']['reason'])
-        self.assertEqual(self.env.out_hour('alpha.json'), H0)
-        self.assertEqual(self.env.out_hour('beta.json'), H0)
 
     def test_write_fence_is_fatal(self):
         self.env.ctl('rogue')
