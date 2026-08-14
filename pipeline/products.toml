@@ -101,6 +101,13 @@ roots = ["tides.json"]
 writes = ["tides.json"]
 max_age_hours = 4
 
+[products.gtmba]
+title = "Tropical moored arrays (GTMBA)"
+step = "assets"
+roots = ["gtmba.json"]
+writes = ["gtmba.json"]
+max_age_hours = 4
+
 [products.currents]
 title = "Surface and 60 m currents (ESPC)"
 step = "currents"
