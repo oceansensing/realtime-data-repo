@@ -228,6 +228,14 @@ light runs, while this repository currently publishes hourly only — worse
 storm latency, on the one product read while it matters, until light crons
 are added. That is a cutover precondition, not a footnote.
 
+## License
+
+Copyright (c) 2026 Donglai Gong and C4PO. All rights reserved — see
+[LICENSE.md](LICENSE.md). The repository is public so the data can be
+served from GitHub Pages; that is not a grant of any license. The
+scientific data itself belongs to the bodies that produced it, each named
+in the LICENSE and credited on the map.
+
 ## What is deliberately not here yet
 
 - **Light-run crons.** The mode exists, tested and dispatchable; what is
