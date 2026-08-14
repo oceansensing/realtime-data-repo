@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- The one hand-written page in this repository. The workflow copies it to
+     the publish root because workflow-mode Pages never runs Jekyll: the
+     predecessor shipped its README as index.md and the root has answered
+     404 there since the day it launched, with nothing to say so. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>realtime-data-repo</title>
+<style>
+  body { font: 16px/1.6 system-ui, sans-serif; max-width: 40rem;
+         margin: 3rem auto; padding: 0 1rem; color: #1a1f24; background: #fff; }
+  @media (prefers-color-scheme: dark) {
+    body { color: #d7dde3; background: #14181c; }
+    a { color: #7db3e8; }
+  }
+  code { font-size: 0.9em; }
+</style>
+</head>
+<body>
+<h1>realtime-data-repo</h1>
+<p>The data service behind the
+<a href="https://oceansensing.org/dev/visualization/">C4PO development
+visualizer</a>: storms, gliders, USVs, Argo floats, currents, temperature,
+salinity, ice, wind and waves, refreshed hourly. It is not a public API —
+the files under <code>map/</code> exist to be read by the map, and their
+layout is that map's contract.</p>
+<p>What is fresh, what is held, and why:
+<a href="status/status.json">status/status.json</a>. The run's intent and
+outcome sit beside it as <code>plan.json</code> and <code>receipt.json</code>.</p>
+<p>How it works, and why it is shaped the way it is:
+<a href="https://github.com/oceansensing/realtime-data-repo">the repository
+README</a>.</p>
+</body>
+</html>

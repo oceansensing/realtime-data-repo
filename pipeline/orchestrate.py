@@ -466,9 +466,12 @@ class Run:
             shutil.copytree(static, OUT / 'map', dirs_exist_ok=True)
         shutil.copytree(STAGE, OUT / 'map', dirs_exist_ok=True)
         (OUT / '.nojekyll').touch()
-        readme = ROOT / 'README.md'
-        if readme.is_file():
-            shutil.copy2(readme, OUT / 'index.md')
+        # index.html, not index.md: workflow-mode Pages runs no Jekyll, so
+        # markdown at the root is a file, not a page — the predecessor's
+        # root has 404'd behind exactly that mistake since it launched.
+        landing = ROOT / 'index.html'
+        if landing.is_file():
+            shutil.copy2(landing, OUT / 'index.html')
 
     def write_record(self):
         now = utcnow()
