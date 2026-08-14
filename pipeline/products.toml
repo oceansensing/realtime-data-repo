@@ -90,6 +90,17 @@ roots = ["buoys.json"]
 writes = ["buoys.json"]
 max_age_hours = 4
 
+# Same pattern again. Note the seed matters more here than anywhere: each
+# station's published prediction curve is what spares the rate-banning
+# CO-OPS API a re-fetch every run, so a cold seed costs the first run about
+# seven paced minutes and a warm one costs ninety seconds.
+[products.tides]
+title = "CO-OPS tide gauges"
+step = "assets"
+roots = ["tides.json"]
+writes = ["tides.json"]
+max_age_hours = 4
+
 [products.currents]
 title = "Surface and 60 m currents (ESPC)"
 step = "currents"
