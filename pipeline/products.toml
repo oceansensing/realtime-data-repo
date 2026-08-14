@@ -79,6 +79,17 @@ roots = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.js
 writes = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
 max_age_hours = 4
 
+# Its own product on the assets step — the fields pattern, one fetch feeding
+# two products — so an NDBC outage holds the buoys and nothing else. The
+# collector keeps the previous file on failure, and this file's absence from
+# a cold seed is ordinary: the contract's buoys check is presence-conditional.
+[products.buoys]
+title = "NDBC buoys and coastal stations"
+step = "assets"
+roots = ["buoys.json"]
+writes = ["buoys.json"]
+max_age_hours = 4
+
 [products.currents]
 title = "Surface and 60 m currents (ESPC)"
 step = "currents"
