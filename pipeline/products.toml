@@ -21,6 +21,18 @@
 check = ["node", "scripts/test-schema.mjs"]
 roots = ["node", "scripts/test-schema.mjs", "--roots"]
 
+# The static half: committed in this repository under map/ and copied into
+# every artifact by assemble, because the seafloor does not change and
+# cannot be rebuilt in CI (contouring GEBCO needs a 7.5 GB grid run by
+# hand). **Declared, because it went missing silently once**: the cutover
+# carried every pipeline and no static file, and the isobaths, the offline
+# coastline and the borders were dead on the live site for a day — each a
+# lazy layer whose 404 degrades to nothing. Assemble refuses to run when
+# one of these is absent: a missing static is a repository defect, not an
+# upstream outage, and failing loudly is the correct fate for it.
+[static]
+required = ["bathy-deep.json", "bathy-tiles", "boundaries.json", "coastline.json"]
+
 [defaults]
 timeout_minutes = 30
 

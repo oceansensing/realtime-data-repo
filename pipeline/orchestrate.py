@@ -462,6 +462,16 @@ class Run:
             shutil.rmtree(OUT)
         (OUT / 'map').mkdir(parents=True)
         static = ROOT / 'map'
+        # Every declared static must be present before anything is
+        # published. This directory was silently empty for the first day of
+        # production and four lazy layers 404'd their way to nothing on the
+        # live map — a missing static is a defect in this repository, so
+        # the correct fate is a loud failure, not a quieter tree.
+        missing = [name for name in self.cfg.get('static', {}).get('required', [])
+                   if not (static / name).exists()]
+        if missing:
+            raise SystemExit(f'assemble: static file(s) missing from map/: '
+                             f'{", ".join(missing)}')
         if static.is_dir():
             shutil.copytree(static, OUT / 'map', dirs_exist_ok=True)
         shutil.copytree(STAGE, OUT / 'map', dirs_exist_ok=True)

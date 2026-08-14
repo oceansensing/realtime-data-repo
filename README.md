@@ -154,7 +154,14 @@ the map's own gate has the last word.
 6. **Assemble and gate** — static seeds + the stage become the candidate,
    the site's contract check runs over it, and a failure demotes the
    product it names rather than the tree; manifests and status record what
-   finally stood.
+   finally stood. The **static half** — the isobaths, the offline
+   coastline, the borders, 135 MB the seafloor never changes and CI cannot
+   rebuild — is committed in this repository under `map/` and copied in
+   here; `[static]` in `products.toml` names what must be present and
+   assemble refuses to run without it. Declared because it went missing
+   silently once: the cutover carried every pipeline and no static file,
+   and four lazily-fetched layers 404'd their way to nothing on the live
+   map for a day.
 7. **Publish** — the small products and status force-push to `published`;
    the whole tree deploys to Pages. A light run that would deploy a tree
    without tiles skips the deploy but still pushes the branch, so nothing
