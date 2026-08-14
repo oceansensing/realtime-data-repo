@@ -106,6 +106,22 @@ write means the restore logic can no longer reason about the stage.
   the root. The landing page is a hand-written `index.html`, copied in by
   `assemble`. Verify a copied pattern in its *original* before trusting it
   in the copy.
+- **The cutover carried every pipeline and no static file.** The isobaths,
+  the offline coastline and the borders 404'd on the live map for a day —
+  four lazily-fetched layers whose absence degrades to nothing, invisible
+  to every gate. The static half lives in this repo's `map/` now, named in
+  `[static]` in products.toml, and `assemble` refuses to run with any of it
+  missing: a missing static is a defect here, not an upstream outage.
+- **The roots check deadlocked on the seed it was guarding.** The site's
+  `--roots` flag used to answer *after* its per-file checks ran — and the
+  seed stages into the site checkout's own `public/map`, so the day a
+  seeded storm carried a real contract fault (NHC published a null heading
+  for a stationary system) the FAIL line's words were parsed as root names,
+  the agreement check refused, and no run could publish the cure. The flag
+  answers first now, and an unstated storm motion is published as absence
+  rather than null. When a run fails at ROOTS with word-salad names, read
+  the full log: those words are a check's failure line, and the fault is in
+  the seeded data, not the declaration.
 
 The unit suite's load-bearing checks — the write fence, the tile-drift
 check, the held-product restore — are mutation-tested: plant the fault,
