@@ -114,11 +114,18 @@ that rewrites the tree.
 
 ## Cutover, when it comes
 
-The production map reads the predecessor until `MAP_DATA` in the site's
-`src/config.ts` takes this repository's URL (the dev map's `DEV_MAP_DATA`
-already does). Light crons run at `:15` and `:55` (enabled 2026-08-14, the
-day of first publish), so storm cadence matches the predecessor's three
-publishes an hour. What remains at cutover is **retiring the predecessor's
-crons** in the same change, so two pipelines stop drawing on the same
-upstreams. The measured old-versus-new ledger is in the README under "How
-it compares to the predecessor".
+Cutover happened on 2026-08-14: `MAP_DATA` in the site's `src/config.ts`
+points at this repository, and every consumer — the production map, the
+hurricane page, the build-time storm line, the dev map — follows that one
+constant. Light crons run at `:15` and `:55` (enabled the same day), so
+storm cadence matches the predecessor's three publishes an hour.
+
+**What remains is the predecessor's freeze**, deliberately deferred a few
+days: `ocean-data-repo` keeps publishing on its own crons as a warm
+standby, so switching back is the one string in `src/config.ts`. The
+freeze, when called, is `gh workflow disable` on its publish workflow and
+nothing else — no deletions, no archive settings; the repository stays a
+readable record and a restartable fallback. Until then a fetch-script
+change still lands on both pipelines' next runs. The measured
+old-versus-new ledger is in the README under "How it compares to the
+predecessor".

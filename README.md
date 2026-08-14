@@ -1,9 +1,10 @@
 # realtime-data-repo
 
-The second-generation data pipeline for the [C4PO ocean
-map](https://oceansensing.org/visualization/). It fetches storms, gliders,
-USVs, Argo floats, currents, temperature, salinity, ice, wind and waves from
-their upstream sources every hour and publishes them as static files at
+The data pipeline behind the [C4PO ocean
+map](https://oceansensing.org/visualization/) — the production service
+since 2026-08-14. It fetches storms, gliders, USVs, Argo floats, currents,
+temperature, salinity, ice, wind and waves from their upstream sources
+through the hour and publishes them as static files at
 `https://oceansensing.org/realtime-data-repo/map/`, with a machine-readable
 health record beside them at `/status/status.json`.
 
@@ -244,9 +245,10 @@ in the LICENSE and credited on the map.
   the pipeline validates the outcome instead of dictating the input. Moving
   the decision into the plan entirely means teaching each fetcher a `--hour`
   flag, queued in the site repository's PLAN.md.
-- **Cutover.** The predecessor keeps publishing on its own schedule; the
-  production map still reads it. This repository runs a full publish at :35
-  and light ones at :15 and :55 while it bakes in, read by the development
-  map at `/dev/visualization/`. Cutover is a one-line change to `MAP_DATA`
-  in the site's `src/config.ts`, and retiring the predecessor's crons is
-  the other half.
+- **The predecessor's freeze.** Cutover happened on 2026-08-14 — `MAP_DATA`
+  in the site's `src/config.ts` points here, after the development map ran
+  against this pipeline first and proved it. The predecessor deliberately
+  keeps publishing on its own crons for a few days as a warm standby
+  (switching back is that one string again), and is then to be frozen in
+  place: workflow disabled, nothing deleted, a readable record and a
+  restartable fallback.
