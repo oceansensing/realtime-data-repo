@@ -178,8 +178,62 @@ the map's own gate has the last word.
   publish, so a broken orchestrator refuses to run rather than publishing
   something strange.
 
+## How it compares to the predecessor, measured
+
+The claims above are design; these are the differences that can be checked,
+as measured at first publish (2026-08-14).
+
+- **Blast radius of one product failing: everything → that product.**
+  The night that prompted this repository, one flaky HTTP 500 on the ice
+  froze every product for 16.5 hours, because the whole tree published or
+  nothing did. This pipeline's *first run* held two products — and the
+  other four published fresh, on schedule, with the holds' reason stated in
+  the status file. Demonstrated, not projected.
+- **Detection of a fault: hours → one page load.** The predecessor's only
+  health signal was a timestamp on the map, which cannot distinguish a
+  quiet upstream from a broken pipeline — the ambiguity that let the outage
+  run 16 hours. `checked` versus `updated` in `status/status.json`
+  separates exactly those two faults, per product, with the reason and the
+  run URL beside them.
+- **A poisoned cache: manual surgery → one automatic rebuild.** The
+  predecessor trusted cache keys; an incomplete entry kept hitting and
+  could not heal, and the repair took two hand-bumped key versions and a
+  day of absent tiles. Here every restore is verified against the grid's
+  own hour and rebuilt on mismatch.
+- **Orchestration: 641 lines of bash-in-YAML → 204 lines of YAML with no
+  decisions in it**, around an orchestrator of under 800 lines of
+  standard-library Python with a unit suite that runs before every publish
+  and mutation-tested load-bearing checks. It is debuggable on a laptop;
+  the predecessor was debuggable only by pushing commits at CI. The suite
+  caught its first real bug before the first publish.
+- **Hand-kept lists: five → one declaration, self-checked.** Each of the
+  predecessor's five lists drifted at least once, silently, on the newest
+  product. The one list here is refused at run time if it disagrees with
+  the consumer's contract.
+- **Accumulated state: resident → durable.** Tracks and storm histories
+  cannot be refetched; the predecessor kept them only in the live artifact
+  and an evictable cache. The `published` branch banks them every run,
+  including runs that cannot deploy.
+- **Write-token exposure to third-party code: full → zero.** The
+  predecessor's one job held Pages and OIDC tokens while running
+  `pip install`; here the job with tokens runs only SHA-pinned first-party
+  actions, and the job running third-party code can write nothing.
+
+**And what is honestly not better.** The fetchers, the upstreams and their
+fragility are identical — an outage now produces *labeled* staleness, not
+less of it. Full-run wall time is roughly unchanged, since tile builds
+dominate. A deploy is still whole-tree, because Pages is. And one real
+regression: the predecessor refreshes storms three times an hour with its
+light runs, while this repository currently publishes hourly only — worse
+storm latency, on the one product read while it matters, until light crons
+are added. That is a cutover precondition, not a footnote.
+
 ## What is deliberately not here yet
 
+- **Light-run crons.** The mode exists, tested and dispatchable; what is
+  missing is the schedule (the predecessor's `:25`/`:45`) and the bake-in
+  judgment call of running it. Required before cutover — see the
+  regression above.
 - **Per-tile content addressing.** Tile builds are all-or-nothing per set;
   making the common case nearly free is queued, and contained.
 - **Fetchers reading the plan.** They still decide their hour internally;
@@ -189,5 +243,5 @@ the map's own gate has the last word.
 - **Cutover.** The predecessor keeps publishing on its own schedule; the
   production map still reads it. This repository runs hourly at :35 while it
   bakes in, read by the development map at `/dev/visualization/`. Cutover is
-  a one-line change to `MAP_DATA` in the site's `src/config.ts`, and
-  retiring the predecessor's crons is the other half.
+  a one-line change to `MAP_DATA` in the site's `src/config.ts`, plus the
+  light crons above, and retiring the predecessor's crons is the other half.

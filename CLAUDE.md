@@ -116,6 +116,15 @@ that rewrites the tree.
 
 The production map reads the predecessor until `MAP_DATA` in the site's
 `src/config.ts` takes this repository's URL (the dev map's `DEV_MAP_DATA`
-already does). The other half is retiring the predecessor's crons so two
-pipelines stop drawing on the same upstreams. Until then, both run — this
-one hourly at `:35`.
+already does). Two preconditions before that line changes:
+
+- **Light crons.** The predecessor refreshes storms at `:25` and `:45`;
+  this repository runs hourly only, which is objectively worse storm
+  latency — on the one product read while it matters. The mode is built
+  and unit-tested; the schedule is deliberately not enabled until the
+  hourly runs have baked.
+- **Retiring the predecessor's crons is the other half of the same
+  change**, so two pipelines stop drawing on the same upstreams.
+
+The measured old-versus-new ledger, including this regression, is in the
+README under "How it compares to the predecessor".
