@@ -1,0 +1,139 @@
+# The declaration. Everything the pipeline knows about a product is in this
+# file, and everything else — fetch steps, validation, manifests, cache keys,
+# what the published branch carries — is derived from it by orchestrate.py.
+#
+# The predecessor kept this knowledge in five hand-maintained lists across a
+# workflow file, and each drifted silently on the newest product. If a change
+# needs a list edited anywhere else, that is a bug in the derivation, not a
+# step to remember.
+#
+# A **step** is one invocation of one fetch script, run from the site
+# checkout. A **product** is a set of files that are true together, owned by
+# exactly one step. Two products may share a step (the fields script writes
+# both the Navy and the OISST families in one run) — that is what lets one
+# family fail without holding the other.
+
+[contract]
+# The consumer's own gate, run over the assembled tree from the site
+# checkout. `roots` must print exactly the union of every product's roots
+# below; the orchestrator refuses to run on a mismatch, which is what keeps
+# this file and schema.ts from drifting apart.
+check = ["node", "scripts/test-schema.mjs"]
+roots = ["node", "scripts/test-schema.mjs", "--roots"]
+
+[defaults]
+timeout_minutes = 30
+
+# --- steps ------------------------------------------------------------------
+# `lane` names the upstream a step leans on. Steps in different lanes run
+# concurrently; steps in the same lane queue. Two HYCOM reads competing for
+# the same THREDDS server help nobody, least of all HYCOM.
+# `light = true` marks the steps a light run still performs; everything else
+# is carried.
+
+[steps.assets]
+cmd = ["python3", "scripts/fetch-ocean-assets.py"]
+lane = "noaa"
+light = true
+timeout_minutes = 15
+
+[steps.currents]
+cmd = ["python3", "scripts/fetch-currents.py"]
+lane = "hycom"
+
+[steps.fields]
+cmd = ["python3", "scripts/fetch-ocean-fields.py"]
+lane = "hycom"
+
+[steps.wind]
+cmd = ["python3", "scripts/fetch-wind.py"]
+lane = "ecmwf"
+timeout_minutes = 20
+
+[steps.waves]
+cmd = ["python3", "scripts/fetch-waves.py"]
+lane = "ecmwf"
+timeout_minutes = 20
+
+# --- products ---------------------------------------------------------------
+# `roots` are the files nothing else links to — the map's entry points, and
+#   the level the contract's own `--roots` list is checked against.
+# `writes` is the product's namespace: every filename its step may create,
+#   as globs. A step writing outside every product's namespace fails the run
+#   outright. Held products are restored from the seed by these same globs,
+#   which is what makes the restore exact rather than a hand-kept list.
+# `max_age_hours` is how old `updated` may grow before the status calls the
+#   product stale — sized to each product's own cadence, not to the cron.
+# `group` declares a coherence group: members must land the same model hour
+#   or both hold. `checked` going quiet is flagged for every product alike.
+
+[products.assets]
+title = "Storms, gliders, USVs and Argo floats"
+step = "assets"
+roots = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
+writes = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
+max_age_hours = 4
+
+[products.currents]
+title = "Surface and 60 m currents (ESPC)"
+step = "currents"
+roots = ["currents.json", "currents-60m.json"]
+writes = ["currents*.json"]
+group = "espc"
+max_age_hours = 9
+
+[products.currents.tiles]
+build = ["python3", "scripts/fetch-currents.py", "--tiles"]
+key = ["python3", "scripts/fetch-currents.py", "--tile-key"]
+cache = "currents-tiles"
+# Each tile directory belongs to one grid, and must be its hour. A `*` in the
+# directory carries into the grid name — the forecast frames are named for
+# their lead, and the lead moves with the run's lateness.
+match = [
+  ["tiles", "currents.json"],
+  ["tiles-60m", "currents-60m.json"],
+  ["tiles-f*h", "currents-f*h.json"],
+  ["tiles-60m-f*h", "currents-60m-f*h.json"],
+]
+
+[products.fields-navy]
+title = "Navy ESPC temperature, salinity and ice"
+step = "fields"
+roots = ["sst-navy.json", "sss-navy.json", "sic-navy.json", "sit-navy.json"]
+writes = ["sst-navy*.json", "sss-navy*.json", "sic-navy*.json", "sit-navy*.json"]
+group = "espc"
+max_age_hours = 9
+
+[products.fields-navy.tiles]
+build = ["python3", "scripts/fetch-ocean-fields.py", "--tiles"]
+key = ["python3", "scripts/fetch-ocean-fields.py", "--tile-key"]
+cache = "field-tiles"
+match = [
+  ["tiles-sst-navy", "sst-navy.json"],
+  ["tiles-sss-navy", "sss-navy.json"],
+  ["tiles-sic-navy", "sic-navy.json"],
+  ["tiles-sit-navy", "sit-navy.json"],
+]
+
+[products.fields-oisst]
+title = "NOAA OISST temperature, anomaly and ice"
+step = "fields"
+roots = ["sst-oisst.json", "ssta-oisst.json", "sic-oisst.json"]
+writes = ["sst-oisst*.json", "ssta-oisst*.json", "sic-oisst*.json"]
+# A daily analysis that lands mid-morning UTC and describes yesterday:
+# two days of quiet is routine, three is not.
+max_age_hours = 60
+
+[products.wind]
+title = "ECMWF 10 m wind and 2 m air temperature"
+step = "wind"
+roots = ["wind.json", "air.json"]
+writes = ["wind*.json", "air*.json"]
+max_age_hours = 13
+
+[products.waves]
+title = "ECWAM significant wave height"
+step = "waves"
+roots = ["waves.json"]
+writes = ["waves*.json"]
+max_age_hours = 13
