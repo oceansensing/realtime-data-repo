@@ -222,11 +222,11 @@ as measured at first publish (2026-08-14).
 **And what is honestly not better.** The fetchers, the upstreams and their
 fragility are identical — an outage now produces *labeled* staleness, not
 less of it. Full-run wall time is roughly unchanged, since tile builds
-dominate. A deploy is still whole-tree, because Pages is. And one real
-regression: the predecessor refreshes storms three times an hour with its
-light runs, while this repository currently publishes hourly only — worse
-storm latency, on the one product read while it matters, until light crons
-are added. That is a cutover precondition, not a footnote.
+dominate. A deploy is still whole-tree, because Pages is. There was also
+one real regression at first publish: storms refreshed hourly here against
+three times an hour on the predecessor. Closed the same day — light runs
+are scheduled at :15 and :55 now, matching the predecessor's three
+publishes an hour.
 
 ## License
 
@@ -238,10 +238,6 @@ in the LICENSE and credited on the map.
 
 ## What is deliberately not here yet
 
-- **Light-run crons.** The mode exists, tested and dispatchable; what is
-  missing is the schedule (the predecessor's `:25`/`:45`) and the bake-in
-  judgment call of running it. Required before cutover — see the
-  regression above.
 - **Per-tile content addressing.** Tile builds are all-or-nothing per set;
   making the common case nearly free is queued, and contained.
 - **Fetchers reading the plan.** They still decide their hour internally;
@@ -249,7 +245,8 @@ in the LICENSE and credited on the map.
   the decision into the plan entirely means teaching each fetcher a `--hour`
   flag, queued in the site repository's PLAN.md.
 - **Cutover.** The predecessor keeps publishing on its own schedule; the
-  production map still reads it. This repository runs hourly at :35 while it
-  bakes in, read by the development map at `/dev/visualization/`. Cutover is
-  a one-line change to `MAP_DATA` in the site's `src/config.ts`, plus the
-  light crons above, and retiring the predecessor's crons is the other half.
+  production map still reads it. This repository runs a full publish at :35
+  and light ones at :15 and :55 while it bakes in, read by the development
+  map at `/dev/visualization/`. Cutover is a one-line change to `MAP_DATA`
+  in the site's `src/config.ts`, and retiring the predecessor's crons is
+  the other half.

@@ -11,10 +11,21 @@ name: Publish realtime ocean data
 # pipelines' tile rebuilds do not land on HYCOM together — GitHub dispatches
 # scheduled runs 19–37 minutes late (measured), so nominal :35 runs land
 # roughly :54–:12, against the predecessor's :24–:42.
+#
+# The light runs at :15 and :55 refresh the storms and platforms only,
+# spreading three publishes across the hour, because the NHC does not
+# publish on our schedule — an advisory every three hours, every two under
+# watches, a special one whenever a forecaster judges it. The dispatch
+# delay shuffles the spacing per run, so this buys three publishes an hour
+# rather than three evenly spaced ones; nothing downstream may assume a
+# publish lands at its nominal time. What a light run does and refuses to
+# do is the orchestrator's business — see the light path in
+# pipeline/orchestrate.py and the gap guard note in the README.
 
 on:
   schedule:
     - cron: '35 * * * *'
+    - cron: '15,55 * * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -76,11 +87,17 @@ jobs:
       - name: Unit-test the orchestrator
         run: python3 pipeline/test_orchestrate.py
 
+      # `github.event.schedule` is the literal cron string — the only signal
+      # distinguishing the two schedules. A push or an unqualified dispatch
+      # defaults to full, the safe direction: a light run that was meant to
+      # be full publishes an hour-old ocean with nothing saying so.
       - name: Decide the mode
         id: mode
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "15,55 * * * *" ]; then
+            echo "mode=light" >> "$GITHUB_OUTPUT"
           else
             echo "mode=full" >> "$GITHUB_OUTPUT"
           fi
