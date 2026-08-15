@@ -134,7 +134,10 @@ Cutover happened on 2026-08-14: `MAP_DATA` in the site's `src/config.ts`
 points at this repository, and every consumer — the production map, the
 hurricane page, the build-time storm line, the dev map — follows that one
 constant. Light crons run at `:15` and `:55` (enabled the same day), so
-storm cadence matches the predecessor's three publishes an hour.
+storm cadence matches the predecessor's three publishes an hour. A boundary
+full run at `:02` after each six-hour window turns (added 2026-08-15) puts
+the new window's frames up inside their own hour instead of the :35 cron's
+~70–95 minutes later — the workflow header carries the measurements.
 
 **What remains is the predecessor's freeze**, deliberately deferred a few
 days: `ocean-data-repo` keeps publishing on its own crons as a warm
