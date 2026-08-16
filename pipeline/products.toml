@@ -169,10 +169,16 @@ writes = ["sst-oisst*.json", "ssta-oisst*.json", "sic-oisst*.json"]
 max_age_hours = 60
 
 [products.wind]
-title = "ECMWF 10 m wind and 2 m air temperature"
+# Three fields off one fetch: the 10 m wind pair, the 2 m air temperature and
+# the total cloud cover, all from one ECMWF index on one step of one run, so
+# each is a byte-range read rather than a source of its own. The script
+# degrades per field — a missing `tcc` costs the cloud alone and leaves the
+# wind and the air standing — which is why all three are named here rather
+# than trusting one to stand for the others.
+title = "ECMWF 10 m wind, 2 m air temperature and cloud cover"
 step = "wind"
-roots = ["wind.json", "air.json"]
-writes = ["wind*.json", "air*.json"]
+roots = ["wind.json", "air.json", "cloud.json"]
+writes = ["wind*.json", "air*.json", "cloud*.json"]
 max_age_hours = 13
 
 [products.waves]
