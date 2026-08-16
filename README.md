@@ -184,47 +184,79 @@ the map's own gate has the last word.
 
 ### If the site repository ever goes private
 
-**That checkout is the single thing standing between this pipeline and a
-dead stop.** It works today on anonymous read: `actions/checkout` falls back
-to this workflow's own `GITHUB_TOKEN`, which is scoped to *this* repository
-and holds no grant on the site at all. Make the site private with nothing
-else in place and the next run 404s before it has fetched anything — not one
-product going stale, every product, with no data published at all.
+**That checkout is the single thing standing between this pipeline and a dead
+stop.** It works today on anonymous read: `actions/checkout` falls back to
+this workflow's own `GITHUB_TOKEN`, which is scoped to *this* repository and
+holds no grant on the site at all. Make the site private with nothing else in
+place and the next run fails before it has fetched anything — not one product
+going stale, every product, no data published at all.
 
 The workflow already carries the plumbing, and it is **inert**:
-`token: ${{ secrets.PIPELINES_TOKEN || github.token }}`. An unset secret is
-the empty string, which is falsy, so today this is byte-for-byte the
-behaviour it always had.
+`ssh-key: ${{ secrets.PIPELINES_SSH_KEY }}`. Verified against
+`actions/checkout` at its pinned commit rather than assumed — `token`
+defaults to `${{ github.token }}`, and the auth helper branches
+`if (this.settings.sshKey) { … } else { // Configure HTTPS instead of SSH }`,
+so an unset secret is an empty string, which is falsy, and the step behaves
+exactly as it always has.
+
+**A read-only deploy key, chosen on what this step actually needs.** It reads
+one repository and writes nothing. A deploy key is scoped to a single
+repository and read-only *by construction* rather than by configuration; it
+does not expire, where a fine-grained PAT would stop this pipeline dead on
+its expiry date; and it belongs to no person, so it survives somebody leaving
+the org. A GitHub App would also clear those bars and costs more moving parts
+for capabilities not wanted here.
 
 **Do it in this order, and the order is the whole point.**
 
-1. Create a **fine-grained PAT** with **Contents: Read-only** on
-   `oceansensing/oceansensing.github.io` and no other permission or
-   repository. It checks out one repo and writes nothing.
-2. Add it as `PIPELINES_TOKEN` — a secret, on **both** this repository *and*
-   `ocean-data-repo`. Secrets do not cross repositories, and setting it only
-   here leaves the standby broken in exactly the way this section is about.
-3. **Dispatch a run and watch it go green while the site is still public.**
-   This is the step people skip and it is the only one that proves anything:
-   a token that is wrong fails here, harmlessly, with the pipeline still
-   working underneath it.
-4. Only then make the site repository private, and watch the next scheduled
+1. Generate a key pair with **no passphrase** — Actions cannot type one:
+
+   ```sh
+   ssh-keygen -t ed25519 -C "pipelines-checkout" -f pipelines_key -N ""
+   ```
+
+2. Put the **public** half (`pipelines_key.pub`) on the *site* repository:
+   Settings → Deploy keys → Add deploy key. **Leave "Allow write access"
+   unchecked** — it is the one control on that page that quietly turns a read
+   credential into a write one.
+
+3. Put the **private** half in a secret on **both** this repository *and*
+   `ocean-data-repo`, straight from the file so a multi-line key never goes
+   through a clipboard:
+
+   ```sh
+   gh secret set PIPELINES_SSH_KEY --repo oceansensing/realtime-data-repo < pipelines_key
+   gh secret set PIPELINES_SSH_KEY --repo oceansensing/ocean-data-repo < pipelines_key
+   ```
+
+   Secrets do not cross repositories, and setting it only here leaves the
+   standby broken in exactly the way this section is about. One key serves
+   both: the public half sits once on the site repository.
+
+4. `rm pipelines_key pipelines_key.pub`. Losing them costs two minutes and a
+   new pair; keeping them lying about costs more.
+
+5. **Dispatch a run and watch it go green while the site is still public.**
+   This is the step people skip and the only one that proves anything: a key
+   that is wrong fails here, harmlessly, with the pipeline still working
+   underneath it. Do the same for `ocean-data-repo` — a standby that has not
+   been shown to start is not a standby.
+
+6. Only then make the site repository private, and watch the next scheduled
    run.
 
-**A fine-grained PAT expires**, and when it does this pipeline stops dead
-until somebody renews it — the failure is loud (the job fails and the site's
-watchdog opens an issue within three hours of the data going quiet) but it is
-total. A GitHub App installation token does not expire and is the better
-long-term answer; the PAT is the cheaper one to set up. If you take the PAT,
-put its expiry in a calendar.
+**Neither half is ever committed.** The private key lives in Actions secrets,
+which is encrypted storage attached to the repository rather than content in
+the tree — never in a diff, never in the published Pages output, masked if a
+log ever echoes it. A secret in a *public* repository is still secret:
+GitHub withholds secrets from workflows triggered by pull requests from
+forks, and neither data repository has a `pull_request` or
+`pull_request_target` trigger at all. The trust boundary is people with push
+access here.
 
 If the checkout does fail, the run says so in its own words rather than
-leaving you with `actions/checkout`'s "Repository not found", which is true
-and points at the wrong thing.
-- **Unit tests**: `python3 pipeline/test_orchestrate.py` — no network, no
-  node; fake fetchers exercise every fate path. CI runs them before every
-  publish, so a broken orchestrator refuses to run rather than publishing
-  something strange.
+leaving you with `Permission denied (publickey)`, which names the mechanism
+and not the fix.
 
 ## How it compares to the predecessor, measured
 

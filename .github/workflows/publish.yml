@@ -80,42 +80,49 @@ jobs:
           repository: oceansensing/oceansensing.github.io
           ref: main
           path: site
-          # **This reads another repository, and until now it worked only
-          # because that repository is public.** With no `token:` here,
-          # `actions/checkout` uses this workflow's own `GITHUB_TOKEN`, which
-          # is scoped to *this* repository and holds no grant on the site at
-          # all — anonymous read was doing the work. The day the site repo
-          # goes private that becomes a 404 and every pipeline stops: not one
-          # product degrading to stale, all of them, nothing fetched at all.
+          # **This reads another repository, and it works today only because
+          # that repository is public.** With no credential of any kind here,
+          # `actions/checkout` falls back to this workflow's own
+          # `GITHUB_TOKEN`, which is scoped to *this* repository and holds no
+          # grant on the site at all — anonymous read is doing the work. The
+          # day the site repo goes private that becomes a 404 and every
+          # pipeline stops: not one product degrading to stale, all of them,
+          # nothing fetched at all.
           #
-          # **Inert until the secret exists.** An unset secret is the empty
-          # string, which is falsy, so `||` falls through to exactly the
-          # token this step has always used and the behavior is unchanged.
-          # That is the point: the plumbing lands and can be proved while the
-          # site is still public and the pipeline still works, rather than
-          # being tried for the first time in the same change that removes
-          # the safety net.
+          # **A read-only deploy key, and it is inert until one exists.**
+          # `ssh-key` empty is falsy inside `actions/checkout`, which then
+          # takes its token path with the default `${{ github.token }}` — so
+          # with no secret set this line changes nothing whatsoever, and the
+          # plumbing can land and be proved on a green run while the site is
+          # still public and the pipeline still works. Trying a credential
+          # for the first time in the same change that removes the safety net
+          # is how an outage gets two causes.
           #
-          # What the secret needs: a fine-grained PAT with **Contents:
-          # Read-only** on `oceansensing/oceansensing.github.io` and nothing
-          # else — this checks out one repository and writes nothing. A
-          # GitHub App installation token is the better long-term answer for
-          # one reason: a fine-grained PAT expires, and when it does this
-          # pipeline stops dead until somebody renews it. README.md carries
-          # the order of operations.
-          token: ${{ secrets.PIPELINES_TOKEN || github.token }}
+          # A deploy key over a PAT or an App, chosen on what this step
+          # actually needs: it reads exactly one repository and writes
+          # nothing. A deploy key is scoped to one repository and read-only
+          # *by construction* rather than by configuration, it does not
+          # expire — where a fine-grained PAT stops the whole pipeline dead
+          # on its expiry date — and it belongs to no person, so it survives
+          # somebody leaving the org. The public half goes on the site repo's
+          # Deploy keys page with **write access unchecked**; the private
+          # half is the secret below. Neither is ever committed. README.md
+          # carries the order of operations.
+          ssh-key: ${{ secrets.PIPELINES_SSH_KEY }}
 
-      # **The message a 404 gives is not the message anybody needs.**
-      # `actions/checkout` says "Repository not found", which is true and
-      # points at the wrong thing: the repository is fine, the token is
-      # missing or expired. Scoped to this step's own outcome rather than a
-      # bare `if: failure()`, which would attach this explanation to any
-      # earlier failure in the job and so describe the wrong fault — the
-      # label-that-names-something-else shape.
+      # **The message a failure gives is not the message anybody needs.**
+      # Over HTTPS `actions/checkout` says "Repository not found", which is
+      # true and points at the wrong thing — the repository is fine, the
+      # credential is missing; over SSH it says "Permission denied
+      # (publickey)", which names the mechanism and not the fix. Scoped to
+      # this step's own outcome rather than a bare `if: failure()`, which
+      # would attach this explanation to any earlier failure in the job and
+      # so describe the wrong fault — the label-that-names-something-else
+      # shape.
       - name: Say why the pipelines could not be checked out
         if: failure() && steps.pipelines.outcome == 'failure'
         run: |
-          echo "::error title=Cannot read the pipelines::Could not check out oceansensing/oceansensing.github.io. If that repository is private, this run needs PIPELINES_TOKEN - a fine-grained PAT with Contents: Read-only on it - set as a secret here. If the secret is already set, it has most likely expired. See README.md."
+          echo "::error title=Cannot read the pipelines::Could not check out oceansensing/oceansensing.github.io. If that repository is private, this run needs PIPELINES_SSH_KEY - the private half of a read-only deploy key whose public half is on that repository's Deploy keys page - set as a secret here. If the secret is already set, check the key was added to the site repo and not revoked. See README.md."
 
       # The last publish — the seed, the previous manifests, and the whole
       # of what a held product falls back to. Tolerated missing exactly
