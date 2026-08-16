@@ -215,10 +215,27 @@ for capabilities not wanted here.
    ssh-keygen -t ed25519 -C "pipelines-checkout" -f pipelines_key -N ""
    ```
 
-2. Put the **public** half (`pipelines_key.pub`) on the *site* repository:
-   Settings → Deploy keys → Add deploy key. **Leave "Allow write access"
-   unchecked** — it is the one control on that page that quietly turns a read
+2. Put the **public** half on the *site* repository — **before** step 3, and
+   the order is not a nicety:
+
+   ```sh
+   gh repo deploy-key add pipelines_key.pub \
+     --repo oceansensing/oceansensing.github.io --title pipelines-checkout
+   ```
+
+   `gh` adds it read-only unless you pass `--allow-write`; through the web UI
+   it is Settings → Deploy keys → Add deploy key with **"Allow write access"
+   unchecked**, the one control on that page that quietly turns a read
    credential into a write one.
+
+   **The secret in step 3 arms the SSH path the moment it exists.** This was
+   measured rather than reasoned about, on 2026-08-16: the secret went in at
+   21:00, the key at 21:03, and the 21:00 scheduled run failed in between
+   with `Permission denied (publickey)`. A non-empty `ssh-key` sends
+   `actions/checkout` down the SSH branch, so the HTTPS fallback that carries
+   this the rest of the time is not consulted — the site repository still
+   being public does not save you. Half-configured is the one state worse
+   than either end.
 
 3. Put the **private** half in a secret on **both** this repository *and*
    `ocean-data-repo`, straight from the file so a multi-line key never goes
