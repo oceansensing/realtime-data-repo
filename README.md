@@ -181,6 +181,46 @@ the map's own gate has the last word.
   [`oceansensing.github.io/scripts/`](https://github.com/oceansensing/oceansensing.github.io/tree/main/scripts)
   and are checked out at run time, pinned to `main` — one copy, one contract.
   Their reasoning lives in that repository's `CLAUDE.md` files.
+
+### If the site repository ever goes private
+
+**That checkout is the single thing standing between this pipeline and a
+dead stop.** It works today on anonymous read: `actions/checkout` falls back
+to this workflow's own `GITHUB_TOKEN`, which is scoped to *this* repository
+and holds no grant on the site at all. Make the site private with nothing
+else in place and the next run 404s before it has fetched anything — not one
+product going stale, every product, with no data published at all.
+
+The workflow already carries the plumbing, and it is **inert**:
+`token: ${{ secrets.PIPELINES_TOKEN || github.token }}`. An unset secret is
+the empty string, which is falsy, so today this is byte-for-byte the
+behaviour it always had.
+
+**Do it in this order, and the order is the whole point.**
+
+1. Create a **fine-grained PAT** with **Contents: Read-only** on
+   `oceansensing/oceansensing.github.io` and no other permission or
+   repository. It checks out one repo and writes nothing.
+2. Add it as `PIPELINES_TOKEN` — a secret, on **both** this repository *and*
+   `ocean-data-repo`. Secrets do not cross repositories, and setting it only
+   here leaves the standby broken in exactly the way this section is about.
+3. **Dispatch a run and watch it go green while the site is still public.**
+   This is the step people skip and it is the only one that proves anything:
+   a token that is wrong fails here, harmlessly, with the pipeline still
+   working underneath it.
+4. Only then make the site repository private, and watch the next scheduled
+   run.
+
+**A fine-grained PAT expires**, and when it does this pipeline stops dead
+until somebody renews it — the failure is loud (the job fails and the site's
+watchdog opens an issue within three hours of the data going quiet) but it is
+total. A GitHub App installation token does not expire and is the better
+long-term answer; the PAT is the cheaper one to set up. If you take the PAT,
+put its expiry in a calendar.
+
+If the checkout does fail, the run says so in its own words rather than
+leaving you with `actions/checkout`'s "Repository not found", which is true
+and points at the wrong thing.
 - **Unit tests**: `python3 pipeline/test_orchestrate.py` — no network, no
   node; fake fetchers exercise every fate path. CI runs them before every
   publish, so a broken orchestrator refuses to run rather than publishing
