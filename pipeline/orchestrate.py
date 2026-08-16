@@ -211,6 +211,38 @@ def tile_dir_state(dirname, grid):
     return ('ok', head.get('refTime'))
 
 
+def unadvertise_tiles(path):
+    """Drop `tileIndex` from a grid's header(s). Returns True if it changed.
+
+    **A grid must not advertise a tier the publish has just withheld.** The
+    writers bake `tileIndex` into every header, which is right when the tiles
+    go out beside it and a false claim the moment the quarantine drops them —
+    and the publish knows it is false at the instant it makes it.
+
+    Measured 2026-08-16: `currents.json` went out carrying
+    `tileIndex: /map/tiles/index.json` while both tile directories had been
+    withheld for being another hour, so every reader fetched a 404 per layer
+    per view. The map catches that and the regional grids stand, which is the
+    intended degradation and is not the problem; the doomed request is.
+
+    Both file shapes, because the currents are a list of two grids and the
+    scalars a single object — `header_of` reads the first of a list, and this
+    has to reach *all* of them or the second depth keeps advertising."""
+    try:
+        doc = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return False
+    bodies = doc if isinstance(doc, list) else [doc]
+    changed = False
+    for body in bodies:
+        if isinstance(body, dict) and isinstance(body.get('header'), dict):
+            if body['header'].pop('tileIndex', None) is not None:
+                changed = True
+    if changed:
+        path.write_text(json.dumps(doc))
+    return changed
+
+
 # --- restoring a product from the seed ---------------------------------------
 
 def restore_namespace(spec):
@@ -417,7 +449,8 @@ class Run:
             if 'tiles' not in spec:
                 continue
             tiles = spec['tiles']
-            states = {d: tile_dir_state(d, g) for d, g in tile_pairs(spec)}
+            pairs = tile_pairs(spec)
+            states = {d: tile_dir_state(d, g) for d, g in pairs}
             adrift = [d for d, (s, _) in states.items() if s != 'ok']
             bases = [d for d, g in tiles['match'] if '*' not in d]
             missing = [d for d in bases
@@ -431,20 +464,59 @@ class Run:
                 ok, detail, out, err = run_cmd(
                     tiles['build'], SITE,
                     tiles.get('timeout_minutes', 60), f'tiles:{name}')
-                log(f'--- tiles {name}: {detail}')
                 for stream in (out, err):
                     if stream.strip():
                         log(stream.rstrip())
+                # **A build is believed by what it produced, not by what it
+                # returned.** Every pipeline here degrades the same way: when
+                # its upstream is down it keeps the previous file and exits 0,
+                # so a deploy is never blocked by somebody else's outage. That
+                # is right, and it means an exit code says "I did not fail",
+                # never "the tiles are there".
+                #
+                # Measured 2026-08-16, with HYCOM returning 500s: the log read
+                # `tiles currents: building (0 adrift, 2 missing)` and then
+                # `--- tiles currents: ok`, 0.4 s apart, with both directories
+                # still missing — a sweep of 159 tiles across two depths takes
+                # minutes. Nothing was withheld, because withholding walks the
+                # directories that *exist*; nothing was recorded, because the
+                # record is built from the same walk. The publish went out
+                # advertising a tier it did not carry.
+                #
+                # So the same list that decides `missing` above decides it
+                # again afterwards. No new concept, and no new source of
+                # truth: `match` already says which directories this product
+                # owes.
+                unbuilt = [d for d in bases
+                           if header_of(STAGE / dict(tiles['match'])[d]) is not None
+                           and not (STAGE / d / 'index.json').is_file()]
+                if ok and unbuilt:
+                    ok = False
+                    detail = (f'{detail}, but produced nothing for '
+                              f'{", ".join(unbuilt)}')
+                log(f'--- tiles {name}: {detail}')
                 self.built[tiles['cache']] = ok
                 if not ok:
                     self.notes.append(f'{name}: tile build failed ({detail})')
-                states = {d: tile_dir_state(d, g) for d, g in tile_pairs(spec)}
+                # Absent is a fate worth recording, and it was the one state
+                # that left no trace. A directory that was never written
+                # cannot be withheld — there is nothing to remove — so it is
+                # named here, with its reason, exactly as an adrift one is.
+                # The light-run guard and `status.json` both read this, and a
+                # tier missing for a reason reads very differently from a tier
+                # missing for none.
+                for d in unbuilt:
+                    self.withheld.setdefault(name, {})[d] = 'build produced no tiles'
+                pairs = tile_pairs(spec)
+                states = {d: tile_dir_state(d, g) for d, g in pairs}
 
             # Whatever is still not its grid's hour leaves the publish: a
             # removal, recorded. Absent degrades to the coarse grid; adrift
             # would be wrong data with no tell.
-            self.withheld[name] = {}
-            final = {}
+            # Seeded above when a build produced nothing, so this keeps
+            # rather than clears — an absent directory has a reason too.
+            self.withheld.setdefault(name, {})
+            final = {d: 'absent' for d in self.withheld[name]}
             for d, (state, detail) in states.items():
                 if state == 'ok':
                     final[d] = 'kept' if not self.built.get(tiles['cache']) else 'fresh'
@@ -453,6 +525,22 @@ class Run:
                     self.withheld[name][d] = detail
                     final[d] = 'withheld'
                     log(f'withheld  {name}/{d}: {detail}')
+            # And the grid stops advertising what just left. Paired with the
+            # removal rather than done in `assemble`, because this is the one
+            # place that knows *which* directory went and therefore which
+            # grid was making the claim.
+            # Resolved through the pairs captured before the removal, not
+            # through `match` directly: a forecast frame's directory is
+            # `tiles-f57h` and its entry is the glob `tiles-f*h`, so a lookup
+            # by name finds nothing and the frame goes on advertising. The
+            # base directories fall back to `match`, since an absent one was
+            # never in the stage to be paired.
+            grid_of = dict(pairs)
+            for d, state in final.items():
+                if state in ('withheld', 'absent'):
+                    grid = grid_of.get(d) or dict(tiles['match']).get(d)
+                    if grid and unadvertise_tiles(STAGE / grid):
+                        log(f'unadvertised  {name}/{grid}: no {d} to point at')
             self.tile_state[name] = final
 
     # -- assembly and record ---------------------------------------------------

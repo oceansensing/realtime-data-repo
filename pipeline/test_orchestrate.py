@@ -41,7 +41,8 @@ if cmd == 'fetch-alpha':
     h = hour('alpha')
     extra = 'ghost.json' if (CTL / 'advertise-ghost').is_file() else 'alpha-extra.json'
     MAP.joinpath('alpha.json').write_text(json.dumps(
-        {'header': {'refTime': h, 'details': [{'url': '/map/' + extra}]}}))
+        {'header': {'refTime': h, 'tileIndex': '/map/atiles/index.json',
+                    'details': [{'url': '/map/' + extra}]}}))
     MAP.joinpath('alpha-extra.json').write_text(json.dumps({'header': {'refTime': h}}))
     if (CTL / 'rogue').is_file():
         MAP.joinpath('rogue.json').write_text('{}')
@@ -52,6 +53,12 @@ elif cmd == 'fetch-beta':
 elif cmd == 'tiles-alpha':
     if (CTL / 'fail-tiles').is_file():
         sys.exit(1)
+    if (CTL / 'hollow-tiles').is_file():
+        # Exits 0 having written nothing, which is what a real pipeline does
+        # when its upstream is down: keep the previous file, do not block the
+        # deploy. The orchestrator must not read that as tiles.
+        sys.stderr.write('! alpha unavailable: pretending\\n')
+        sys.exit(0)
     h = json.loads(MAP.joinpath('alpha.json').read_text())['header']['refTime']
     d = MAP / 'atiles'; d.mkdir(exist_ok=True)
     (d / 'index.json').write_text(json.dumps({'refTime': h}))
@@ -132,8 +139,11 @@ class Env:
 
         pm = orchestrate.PUBLISHED / 'map'
         pm.mkdir(parents=True)
+        # Carries `tileIndex` like the fetched one, or the carried-`updated`
+        # check below sees a header that differs and calls the product changed.
         pm.joinpath('alpha.json').write_text(json.dumps(
-            {'header': {'refTime': H0, 'details': [{'url': '/map/alpha-extra.json'}]}}))
+            {'header': {'refTime': H0, 'tileIndex': '/map/atiles/index.json',
+                        'details': [{'url': '/map/alpha-extra.json'}]}}))
         pm.joinpath('alpha-extra.json').write_text(json.dumps({'header': {'refTime': H0}}))
         pm.joinpath('beta.json').write_text(json.dumps({'header': {'refTime': H0}}))
         ps = orchestrate.PUBLISHED / 'status'
@@ -290,6 +300,96 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(manifest['tiles']['atiles']['state'], 'withheld')
         self.assertFalse(self.env.receipt()['built']['alpha-tiles'])
         self.assertTrue(self.env.receipt()['deploy'])
+
+    def test_a_build_that_produced_nothing_is_not_a_success(self):
+        """**An exit code says "I did not fail", never "the tiles are
+        there".** Measured in production 2026-08-16: the log read
+        `building (0 adrift, 2 missing)` and then `ok` 0.4 s apart, with both
+        directories still missing, and the publish went out advertising a
+        tier it did not carry. Nothing was withheld and nothing recorded,
+        because both walk the directories that exist."""
+        self.env.ctl('hollow-tiles')
+        self.assertEqual(self.env.run(), 0)
+        self.assertFalse((orchestrate.OUT / 'map' / 'atiles').exists())
+        # The cache must not be saved off a build that produced nothing, or
+        # the key hits for ever and the gap can never refill — the
+        # incomplete-artifact trap this repository already has a note about.
+        self.assertFalse(self.env.receipt()['built']['alpha-tiles'])
+        self.assertTrue(any('produced nothing' in n
+                            for n in self.env.receipt()['notes']))
+        # And the absence is on the record with its reason, which is the half
+        # that had no trace at all: a directory never written cannot be
+        # withheld, so it has to be named rather than inferred.
+        manifest = json.loads(
+            (orchestrate.OUT / 'status' / 'alpha.json').read_text())
+        self.assertEqual(manifest['tiles']['atiles']['state'], 'absent')
+        self.assertEqual(manifest['tiles']['atiles']['reason'],
+                         'build produced no tiles')
+
+    def test_a_withheld_tier_stops_being_advertised(self):
+        """**A grid must not point at a tier the publish has just dropped.**
+        Measured in production 2026-08-16: `currents.json` went out carrying
+        `tileIndex: /map/tiles/index.json` with both directories withheld for
+        being another hour, so every reader fetched a 404 per layer per view.
+        The map catches it and the coarse grids stand — that fallback is
+        right and is not the problem; the doomed request is."""
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('hour-beta', H1)
+        self.env.ctl('fail-tiles')
+        orchestrate.cmd_seed(self.env.cfg)
+        tiles = orchestrate.STAGE / 'atiles'
+        tiles.mkdir()
+        (tiles / 'index.json').write_text(json.dumps({'refTime': H0}))
+        self.assertEqual(orchestrate.cmd_run(self.env.cfg), 0)
+        head = json.loads(
+            (orchestrate.OUT / 'map' / 'alpha.json').read_text())['header']
+        self.assertNotIn('tileIndex', head)
+        # Everything else about the grid survives: this drops one claim, not
+        # the header it lives in.
+        self.assertIn('details', head)
+        self.assertEqual(head['refTime'], H1)
+
+    def test_a_kept_tier_is_still_advertised(self):
+        """The positive control, and the reason it is not optional: a change
+        that stripped `tileIndex` unconditionally would satisfy the check
+        above and quietly cost every reader the fine tier on a healthy run."""
+        self.assertEqual(self.env.run(), 0)
+        head = json.loads(
+            (orchestrate.OUT / 'map' / 'alpha.json').read_text())['header']
+        self.assertEqual(head.get('tileIndex'), '/map/atiles/index.json')
+        self.assertTrue(
+            (orchestrate.OUT / 'map' / 'atiles' / 'index.json').is_file())
+
+    def test_unadvertising_reaches_every_grid_in_the_file(self):
+        """**The currents are a list of two grids, and the integration
+        fixture is a single object.** So the shape where this fails — the
+        second depth keeping a `tileIndex` the first just lost — cannot be
+        exhibited there at all: planting "only touch `doc[0]`" leaves every
+        test above green. A pure function on a file is cheap to ask
+        directly, so it is asked directly."""
+        path = orchestrate.STAGE / 'pair.json'
+        path.write_text(json.dumps([
+            {'header': {'refTime': H0, 'tileIndex': '/map/t/index.json'}},
+            {'header': {'refTime': H0, 'tileIndex': '/map/t/index.json'}},
+        ]))
+        self.assertTrue(orchestrate.unadvertise_tiles(path))
+        for body in json.loads(path.read_text()):
+            self.assertNotIn('tileIndex', body['header'])
+
+        one = orchestrate.STAGE / 'one.json'
+        one.write_text(json.dumps({'header': {'refTime': H0,
+                                              'tileIndex': '/map/t/index.json'}}))
+        self.assertTrue(orchestrate.unadvertise_tiles(one))
+        self.assertNotIn('tileIndex',
+                         json.loads(one.read_text())['header'])
+
+        # Nothing to drop is not a change — the caller logs on the return
+        # value, and a grid that never advertised must not report that it
+        # stopped.
+        self.assertFalse(orchestrate.unadvertise_tiles(one))
+        # An unreadable file is not a crash: the publish has bigger problems
+        # and this is not the place to raise them.
+        self.assertFalse(orchestrate.unadvertise_tiles(orchestrate.STAGE / 'nope.json'))
 
     def test_roots_disagreement_refuses_to_run(self):
         self.env.ctl('roots-short')

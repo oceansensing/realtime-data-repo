@@ -123,6 +123,31 @@ write means the restore logic can no longer reason about the stage.
   the full log: those words are a check's failure line, and the fault is in
   the seeded data, not the declaration.
 
+- **A build reported `ok` having produced nothing, and the record showed
+  no trace of it.** 2026-08-16, with HYCOM returning 500s: the log read
+  `tiles currents: building (0 adrift, 2 missing)` and then
+  `--- tiles currents: ok`, 0.4 s apart, with both directories still
+  missing — a sweep of 159 tiles across two depths takes minutes. Every
+  pipeline here degrades by keeping the previous file and exiting 0, which
+  is right and means **an exit code says "I did not fail", never "the
+  tiles are there"**. Nothing was withheld and nothing recorded, because
+  both walk the directories that *exist* and an absent one is in neither.
+  `settle_tiles` re-reads the same `match` list afterwards, demotes a build
+  that produced nothing, and records the absence with its reason — so the
+  cache is not saved off it, which is what stops the incomplete-artifact
+  trap this repository already has a note about.
+- **A grid advertised a tier the publish had just withheld.** The same
+  outage: `currents.json` went out carrying `tileIndex` while both tile
+  directories had been dropped for being another hour, so every reader
+  fetched a 404 per layer per view. The map catches it and the coarse grids
+  stand — that fallback is right and is not the fault; the doomed request
+  is. The withdrawal rewrites the header now, in the same place that
+  removes the directory, because that is the only place that knows which
+  grid was making the claim. Two shapes matter and one of them the
+  integration fixture cannot show: the currents are a *list* of two grids,
+  so touching only `doc[0]` leaves the second depth advertising, and it
+  takes a direct test of `unadvertise_tiles` to catch it.
+
 The unit suite's load-bearing checks — the write fence, the tile-drift
 check, the held-product restore — are mutation-tested: plant the fault,
 watch the suite go red, restore from git. Commit before running anything
