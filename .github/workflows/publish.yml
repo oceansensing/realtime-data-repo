@@ -80,23 +80,30 @@ jobs:
           repository: oceansensing/oceansensing.github.io
           ref: main
           path: site
-          # **This reads another repository, and it works today only because
-          # that repository is public.** With no credential of any kind here,
-          # `actions/checkout` falls back to this workflow's own
-          # `GITHUB_TOKEN`, which is scoped to *this* repository and holds no
-          # grant on the site at all — anonymous read is doing the work. The
-          # day the site repo goes private that becomes a 404 and every
-          # pipeline stops: not one product degrading to stale, all of them,
-          # nothing fetched at all.
+          # **This reads another repository, and the deploy key below is the
+          # only reason it can.** The site repository went private on
+          # 2026-08-17. With no credential here `actions/checkout` falls back
+          # to this workflow's own `GITHUB_TOKEN`, which is scoped to *this*
+          # repository and holds no grant on the site at all — so that path
+          # is now a 404, and it would take down not one product but every
+          # one of them, nothing fetched at all.
           #
-          # **A read-only deploy key, and it is inert until one exists.**
-          # `ssh-key` empty is falsy inside `actions/checkout`, which then
-          # takes its token path with the default `${{ github.token }}` — so
-          # with no secret set this line changes nothing whatsoever, and the
-          # plumbing can land and be proved on a green run while the site is
-          # still public and the pipeline still works. Trying a credential
-          # for the first time in the same change that removes the safety net
-          # is how an outage gets two causes.
+          # **It was proved before it was needed, which is why the switch was
+          # uneventful.** `ssh-key` empty is falsy inside `actions/checkout`,
+          # which then takes its token path — so the line was landed and run
+          # green while the site was still public and anonymous read was
+          # doing the work, and only then was the secret set. Trying a
+          # credential for the first time in the same change that removes the
+          # safety net is how an outage gets two causes. Verified again on
+          # the day itself: a dispatched run checked the private repository
+          # out and published end to end.
+          #
+          # The hazard the order has to respect is that the secret **arms**
+          # this path the moment it exists — a non-empty `ssh-key` sends
+          # `actions/checkout` down SSH and the HTTPS fallback is not
+          # consulted — so the key must be on the site repo before the secret
+          # is set here. Measured the hard way: secret at 21:00, key at
+          # 21:03, and the 21:00 scheduled run failed in between.
           #
           # A deploy key over a PAT or an App, chosen on what this step
           # actually needs: it reads exactly one repository and writes
