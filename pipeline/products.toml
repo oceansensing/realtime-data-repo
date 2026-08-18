@@ -120,6 +120,24 @@ roots = ["gtmba.json"]
 writes = ["gtmba.json"]
 max_age_hours = 4
 
+# The US academic research fleet, on the assets step like the stations above.
+# Two upstreams behind one product: R2R's registry decides which call signs
+# are research vessels and OSMC's GTS feed says where they are, so the
+# collector keeps the previous file if either is unreadable — a thinner fleet
+# would be indistinguishable from ships being in port.
+#
+# **Declaring it here is not paperwork.** `run` compares every product's
+# roots against `test-schema.mjs --roots` and exits 2 on any disagreement, so
+# a file added to the contract and not to this table stops the whole publish:
+# measured 2026-08-18, three consecutive runs failed with `ROOTS ships.json:
+# in the contract, declared by no product` before this block existed.
+[products.ships]
+title = "US academic research fleet"
+step = "assets"
+roots = ["ships.json"]
+writes = ["ships.json"]
+max_age_hours = 4
+
 [products.currents]
 title = "Surface and 60 m currents (ESPC)"
 step = "currents"

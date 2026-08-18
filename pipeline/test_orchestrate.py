@@ -404,7 +404,13 @@ class OrchestrateTests(unittest.TestCase):
         finally:
             os.environ.pop('GITHUB_OUTPUT', None)
         text = out.read_text()
-        self.assertIn('cache-key-alpha-tiles=alpha-tiles-v1-kA\n', text)
+        # Derived from the constant, never a literal: the version is bumped
+        # whenever what the tiles contain changes, and an assertion carrying
+        # its own copy has to be hand-edited every time — which is an
+        # assertion that will eventually be edited to match a mistake. What
+        # this is about is the *composition*: cache name, version, probe key.
+        self.assertIn(
+            f'cache-key-alpha-tiles=alpha-tiles-{orchestrate.CACHE_VERSION}-kA\n', text)
         self.assertIn('site/public/map/atiles', text)
         plan = json.loads(orchestrate.PLAN_FILE.read_text())
         self.assertEqual(plan['products']['alpha']['tile_key'], 'kA')
