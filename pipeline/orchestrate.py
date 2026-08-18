@@ -43,7 +43,7 @@ OUT = ROOT / 'out'                   # the candidate tree Pages deploys
 BRANCH = ROOT / 'branch-out'         # what the next `published` commit holds
 PLAN_FILE = ROOT / 'plan.json'
 
-CACHE_VERSION = 'v1'  # bump alongside any change to what the tiles contain
+CACHE_VERSION = 'v2'  # bump alongside any change to what the tiles contain
 
 
 def utcnow():
