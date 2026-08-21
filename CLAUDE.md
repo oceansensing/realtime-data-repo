@@ -174,6 +174,33 @@ change still lands on both pipelines' next runs. The measured
 old-versus-new ledger is in the README under "How it compares to the
 predecessor".
 
+## The tile encoding changes, reader first
+
+Landed on the site 2026-08-20: `header.unitScale` says what one unit in a
+grid's `data` is worth, absent meaning 1. **Nothing here writes one yet**, and
+the ordering is deliberate rather than incidental.
+
+This repository checks out `oceansensing.github.io@main` and runs its
+pipelines three times an hour. The *site* deploys every six hours. So a change
+to `scripts/fetch-currents.py` reaches production within twenty minutes while
+the map that reads it can be six hours behind — and a grid written as integer
+millimeters per second, read by a map that does not know it, draws the ocean
+at a thousand times speed.
+
+The reader shipped first for that reason, and it costs nothing meanwhile:
+every file this repository publishes today carries no scale and decodes to
+itself. When the writer half lands, the currents will publish integers with
+`unitScale: 0.001` — finer than the `round(v, 2)` they use now (2% of the wet
+surface field currently lands on exactly zero, drawn as still water) and about
+18% smaller.
+
+**What to watch on the run after that lands**: `test-schema.mjs` holds a
+declared scale to a negative power of ten and to integers under it, so a
+half-converted writer fails the publish rather than shipping. The thing it
+cannot see is a *value* fault — the gate for quantization has to read
+distinct-value counts and the exact-zero share, because a byte-count check
+would call a collapsed field a win.
+
 ## Coming: ESPC leaves this repository
 
 Planned 2026-08-20 in the site repository's `PLAN.md`, to be built next
