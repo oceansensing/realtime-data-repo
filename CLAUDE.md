@@ -176,9 +176,10 @@ predecessor".
 
 ## The tile encoding changes, reader first
 
-Landed on the site 2026-08-20: `header.unitScale` says what one unit in a
-grid's `data` is worth, absent meaning 1. **Nothing here writes one yet**, and
-the ordering is deliberate rather than incidental.
+Reader on the site 2026-08-20, writer 2026-08-21: `header.unitScale` says
+what one unit in a grid's `data` is worth, absent meaning 1. **The currents
+this repository publishes now carry `unitScale: 0.001`** — integer millimeters
+per second. The ordering was deliberate rather than incidental.
 
 This repository checks out `oceansensing.github.io@main` and runs its
 pipelines three times an hour. The *site* deploys every six hours. So a change
@@ -187,19 +188,35 @@ the map that reads it can be six hours behind — and a grid written as integer
 millimeters per second, read by a map that does not know it, draws the ocean
 at a thousand times speed.
 
-The reader shipped first for that reason, and it costs nothing meanwhile:
-every file this repository publishes today carries no scale and decodes to
-itself. When the writer half lands, the currents will publish integers with
-`unitScale: 0.001` — finer than the `round(v, 2)` they use now (2% of the wet
-surface field currently lands on exactly zero, drawn as still water) and about
-18% smaller.
+The reader shipped first for that reason, and the writer followed once the
+served page reported the reader's own commit.
 
-**What to watch on the run after that lands**: `test-schema.mjs` holds a
-declared scale to a negative power of ten and to integers under it, so a
-half-converted writer fails the publish rather than shipping. The thing it
-cannot see is a *value* fault — the gate for quantization has to read
-distinct-value counts and the exact-zero share, because a byte-count check
-would call a collapsed field a win.
+Measured on the first real run: the global grid went from 322 distinct values
+to 2,111, from 2.47% of the wet field landing on exactly zero to 0.241%, and
+from 684 KB to 565. The four regions came in 17-20% smaller.
+
+**Both formats appear in one tree and that is the normal state.** The first
+run after the writer landed degraded a forecast frame on a 500 from HYCOM and
+kept the previous file, so new millimeter grids published beside an old
+two-decimal one. Nothing coordinates them because nothing has to: the scale
+rides in each file's own header.
+
+**What the contract gate catches.** `test-schema.mjs` holds a declared scale
+to a negative power of ten and to integers under it, and holds the *values*
+to their declared step by their greatest common divisor — 1 for a field
+genuinely quantized there, exactly the ratio for one rounded through a
+coarser step. That last one is the important one: a writer that rounds to two
+decimals and then scales by a thousand publishes valid integers under a valid
+scale in a *smaller* file, so a byte count would call it a win. A FAIL naming
+a file demotes its product to the previous version here, which is the right
+outcome.
+
+**And the gate's reach was an eighth of what it looked like.** Its vector half
+picked files from a hardcoded list of the three *global* grids, so every
+regional grid and every forecast frame this repository publishes was
+unchecked — 26 of 30 currents files. It is derived from the tree now: 3 files
+checked became 31. Worth knowing here because it means the contract gate has
+been quieter than it appeared for as long as regional grids have existed.
 
 ## Coming: ESPC leaves this repository
 
