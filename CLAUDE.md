@@ -173,3 +173,34 @@ readable record and a restartable fallback. Until then a fetch-script
 change still lands on both pipelines' next runs. The measured
 old-versus-new ledger is in the README under "How it compares to the
 predecessor".
+
+## Coming: ESPC leaves this repository
+
+Planned 2026-08-20 in the site repository's `PLAN.md`, to be built next
+session. Recorded here because it is most of what this repository currently
+carries and the change will be felt here first.
+
+**ESPC is 91% of the published tree** — 114 MB of committed grids and 505 MB
+of CI-built tiles, against 59 MB of everything else. It moves to
+`espc-model-repo`, a public repository of its own, taking the currents and the
+four Navy field products with it. What is left here is the observing
+platforms, the storms, the buoys, the tides, the arrays, the vessels, the
+sondes and the OISST fields: about 59 MB.
+
+Two new products go to the new repository rather than this one: currents
+**depth-integrated down to 200 m and down to 1000 m**, at the full 1/12° and
+two frames each.
+
+**And the tile encoding changes with the move** — integer millimeters per
+second rather than decimal m/s, applied to the existing tiles as well as the
+new ones. Shorter and ten times more precise at once, because the decimal
+point and leading zero carry nothing. That is what makes the whole set fit
+one cap: 670 MB against the 987 the current encoding would need.
+
+Nothing about `products.toml`'s shape changes, but this repository's own
+product list shrinks, and the **cross-repository contract gains a third
+side**: `test-schema.mjs --roots` in the site repository has to agree with two
+`products.toml` files rather than one. That agreement check already exits 2 on
+disagreement and has stopped the publish before; a third side is the main risk
+in the move.
+
