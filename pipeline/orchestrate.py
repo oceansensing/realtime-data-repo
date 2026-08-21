@@ -169,13 +169,29 @@ def stamp_of(product_spec):
     runs, so unrelated products would collide. Hardcoding the ESPC product
     list is the shape this repository has an entry about.
 
-    `(None, None, None)` for products whose files carry no header at all.
+    **`hours` is every hour the product publishes, not just the base**, and
+    that distinction was found by running the check against live data. The
+    rule is not "one model, one hour" — the currents publish two frames and
+    their *base* file is deliberately the earlier of them, so a temperature
+    at the later frame's hour is correct and a check comparing single hours
+    calls it a fault. `test-schema.mjs` has always read the frame list; a
+    manifest carrying only the base cannot express the same rule, and a
+    consumer that tried would be a simplified copy disagreeing with the
+    original — which is what happened, on the first comparison it ever made.
+
+    `(None, None, None, [])` for products whose files carry no header at all.
     """
     for root in product_spec['roots']:
         head = header_of(STAGE / root)
         if head and head.get('refTime'):
-            return head['refTime'], head.get('modelRun'), head.get('source')
-    return None, None, None
+            hours = [head['refTime']] + [
+                f['valid'] for f in (head.get('forecast') or [])
+                if isinstance(f, dict) and f.get('valid')
+            ]
+            # Ordered, deduplicated: the base is usually the first frame too.
+            seen = list(dict.fromkeys(hours))
+            return head['refTime'], head.get('modelRun'), head.get('source'), seen
+    return None, None, None, []
 
 
 def hour_of(product_spec):
@@ -689,7 +705,7 @@ class Run:
 
         for name, spec in self.products.items():
             prev = previous_manifest(name)
-            hour, run, source = stamp_of(spec)
+            hour, run, source, hours = stamp_of(spec)
             fresh = self.fate[name] == 'fresh'
             files = {}
             for f in sorted(STAGE.iterdir()):
@@ -711,6 +727,7 @@ class Run:
                 'hour': hour,
                 'modelRun': run,
                 'source': source,
+                'hours': hours,
                 'files': files,
             }
             if 'tiles' in spec:
@@ -739,6 +756,7 @@ class Run:
                 'hour': manifest['hour'],
                 'modelRun': manifest['modelRun'],
                 'source': manifest['source'],
+                'hours': manifest['hours'],
                 'stale': bool(
                     age_limit and manifest['updated']
                     and hours_since(manifest['updated']) > age_limit),
