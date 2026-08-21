@@ -153,6 +153,46 @@ check, the held-product restore — are mutation-tested: plant the fault,
 watch the suite go red, restore from git. Commit before running anything
 that rewrites the tree.
 
+## A published root the pipeline stops writing is never removed
+
+Measured 2026-08-21, when the site's deep current layer moved from 60 m to
+50 m. The tile directories went with it; **the grids did not**, and the
+difference says exactly where the gap is.
+
+Tiles are paired to their grid in `products.toml` under `tiles.match`, so
+dropping `["tiles-60m", "currents-60m.json"]` from that list dropped the
+directory. Grids have no such pairing. `orchestrate.py seed` fills the stage
+from the last publish, each step writes into it, and a file no step writes
+any more is simply carried — every run, forever.
+
+Left behind: **32 files, 43.8 MB** — four regional grids and each of their
+seven forecast frames — frozen at the hour of the last run that wrote them
+and still served. Deleted by hand from `published` once the site was
+confirmed to request none of them.
+
+**Nothing catches it, and the reasons are worth knowing separately:**
+
+- `--roots` and `products.toml` agree, because the file stopped being a root
+  on both sides at once. The contract is about what *must* be published, not
+  about what must not.
+- The ESPC hour-agreement rule reads a hardcoded product list, so a grid that
+  leaves the list also leaves the check — the very grid most likely to go
+  stale is the one that stops being looked at.
+- `max_age_hours` is per *product*, and the product is fresh. Its abandoned
+  files are not the product.
+
+So the file ages with nothing measuring it. The only reason this one was
+found is that a person went looking after a rename.
+
+**This is the move's largest risk, not a footnote.** `espc-model-repo` takes
+a whole product set out of this repository — on today's behavior every grid
+it takes stays here too, frozen and still served, which is 619 MB against the
+1 GB cap that is the entire reason for moving. A prune has to exist before
+the move, and the hard part is not the pruning: it is that a *partially
+failed* step must never be read as "the product no longer writes these", or
+the first flaky upstream deletes real data. That is the two-correct-components
+shape this repository already has an entry about.
+
 ## How a run starts, and why a push does not
 
 Three crons and `workflow_dispatch`. **No push trigger**, dropped 2026-08-21
