@@ -246,6 +246,35 @@ failed* step must never be read as "the product no longer writes these", or
 the first flaky upstream deletes real data. That is the two-correct-components
 shape this repository already has an entry about.
 
+## The engine is not the tree
+
+`PIPELINE_ROOT` overrides where the orchestrator operates, defaulting to the
+parent of its own file — so this repository behaves exactly as it always has
+and nothing about it moved.
+
+It exists so a **second data repository runs this orchestrator without owning
+a copy of it**. `espc-model-repo` checks this repository out as its engine and
+points the variable at its own workspace, which is the arrangement both
+repositories already have with the site repository for the fetch scripts: the
+code lives once, the schedule and the storage live per repository.
+
+The alternative was copying 988 lines into every new data repository. That is
+the shape this project has an entry about — a fault would have to be found
+twice and fixed twice, or fixed once and left in the other — and three faults
+were found in this file in a single day.
+
+**`products.toml` follows the root, not the file**, and that is the whole
+point rather than a detail. Each repository declares its own products; an
+engine reading its neighbour's declaration would assemble and publish the
+wrong repository's tree.
+
+The test for it runs in a **subprocess with the variable actually set**, and
+the first version did not: it asserted the paths hang off `ROOT` using the
+already-imported module, where `PIPELINE_ROOT` is unset and `ROOT` is the
+file's own parent — so a constant hardcoded straight back to
+`Path(__file__).parent.parent` satisfied it exactly and the mutation walked
+through. A value read at import can only be tested by a fresh import.
+
 ## How a run starts, and why a push does not
 
 Three crons and `workflow_dispatch`. **No push trigger**, dropped 2026-08-21

@@ -35,7 +35,25 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+# **The tree this operates on, which is not necessarily the one it lives in.**
+#
+# `PIPELINE_ROOT` exists so a second data repository can run this orchestrator
+# without owning a copy of it. `espc-model-repo` checks this repository out as
+# its engine and points the variable at its own workspace, exactly as both
+# repositories already check out the site repository for the fetchers — the
+# code lives once, the schedule and the storage live per repository.
+#
+# The alternative was copying 988 lines into every new data repository, which
+# is the shape this project has an entry about: a fix would have to be made
+# twice or not at all, and three faults were found in this file in one day.
+#
+# It defaults to the parent of this file, so a repository holding its own
+# copy — this one — behaves exactly as before and nothing about it moved.
+#
+# **`products.toml` follows the root, not the file.** That is the whole point:
+# each repository declares its own products, and an engine reading its own
+# neighbor's declaration would publish the wrong repository's tree.
+ROOT = Path(os.environ.get('PIPELINE_ROOT') or Path(__file__).resolve().parent.parent)
 SITE = ROOT / 'site'                 # checkout of oceansensing.github.io
 STAGE = SITE / 'public' / 'map'      # where the fetchers read and write
 PUBLISHED = ROOT / 'published'       # checkout of the `published` branch

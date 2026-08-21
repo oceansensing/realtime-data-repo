@@ -12,6 +12,7 @@ import io
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import tomllib
@@ -418,6 +419,38 @@ class OrchestrateTests(unittest.TestCase):
         st = self.env.status()
         self.assertEqual(st['products']['alpha']['fate'], 'held')
         self.assertEqual(st['products']['alpha']['roots'], ['alpha.json'])
+
+    # -- the engine is not the tree ------------------------------------------
+
+    def test_the_root_can_be_pointed_elsewhere(self):
+        """`PIPELINE_ROOT` is what lets a second data repository run this
+        orchestrator without owning a copy of it — the engine checked out from
+        here, the products and the storage its own.
+
+        **In a subprocess with the variable actually set**, and the first
+        version of this was vacuous for want of that. It asserted that every
+        path hangs off `ROOT` using the already-imported module — where
+        `PIPELINE_ROOT` is unset, so `ROOT` is the file's own parent and a
+        constant hardcoded back to `Path(__file__).parent.parent` satisfies it
+        exactly. The mutation walked through. Read at import means the only
+        honest test is a fresh import under the variable.
+
+        An engine reading its neighbour's `products.toml` would publish the
+        wrong repository's tree, which is the failure this exists to make
+        impossible rather than merely unlikely."""
+        probe = (
+            'import sys, orchestrate as o;'
+            'paths = [o.SITE, o.PUBLISHED, o.OUT, o.BRANCH, o.PLAN_FILE,'
+            ' o.ROOT / "pipeline" / "products.toml"];'
+            'bad = [str(p) for p in paths if not str(p).startswith(str(o.ROOT))];'
+            'print(o.ROOT); print("|".join(bad))'
+        )
+        env = dict(os.environ, PIPELINE_ROOT='/tmp/pipeline-root-probe',
+                   PYTHONPATH=str(Path(orchestrate.__file__).parent))
+        out = subprocess.run([sys.executable, '-c', probe], capture_output=True,
+                             text=True, env=env, check=True).stdout.splitlines()
+        self.assertEqual(out[0], '/tmp/pipeline-root-probe')
+        self.assertEqual(out[1], '', f'paths that ignore PIPELINE_ROOT: {out[1]}')
 
     def test_contract_still_failing_stops_the_deploy(self):
         self.env.ctl('contract-fails', 'FAIL  alpha.json: permanently bad\n')
