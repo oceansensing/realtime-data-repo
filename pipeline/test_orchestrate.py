@@ -51,6 +51,7 @@ if cmd == 'fetch-alpha':
     extra = 'ghost.json' if (CTL / 'advertise-ghost').is_file() else 'alpha-extra.json'
     MAP.joinpath('alpha.json').write_text(json.dumps(
         {'header': {'refTime': h, 'modelRun': hour('alpha-run', '2025-12-31T12:00:00Z'),
+                    'source': 'Fake Model A',
                     'tileIndex': '/map/atiles/index.json',
                     'details': [{'url': '/map/' + extra}]}}))
     MAP.joinpath('alpha-extra.json').write_text(json.dumps({'header': {'refTime': h}}))
@@ -170,6 +171,7 @@ class Env:
         # not the other reads as content that changed.
         pm.joinpath('alpha.json').write_text(json.dumps(
             {'header': {'refTime': H0, 'modelRun': '2025-12-31T12:00:00Z',
+                        'source': 'Fake Model A',
                         'tileIndex': '/map/atiles/index.json',
                         'details': [{'url': '/map/alpha-extra.json'}]}}))
         pm.joinpath('alpha-extra.json').write_text(json.dumps({'header': {'refTime': H0}}))
@@ -401,6 +403,9 @@ class OrchestrateTests(unittest.TestCase):
         # this guards — reading the run from a different root than the hour —
         # would produce on a header that has none.
         self.assertEqual(alpha['modelRun'], '2025-12-31T12:00:00Z')
+        # And the model's name, which is what lets a consumer tell which
+        # products are one model without a hardcoded list of them.
+        self.assertEqual(alpha['source'], 'Fake Model A')
 
     def test_a_held_product_still_says_where_its_roots_are(self):
         """Routing and health have to agree, which is why they are one

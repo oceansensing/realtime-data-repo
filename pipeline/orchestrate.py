@@ -151,7 +151,7 @@ def closure(roots):
 
 
 def stamp_of(product_spec):
-    """The model hour and run a product currently presents, as a pair.
+    """The model hour, run and source a product currently presents.
 
     **One function because they are one reading.** Taken separately, the hour
     could come from the first root carrying a `refTime` and the run from a
@@ -161,13 +161,21 @@ def stamp_of(product_spec):
     is upstream lag and only a note, and answering those from different files
     would make the distinction meaningless.
 
-    `(None, None)` for products whose files carry no header at all.
+    **`source` is here because the hour rule cannot be applied without it.**
+    Holding one model's products to one hour across origins means knowing
+    which products are one model, and the manifest is all a consumer has. The
+    alternatives were both bad: grouping by the run is circular, since the run
+    is half of what is being compared, and ECMWF and ESPC both publish 12Z
+    runs, so unrelated products would collide. Hardcoding the ESPC product
+    list is the shape this repository has an entry about.
+
+    `(None, None, None)` for products whose files carry no header at all.
     """
     for root in product_spec['roots']:
         head = header_of(STAGE / root)
         if head and head.get('refTime'):
-            return head['refTime'], head.get('modelRun')
-    return None, None
+            return head['refTime'], head.get('modelRun'), head.get('source')
+    return None, None, None
 
 
 def hour_of(product_spec):
@@ -681,7 +689,7 @@ class Run:
 
         for name, spec in self.products.items():
             prev = previous_manifest(name)
-            hour, run = stamp_of(spec)
+            hour, run, source = stamp_of(spec)
             fresh = self.fate[name] == 'fresh'
             files = {}
             for f in sorted(STAGE.iterdir()):
@@ -702,6 +710,7 @@ class Run:
                 'updated': now if changed_here else prev.get('updated'),
                 'hour': hour,
                 'modelRun': run,
+                'source': source,
                 'files': files,
             }
             if 'tiles' in spec:
@@ -729,6 +738,7 @@ class Run:
                 'updated': manifest['updated'],
                 'hour': manifest['hour'],
                 'modelRun': manifest['modelRun'],
+                'source': manifest['source'],
                 'stale': bool(
                     age_limit and manifest['updated']
                     and hours_since(manifest['updated']) > age_limit),
