@@ -153,9 +153,9 @@ writes = ["sondes.json"]
 max_age_hours = 2
 
 [products.currents]
-title = "Surface and 60 m currents (ESPC)"
+title = "Surface and 50 m currents (ESPC)"
 step = "currents"
-roots = ["currents.json", "currents-60m.json"]
+roots = ["currents.json", "currents-50m.json"]
 writes = ["currents*.json"]
 max_age_hours = 9
 
@@ -168,9 +168,9 @@ cache = "currents-tiles"
 # their lead, and the lead moves with the run's lateness.
 match = [
   ["tiles", "currents.json"],
-  ["tiles-60m", "currents-60m.json"],
+  ["tiles-50m", "currents-50m.json"],
   ["tiles-f*h", "currents-f*h.json"],
-  ["tiles-60m-f*h", "currents-60m-f*h.json"],
+  ["tiles-50m-f*h", "currents-50m-f*h.json"],
 ]
 
 [products.fields-navy]
