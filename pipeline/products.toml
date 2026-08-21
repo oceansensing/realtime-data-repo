@@ -196,20 +196,64 @@ match = [
   ["tiles-50m-f*h", "currents-50m-f*h.json"],
 ]
 
+# **Two products off the Navy fields, not one, and the split is what makes
+# the ESPC move a declaration rather than a rewrite.** The temperature and
+# salinity go to `espc-model-repo`; the ice stays here, deliberately, as a
+# live test that moving one product between repositories is cheap. Until
+# that happens both are fetched by the one `fields` step, exactly as before —
+# only the ownership changed, which is the point: a product is the unit that
+# is fetched, aged, held and *moved*, and the ice could not move alone while
+# it shared a block with the temperature.
+#
+# `sit-navy` travels with `sic-navy` (the owner's call). They are one
+# quantity to a reader — the ice edge and how thick it is — and a run that
+# published concentration without thickness would draw a map nobody asked
+# for.
+#
+# Each names its own `--only`, and the three owners between them must name
+# every file the fields script publishes: `test:probes` on the site asserts
+# exactly that, as set equality against the unselected answer, so a product
+# added to the script fails there until it is given an owner. A file owned by
+# nobody is written by nobody, carried by the seed for ever, and served
+# frozen — the 43.8 MB shape.
 [products.fields-navy]
-title = "Navy ESPC temperature, salinity and ice"
+title = "Navy ESPC temperature and salinity"
 step = "fields"
-roots = ["sst-navy.json", "sss-navy.json", "sic-navy.json", "sit-navy.json"]
-writes = ["sst-navy*.json", "sss-navy*.json", "sic-navy*.json", "sit-navy*.json"]
+roots = ["sst-navy.json", "sss-navy.json"]
+writes = ["sst-navy*.json", "sss-navy*.json"]
 max_age_hours = 9
+namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=sst-navy,sss-navy"]
 
 [products.fields-navy.tiles]
-build = ["python3", "scripts/fetch-ocean-fields.py", "--tiles"]
-key = ["python3", "scripts/fetch-ocean-fields.py", "--tile-key"]
+build = ["python3", "scripts/fetch-ocean-fields.py", "--tiles", "--only=sst-navy,sss-navy"]
+key = ["python3", "scripts/fetch-ocean-fields.py", "--tile-key", "--only=sst-navy,sss-navy"]
 cache = "field-tiles"
 match = [
   ["tiles-sst-navy", "sst-navy.json"],
   ["tiles-sss-navy", "sss-navy.json"],
+]
+
+[products.ice-navy]
+title = "Navy ESPC sea ice concentration and thickness"
+step = "fields"
+roots = ["sic-navy.json", "sit-navy.json"]
+writes = ["sic-navy*.json", "sit-navy*.json"]
+max_age_hours = 9
+namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=sic-navy,sit-navy"]
+
+# **Its own cache, and it has to be.** `plan` writes one
+# `cache-key-<cache>` per product, so two products sharing a name would
+# write that output twice and the workflow would read whichever came last —
+# a key describing half of what the cache holds, which is the
+# incomplete-artifact-under-a-complete-key fault that cannot heal by
+# itself. A new cache name needs a **Restore** and a **Save** step in the
+# workflow; `plan` says so out loud when one has neither, because a cache
+# nothing restores is invisible — the tiles are simply rebuilt every run.
+[products.ice-navy.tiles]
+build = ["python3", "scripts/fetch-ocean-fields.py", "--tiles", "--only=sic-navy,sit-navy"]
+key = ["python3", "scripts/fetch-ocean-fields.py", "--tile-key", "--only=sic-navy,sit-navy"]
+cache = "ice-tiles"
+match = [
   ["tiles-sic-navy", "sic-navy.json"],
   ["tiles-sit-navy", "sit-navy.json"],
 ]
@@ -219,6 +263,7 @@ title = "NOAA OISST temperature, anomaly and ice"
 step = "fields"
 roots = ["sst-oisst.json", "ssta-oisst.json", "sic-oisst.json"]
 writes = ["sst-oisst*.json", "ssta-oisst*.json", "sic-oisst*.json"]
+namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=oisst"]
 # A daily analysis that lands mid-morning UTC and describes yesterday:
 # two days of quiet is routine, three is not.
 max_age_hours = 60

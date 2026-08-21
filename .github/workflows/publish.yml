@@ -225,6 +225,20 @@ jobs:
           key: ${{ steps.plan.outputs.cache-key-field-tiles }}
           restore-keys: ${{ steps.mode.outputs.mode == 'light' && steps.plan.outputs.cache-prefix-field-tiles || '' }}
 
+      # **One Restore and one Save per `cache` name in products.toml, and
+      # this pair is the list a new product silently escapes.** The
+      # orchestrator emits `cache-key-<name>` for every product that declares
+      # tiles; nothing here loops, because a matrix would need separate jobs.
+      # So `plan` names any cache with neither step, which is the only tell
+      # there would be — a cache nothing restores is not an error, it is
+      # tiles rebuilt from scratch every run, and the output is correct.
+      - name: Restore ice tiles
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.plan.outputs.cache-paths-ice-tiles }}
+          key: ${{ steps.plan.outputs.cache-key-ice-tiles }}
+          restore-keys: ${{ steps.mode.outputs.mode == 'light' && steps.plan.outputs.cache-prefix-ice-tiles || '' }}
+
       # For the consumer's contract check, which the orchestrator runs
       # itself over the assembled tree.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -248,6 +262,13 @@ jobs:
         with:
           path: ${{ steps.plan.outputs.cache-paths-field-tiles }}
           key: ${{ steps.plan.outputs.cache-key-field-tiles }}
+
+      - name: Save ice tiles
+        if: steps.run.outputs.built-ice-tiles == 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.plan.outputs.cache-paths-ice-tiles }}
+          key: ${{ steps.plan.outputs.cache-key-ice-tiles }}
 
       - name: Upload the site
         if: steps.run.outputs.deploy == 'true'

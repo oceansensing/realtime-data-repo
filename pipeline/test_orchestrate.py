@@ -595,6 +595,15 @@ class OrchestrateTests(unittest.TestCase):
         # and this is not the place to raise them.
         self.assertFalse(orchestrate.unadvertise_tiles(orchestrate.STAGE / 'nope.json'))
 
+    @contextlib.contextmanager
+    def capture(self):
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                yield buf
+        finally:
+            sys.stdout.write(buf.getvalue())
+
     def test_roots_disagreement_refuses_to_run(self):
         self.env.ctl('roots-short')
         orchestrate.cmd_seed(self.env.cfg)
@@ -624,6 +633,37 @@ class OrchestrateTests(unittest.TestCase):
         self.env.ctl('roots-garbage')
         self.assertEqual(self.env.run(), 2)
         self.assertIn('did not answer with a root list', self.env.log())
+
+    # -- the cache a workflow forgets to read ---------------------------------
+
+    def _workflow(self, body):
+        d = orchestrate.ROOT / '.github' / 'workflows'
+        d.mkdir(parents=True, exist_ok=True)
+        (d / 'publish.yml').write_text(body)
+
+    def test_a_cache_no_workflow_step_reads_is_named(self):
+        """The hardcoded-list shape in YAML: `plan` emits one key per product
+        with tiles, and the Restore/Save pair is written by hand. A product
+        bringing a new cache gets no caching at all, silently — the tiles are
+        rebuilt every run and the output is correct."""
+        self._workflow('steps:\n  - name: Restore something else\n')
+        with self.capture() as log:
+            self.assertEqual(orchestrate.cmd_plan(self.env.cfg, 'full'), 0)
+        self.assertIn('nothing reads cache-key-alpha-tiles', log.getvalue())
+
+    def test_a_cache_a_workflow_step_does_read_is_not_named(self):
+        self._workflow('steps:\n  - key: ${{ steps.plan.outputs.cache-key-alpha-tiles }}\n')
+        with self.capture() as log:
+            self.assertEqual(orchestrate.cmd_plan(self.env.cfg, 'full'), 0)
+        self.assertNotIn('nothing reads', log.getvalue())
+
+    def test_no_workflows_at_all_is_not_evidence_of_a_missing_step(self):
+        """Unreadable is a different claim from absent. A checkout with no
+        workflows would otherwise have every cache reported, which is the
+        check measuring its own reach rather than its subject."""
+        with self.capture() as log:
+            self.assertEqual(orchestrate.cmd_plan(self.env.cfg, 'full'), 0)
+        self.assertNotIn('nothing reads', log.getvalue())
 
     def test_plan_writes_keys_from_stdout_only(self):
         out = Path(self.env.tmp) / 'gh-output'

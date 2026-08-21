@@ -358,6 +358,42 @@ def cmd_seed(cfg):
     return 0
 
 
+def caches_without_a_consumer(caches):
+    """Declared tile caches that no workflow step in this repository reads.
+
+    **The hardcoded-list shape, in YAML, where nothing can derive it away.**
+    `cmd_plan` emits `cache-key-<name>` for every product declaring tiles;
+    the workflow needs one `actions/cache/restore` and one
+    `actions/cache/save` per name, written out by hand because a matrix
+    would need separate jobs. So a product that brings a new cache gets no
+    caching at all until somebody remembers two steps — and that failure is
+    **invisible**: the tiles are simply rebuilt from scratch every run and
+    the published output is correct.
+
+    Reported rather than fatal, and the severity is why. A roots mismatch
+    publishes a tree the map cannot read; this publishes the right tree
+    slowly. A gate that stops a publish over minutes is one that gets
+    switched off.
+
+    Read from ROOT, not from beside this file: the orchestrator is checked
+    out as an engine by other repositories, and it is *their* workflow that
+    has to carry the steps.
+    """
+    d = ROOT / '.github' / 'workflows'
+    text = ''
+    for f in sorted(d.glob('*.yml')) + sorted(d.glob('*.yaml')):
+        try:
+            text += f.read_text()
+        except OSError:
+            pass
+    # No workflows readable at all is not evidence of a missing step — it is
+    # this check being unable to see, which is a different claim. Say
+    # nothing rather than name every cache.
+    if not text:
+        return []
+    return [c for c in caches if f'cache-key-{c}' not in text]
+
+
 def cmd_plan(cfg, mode):
     plan = {'schema': 1, 'generated': utcnow(), 'mode': mode, 'products': {}}
     for name, spec in cfg['products'].items():
@@ -382,6 +418,10 @@ def cmd_plan(cfg, mode):
         paths = '\n'.join(f'site/public/map/{d}' for d, _ in tiles['match'])
         gh_output(f'cache-paths-{tiles["cache"]}', paths)
         log(f'plan: {name} -> {cache_key}')
+    for cache in caches_without_a_consumer(
+            [s['tiles']['cache'] for s in cfg['products'].values() if 'tiles' in s]):
+        log(f'plan: nothing reads cache-key-{cache} — this workflow has no'
+            f' Restore/Save pair for it, so those tiles rebuild every run')
     PLAN_FILE.write_text(json.dumps(plan, indent=1))
     gh_output('mode', mode)
     return 0
