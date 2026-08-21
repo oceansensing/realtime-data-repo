@@ -153,6 +153,36 @@ check, the held-product restore — are mutation-tested: plant the fault,
 watch the suite go red, restore from git. Commit before running anything
 that rewrites the tree.
 
+## How a run starts, and why a push does not
+
+Three crons and `workflow_dispatch`. **No push trigger**, dropped 2026-08-21
+after measuring what one cost.
+
+It had run `full`, because the mode selector treats anything that is not the
+light cron string as full — deliberately, since "a light run that was meant
+to be full publishes an hour-old ocean with nothing saying so". The effect
+was that a push changing one markdown file started a complete fetch of every
+product: **56 minutes against a light run's 5**, and with
+`concurrency: publish` and `cancel-in-progress: false` a new run cannot
+cancel the one in flight, it queues — so each arrival cancelled the
+previously queued one. Three consecutive scheduled runs were cancelled and
+nothing published between 03:16 and 04:28, on a schedule that promises three
+an hour. The map's staleness note needs three hours, so nothing said so.
+
+**Making a push run *light* was the other candidate and is worse for the case
+that matters.** A push here is usually a change to a fetcher or to the
+orchestrator, and a light run performs one of the five steps — you would be
+watching a run that did not do the thing you changed, which defeats the
+deploy-and-watch habit rather than serving it.
+
+So: **push freely, then dispatch when there is something to watch.**
+`gh workflow run publish.yml` defaults to full for the same safe-direction
+reason. Nothing is lost by waiting either way — the next scheduled run picks
+up an unpushed change within about twenty minutes.
+
+The site repository reached the same arrangement from the other side, where
+`[skip ci]` keeps a push from deploying and a scheduled run carries it.
+
 ## Cutover, when it comes
 
 Cutover happened on 2026-08-14: `MAP_DATA` in the site's `src/config.ts`
