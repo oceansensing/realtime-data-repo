@@ -97,9 +97,18 @@ elif cmd == 'ns-alpha':
     if not (CTL / 'ns-drops-extra').is_file():
         print('alpha-extra.json')
 elif cmd == 'roots':
+    # The exact shape the real failure had: a per-file check printing before
+    # the flag's branch, so the caller reads a sentence as a list of files.
+    if (CTL / 'roots-garbage').is_file():
+        print('FAIL storm heading should be a number, got null')
+        sys.exit(0)
     print('alpha.json')
     if not (CTL / 'roots-short').is_file():
         print('beta.json')
+    # A root this repository declares no product for, which is what every
+    # root looks like once another origin owns it.
+    if (CTL / 'roots-extra').is_file():
+        print('gamma.json')
 '''
 
 TEST_TOML = '''
@@ -590,6 +599,31 @@ class OrchestrateTests(unittest.TestCase):
         self.env.ctl('roots-short')
         orchestrate.cmd_seed(self.env.cfg)
         self.assertEqual(orchestrate.cmd_run(self.env.cfg), 2)
+
+    def test_a_root_another_origin_owns_is_not_this_run_s_problem(self):
+        """The relaxation, and the reason for it.
+
+        This used to exit 2, which was right while one repository published
+        the whole contract and is wrong the moment a second one does: the
+        root belongs to somebody else's products.toml, which this run cannot
+        see. Failing here would stop this repository's publish over a gap in
+        another's. The union check lives in the site's `check:docs` now.
+        """
+        self.env.ctl('roots-extra')
+        self.assertEqual(self.env.run(), 0)
+        self.assertIn('2 of 3 declared here', self.env.log())
+        self.assertIn('1 belong to other origins', self.env.log())
+
+    def test_a_contract_that_answers_with_prose_is_refused(self):
+        """The positive control on the interface.
+
+        Without it the one-directional comparison reads a failure message's
+        own words as the contract and reports every declared root as unknown
+        — naming this repository as the fault when the fault is over there.
+        """
+        self.env.ctl('roots-garbage')
+        self.assertEqual(self.env.run(), 2)
+        self.assertIn('did not answer with a root list', self.env.log())
 
     def test_plan_writes_keys_from_stdout_only(self):
         out = Path(self.env.tmp) / 'gh-output'

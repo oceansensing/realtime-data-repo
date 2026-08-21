@@ -15,9 +15,16 @@
 
 [contract]
 # The consumer's own gate, run over the assembled tree from the site
-# checkout. `roots` must print exactly the union of every product's roots
-# below; the orchestrator refuses to run on a mismatch, which is what keeps
-# this file and schema.ts from drifting apart.
+# checkout. `roots` prints every file the map reads, from **every** origin —
+# so this repository's products declare a *subset* of it, and the orchestrator
+# refuses to run on a root declared here that the contract does not publish.
+#
+# It does not fail on the other direction, and that is the split: a contract
+# root no product here declares belongs to another origin's products.toml,
+# which this run cannot see. The union — every root owned by exactly one
+# origin — is checked by `check:docs` in the site repository, which reads
+# MAP_ORIGINS and every origin's declarations at once. Failing here instead
+# would stop this repository's publish over a gap in another's.
 check = ["node", "scripts/test-schema.mjs"]
 roots = ["node", "scripts/test-schema.mjs", "--roots"]
 
@@ -126,11 +133,16 @@ max_age_hours = 4
 # collector keeps the previous file if either is unreadable — a thinner fleet
 # would be indistinguishable from ships being in port.
 #
-# **Declaring it here is not paperwork.** `run` compares every product's
-# roots against `test-schema.mjs --roots` and exits 2 on any disagreement, so
-# a file added to the contract and not to this table stops the whole publish:
-# measured 2026-08-18, three consecutive runs failed with `ROOTS ships.json:
-# in the contract, declared by no product` before this block existed.
+# **Declaring it here is not paperwork**, and this block is why the check
+# that enforces it moved. `run` used to compare every product's roots against
+# `test-schema.mjs --roots` in both directions and exit 2 on any
+# disagreement, so a file added to the contract and not to this table stopped
+# the whole publish: measured 2026-08-18, three consecutive runs failed with
+# `ROOTS ships.json: in the contract, declared by no product` before this
+# block existed. That was right while one repository published the whole
+# contract and became wrong the moment a second one did — the same message
+# would now fire on every root ESPC took with it. The gap is still caught,
+# by `check:docs` on the site, where the whole picture is.
 [products.ships]
 title = "US academic research fleet"
 step = "assets"

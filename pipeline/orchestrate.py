@@ -866,6 +866,11 @@ class Run:
                     return
 
 
+# A published root is a bare lowercase filename. Used only as a positive
+# control on the contract's own answer — see cmd_run.
+ROOT_NAME = re.compile(r'^[a-z0-9-]+\.json$')
+
+
 def cmd_run(cfg):
     if not PLAN_FILE.is_file():
         log('run: no plan.json — run `orchestrate.py plan` first')
@@ -880,12 +885,46 @@ def cmd_run(cfg):
         log(f'run: cannot read the contract roots ({detail})')
         return 2
     contract_roots = set(out.split())
-    if declared != contract_roots:
-        for extra in sorted(declared - contract_roots):
-            log(f'ROOTS  {extra}: declared here, unknown to the contract')
-        for missing in sorted(contract_roots - declared):
-            log(f'ROOTS  {missing}: in the contract, declared by no product')
+    # **A positive control on the interface, before believing a word of it.**
+    # `--roots` once answered mid-file, after the per-file checks, so a
+    # failing check printed a FAIL line and this parser read that line's own
+    # words as root names — `FAIL`, `storm`, `should`, `be`, `a`, `number,`.
+    # The site fixed its half by answering before any real work can print;
+    # this is the other half, so a caller can never again mistake an error
+    # message for a contract. It matters more now that the comparison below
+    # is one-directional: a garbage answer would otherwise report every
+    # declared root as unknown, which names the wrong subject entirely.
+    if not contract_roots or not all(ROOT_NAME.match(n) for n in contract_roots):
+        shown = ' '.join(sorted(contract_roots)[:4])
+        log(f'run: the contract roots did not answer with a root list ({shown}…)')
         return 2
+    stray = sorted(declared - contract_roots)
+    if stray:
+        for extra in stray:
+            log(f'ROOTS  {extra}: declared here, unknown to the contract')
+        return 2
+    # **The other direction is not this repository's question any more.**
+    # With several origins publishing into one contract, a root this
+    # repository does not declare is the ordinary case — it belongs to
+    # another origin's products.toml, which this run cannot see and should
+    # not have to fetch. Failing on it would stop *this* repository's
+    # publish over a gap in *another* one's.
+    #
+    # The check has not been dropped, it has moved to the only place with a
+    # global view: `check:docs` in the site repository reads every origin in
+    # MAP_ORIGINS and holds their declarations against `--roots` in both
+    # directions at once, so a root nobody fetches still fails, and before a
+    # push rather than after it. The measured cost of getting this wrong is
+    # the reason it is worth saying twice: one undeclared root cost three
+    # consecutive failed runs and two hours with nothing published at all.
+    #
+    # The count is logged because a run should say what it is *not*
+    # covering. A repository that suddenly declares far fewer roots than it
+    # used to has had something taken from it, and the number is the tell.
+    elsewhere = len(contract_roots - declared)
+    if elsewhere:
+        log(f'roots: {len(declared)} of {len(contract_roots)} declared here;'
+            f' {elsewhere} belong to other origins')
 
     # The record is written last, after the gate and the guard have had
     # their say: a receipt describing what the run intended rather than what
