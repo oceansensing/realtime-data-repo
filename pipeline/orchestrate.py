@@ -61,7 +61,28 @@ OUT = ROOT / 'out'                   # the candidate tree Pages deploys
 BRANCH = ROOT / 'branch-out'         # what the next `published` commit holds
 PLAN_FILE = ROOT / 'plan.json'
 
-CACHE_VERSION = 'v2'  # bump alongside any change to what the tiles contain
+# Bump alongside any change to what the tiles *contain* — a format change is
+# exactly when yesterday's tiles under today's refTime would fool the content
+# check.
+#
+# **And a change to the tile *paths* orphans every existing entry whether this
+# is bumped or not**, which is worth knowing before reading a miss as a bug.
+# `actions/cache` computes a version of its own from the `path` inputs, and
+# only matches entries with the same one — so the restore-keys prefix, which
+# looks like a safety net, does not reach across a path change either.
+# Measured 2026-08-21, splitting the Navy fields into two products: the
+# `field-tiles` match list went from four tile directories to two, and the
+# next light run reported `Cache not found for input keys:
+# field-tiles-v2-…, field-tiles-v2-` against an entry with exactly that
+# prefix sitting in the cache. The currents restored from an exact key in the
+# same run, which is the control — their paths did not move.
+#
+# So a `tiles.match` edit costs one cold rebuild, and the light-gap guard
+# turns that into a withheld deploy for one cycle. That is the guard being
+# right; the thing to do is expect it, not to widen the guard. Bumping this
+# does not prevent the miss — it makes it legible, which is the whole reason
+# to bump on the way in rather than to explain it afterwards.
+CACHE_VERSION = 'v2'
 
 
 def utcnow():
