@@ -183,6 +183,24 @@ come from one root and the run from another, two facts about two files
 reported as one product's stamp, and the distinction the hour rule turns on
 would be meaningless.
 
+**Two more fields arrived after the shape was agreed**, and both were forced
+by building the consumer rather than chosen:
+
+- **`source`** — holding one model's products to one hour means knowing which
+  products are one model. Grouping by the run is circular, and ECMWF and ESPC
+  both publish 12Z runs, so unrelated products would collide. Hardcoding the
+  ESPC list is the shape this repository has an entry about.
+- **`hours`** — every hour a product publishes, not only its base. The rule is
+  not "one model, one hour": the currents publish two frames and their base
+  file is deliberately the earlier one, so a temperature at the later frame's
+  hour is correct. A consumer given only the base compared single hours and
+  reported that correct pairing as a fault on its very first comparison
+  against live data. A simplified second copy of a rule disagreeing with the
+  original — met by writing one.
+
+`stamp_of` reads all four from one header, for the reason the first two are
+one reading: a product's stamp must not be assembled from different files.
+
 **Bumping to 2 breaks nothing**, which is worth stating rather than assuming:
 the map reads `fate` and `stale` and never looks at the version. A consumer
 that wants to route treats a missing `roots` as "the default origin owns it",
