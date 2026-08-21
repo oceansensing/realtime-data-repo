@@ -153,6 +153,41 @@ check, the held-product restore — are mutation-tested: plant the fault,
 watch the suite go red, restore from git. Commit before running anything
 that rewrites the tree.
 
+## What `status/status.json` is for, and why it is one document
+
+It began as a health statement and is the **routing document** as well since
+schema 2 (2026-08-21). Each product entry now carries:
+
+- **`roots`** — the files this origin serves. A consumer reads one document
+  per origin and learns where every root lives, so moving a product between
+  repositories costs nothing on the consumer's side.
+- **`modelRun`** beside the existing `hour` — the pair the cross-origin hour
+  rule compares. Same run with a different hour is this repository's own
+  fault; a different run is upstream lag and only a note.
+
+**One document rather than two, and the argument is not brevity.** Routing
+and health have to agree: a *held* product is still served — its previous
+files are published — so a consumer still needs to know which origin has
+them. Two documents can disagree about which products exist; one cannot. It
+is also already fetched by the map, and already a projection of
+`products.toml` written in the process that reads it, rather than a second
+list to keep in step.
+
+**`origin` is deliberately absent.** The consumer knows where it fetched the
+document from. Restating it would be a copy that can drift, which is the
+shape this repository keeps paying for.
+
+**The hour and the run are one reading**, taken from the first root that
+carries a header — `stamp_of`, not two functions. Separately, the hour could
+come from one root and the run from another, two facts about two files
+reported as one product's stamp, and the distinction the hour rule turns on
+would be meaningless.
+
+**Bumping to 2 breaks nothing**, which is worth stating rather than assuming:
+the map reads `fate` and `stale` and never looks at the version. A consumer
+that wants to route treats a missing `roots` as "the default origin owns it",
+which is what lets a reader land before any origin publishes the new shape.
+
 ## A published root the pipeline stops writing is never removed
 
 Measured 2026-08-21, when the site's deep current layer moved from 60 m to

@@ -150,14 +150,29 @@ def closure(roots):
     return seen
 
 
-def hour_of(product_spec):
-    """The model hour a product currently presents, from its first root that
-    carries a header. None for products whose files have none."""
+def stamp_of(product_spec):
+    """The model hour and run a product currently presents, as a pair.
+
+    **One function because they are one reading.** Taken separately, the hour
+    could come from the first root carrying a `refTime` and the run from a
+    different root carrying a `modelRun` — two facts about two files,
+    reported as one product's stamp. The pair is what the cross-origin hour
+    rule compares: same run and a different hour is a fault, a different run
+    is upstream lag and only a note, and answering those from different files
+    would make the distinction meaningless.
+
+    `(None, None)` for products whose files carry no header at all.
+    """
     for root in product_spec['roots']:
         head = header_of(STAGE / root)
         if head and head.get('refTime'):
-            return head['refTime']
-    return None
+            return head['refTime'], head.get('modelRun')
+    return None, None
+
+
+def hour_of(product_spec):
+    """Just the hour. Kept for the callers that only want it."""
+    return stamp_of(product_spec)[0]
 
 
 # --- tile directories, matched to the grids they must agree with ------------
@@ -644,8 +659,14 @@ class Run:
 
     def write_record(self):
         now = utcnow()
+        # **schema 2 adds `roots` and `modelRun` to each product**, and the
+        # bump is honest rather than defensive: consumers that read neither
+        # are unaffected, and the map is one of them — it reads `fate` and
+        # `stale` and never looks at the version. A consumer wanting to route
+        # treats a missing `roots` as "the default origin owns it", which is
+        # what lets a reader land before any origin publishes the new shape.
         status = {
-            'schema': 1, 'generated': now, 'mode': self.mode,
+            'schema': 2, 'generated': now, 'mode': self.mode,
             'run': {
                 'id': os.environ.get('GITHUB_RUN_ID', ''),
                 'url': (f"{os.environ.get('GITHUB_SERVER_URL', '')}/"
@@ -660,6 +681,7 @@ class Run:
 
         for name, spec in self.products.items():
             prev = previous_manifest(name)
+            hour, run = stamp_of(spec)
             fresh = self.fate[name] == 'fresh'
             files = {}
             for f in sorted(STAGE.iterdir()):
@@ -678,7 +700,8 @@ class Run:
                 'reason': self.reason.get(name),
                 'checked': now if fresh else prev.get('checked'),
                 'updated': now if changed_here else prev.get('updated'),
-                'hour': hour_of(spec),
+                'hour': hour,
+                'modelRun': run,
                 'files': files,
             }
             if 'tiles' in spec:
@@ -692,11 +715,20 @@ class Run:
             age_limit = spec.get('max_age_hours')
             status['products'][name] = {
                 'title': spec['title'],
+                # **Which files this origin serves.** The routing half of the
+                # N-repository contract: a consumer reads one document per
+                # origin and learns where every root lives, so moving a
+                # product between repositories costs no configuration in the
+                # consumer at all. A projection of `products.toml`, written
+                # in the same process that reads it, rather than a second
+                # list to keep in step.
+                'roots': list(spec['roots']),
                 'fate': self.fate[name],
                 'reason': self.reason.get(name),
                 'checked': manifest['checked'],
                 'updated': manifest['updated'],
                 'hour': manifest['hour'],
+                'modelRun': manifest['modelRun'],
                 'stale': bool(
                     age_limit and manifest['updated']
                     and hours_since(manifest['updated']) > age_limit),

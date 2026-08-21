@@ -50,7 +50,8 @@ if cmd == 'fetch-alpha':
     h = hour('alpha')
     extra = 'ghost.json' if (CTL / 'advertise-ghost').is_file() else 'alpha-extra.json'
     MAP.joinpath('alpha.json').write_text(json.dumps(
-        {'header': {'refTime': h, 'tileIndex': '/map/atiles/index.json',
+        {'header': {'refTime': h, 'modelRun': hour('alpha-run', '2025-12-31T12:00:00Z'),
+                    'tileIndex': '/map/atiles/index.json',
                     'details': [{'url': '/map/' + extra}]}}))
     MAP.joinpath('alpha-extra.json').write_text(json.dumps({'header': {'refTime': h}}))
     if (CTL / 'rogue').is_file():
@@ -163,8 +164,13 @@ class Env:
         pm.mkdir(parents=True)
         # Carries `tileIndex` like the fetched one, or the carried-`updated`
         # check below sees a header that differs and calls the product changed.
+        # `modelRun` here too, byte-identical to what the fake tool writes:
+        # `test_checked_advances_while_updated_carries` turns on the fetched
+        # bytes matching the last publish exactly, so a field added to one and
+        # not the other reads as content that changed.
         pm.joinpath('alpha.json').write_text(json.dumps(
-            {'header': {'refTime': H0, 'tileIndex': '/map/atiles/index.json',
+            {'header': {'refTime': H0, 'modelRun': '2025-12-31T12:00:00Z',
+                        'tileIndex': '/map/atiles/index.json',
                         'details': [{'url': '/map/alpha-extra.json'}]}}))
         pm.joinpath('alpha-extra.json').write_text(json.dumps({'header': {'refTime': H0}}))
         pm.joinpath('beta.json').write_text(json.dumps({'header': {'refTime': H0}}))
@@ -369,6 +375,44 @@ class OrchestrateTests(unittest.TestCase):
             self.env.run()                            # but the step writes -extra
         self.assertEqual(caught.exception.code, 3)
         self.assertIn('outside its own declared namespace', self.env.log())
+
+    # -- the routing half of the N-repository contract -----------------------
+
+    def test_status_names_the_roots_each_product_serves(self):
+        """One document per origin tells a consumer where every root lives,
+        which is what makes moving a product between repositories cost no
+        configuration in the consumer."""
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['schema'], 2)
+        self.assertEqual(st['products']['alpha']['roots'], ['alpha.json'])
+        self.assertEqual(st['products']['beta']['roots'], ['beta.json'])
+
+    def test_the_hour_and_the_run_are_one_reading(self):
+        """The cross-origin hour rule needs both: same run with a different
+        hour is a fault, a different run is upstream lag and only a note. Read
+        from one header, so the pair cannot describe two different files."""
+        self.env.ctl('hour-alpha', H1)
+        self.assertEqual(self.env.run(), 0)
+        alpha = self.env.status()['products']['alpha']
+        self.assertEqual(alpha['hour'], H1)
+        # The value, not merely the key. Asserting presence passed against a
+        # `modelRun` that was always None, which is exactly what the fault
+        # this guards — reading the run from a different root than the hour —
+        # would produce on a header that has none.
+        self.assertEqual(alpha['modelRun'], '2025-12-31T12:00:00Z')
+
+    def test_a_held_product_still_says_where_its_roots_are(self):
+        """Routing and health have to agree, which is why they are one
+        document. A held product is still served — its previous files are
+        published — so a consumer still needs to know which origin has
+        them."""
+        self.assertEqual(self.env.run(), 0)
+        self.env.ctl('fail-alpha')
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'held')
+        self.assertEqual(st['products']['alpha']['roots'], ['alpha.json'])
 
     def test_contract_still_failing_stops_the_deploy(self):
         self.env.ctl('contract-fails', 'FAIL  alpha.json: permanently bad\n')
