@@ -7,6 +7,8 @@ group, tile withholding, the demote loop and the light run's floor.
 Run with:  python3 pipeline/test_orchestrate.py
 """
 
+import contextlib
+import io
 import json
 import os
 import shutil
@@ -38,6 +40,13 @@ def hour(name, default='2026-01-01T00:00:00Z'):
 if cmd == 'fetch-alpha':
     if (CTL / 'fail-alpha').is_file():
         sys.exit(1)
+    if (CTL / 'hollow-alpha').is_file():
+        # Exit 0 having written nothing, which is what fetch-currents.py does
+        # when HYCOM is down: keep the previous files, do not block the
+        # deploy. The product stays *fresh*, so this is the case a
+        # write-based prune would read as "owns nothing any more".
+        sys.stderr.write('! alpha unavailable: keeping the previous fields\\n')
+        sys.exit(0)
     h = hour('alpha')
     extra = 'ghost.json' if (CTL / 'advertise-ghost').is_file() else 'alpha-extra.json'
     MAP.joinpath('alpha.json').write_text(json.dumps(
@@ -73,6 +82,17 @@ elif cmd == 'contract':
             fails.unlink()
         sys.exit(1)
     print('ok  everything holds')
+elif cmd == 'ns-alpha':
+    if (CTL / 'ns-fails').is_file():
+        sys.stderr.write('! namespace unavailable\\n')
+        sys.exit(1)
+    if (CTL / 'ns-empty').is_file():
+        sys.exit(0)
+    print('alpha.json')
+    # Dropping this is how a real rename looks: the pipeline stops naming a
+    # file it used to write, and the stage goes on carrying it.
+    if not (CTL / 'ns-drops-extra').is_file():
+        print('alpha-extra.json')
 elif cmd == 'roots':
     print('alpha.json')
     if not (CTL / 'roots-short').is_file():
@@ -102,6 +122,8 @@ step = "alpha"
 roots = ["alpha.json"]
 writes = ["alpha*.json"]
 max_age_hours = 4
+
+namespace = ["python3", "fake_tool.py", "ns-alpha"]
 
 [products.alpha.tiles]
 build = ["python3", "fake_tool.py", "tiles-alpha"]
@@ -164,8 +186,24 @@ class Env:
         (orchestrate.SITE / 'ctl' / name).write_text(content)
 
     def run(self):
+        """One full cycle, with the log captured. `log()` reads what this run
+        printed — the survey below reports rather than acts, so its output is
+        the only thing there is to assert on."""
         orchestrate.cmd_seed(self.cfg)
-        return orchestrate.cmd_run(self.cfg)
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                return orchestrate.cmd_run(self.cfg)
+        finally:
+            # `finally`, because the write fence leaves by raising SystemExit
+            # and the log is the only evidence of *why* — captured in the
+            # happy path only, a fenced run would report an empty log and the
+            # check asserting the reason could never fail.
+            self._log = buf.getvalue()
+            sys.stdout.write(self._log)
+
+    def log(self):
+        return getattr(self, '_log', '')
 
     def status(self):
         return json.loads((orchestrate.OUT / 'status' / 'status.json').read_text())
@@ -256,6 +294,81 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(self.env.out_hour('alpha.json'), H0)
         self.assertEqual(self.env.out_hour('beta.json'), H1)
         self.assertTrue(self.env.receipt()['deploy'])
+
+    # -- the namespace survey ------------------------------------------------
+
+    def test_a_file_the_pipeline_stopped_naming_is_reported(self):
+        """The 60 m grids' shape: carried by the seed, named by nobody."""
+        self.assertEqual(self.env.run(), 0)          # publishes alpha-extra.json
+        self.env.ctl('ns-drops-extra')
+        self.assertEqual(self.env.run(), 0)
+        self.assertIn('ABANDONED  alpha-extra.json', self.env.log())
+
+    def test_and_reports_only(self):
+        """Nothing is removed yet, on purpose. This is the first version of a
+        thing that will delete published data on a schedule."""
+        self.assertEqual(self.env.run(), 0)
+        self.env.ctl('ns-drops-extra')
+        self.assertEqual(self.env.run(), 0)
+        self.assertTrue((orchestrate.OUT / 'map' / 'alpha-extra.json').is_file())
+
+    def test_a_degrading_step_reports_nothing(self):
+        """**The case a write-based rule would get catastrophically wrong.**
+        `fetch-currents.py` keeps the previous files and exits 0 when HYCOM is
+        down, so a degrading run writes nothing at all and the product stays
+        *fresh*. Its namespace has not moved — what it *would* write is a
+        property of its constants, not of the upstream — so nothing is
+        abandoned. Pruning on "what did it write" would delete the product."""
+        self.assertEqual(self.env.run(), 0)
+        self.env.ctl('hollow-alpha')
+        self.assertEqual(self.env.run(), 0)
+        self.assertEqual(self.env.status()['products']['alpha']['fate'], 'fresh')
+        self.assertNotIn('ABANDONED', self.env.log())
+        self.assertTrue((orchestrate.OUT / 'map' / 'alpha-extra.json').is_file())
+
+    def test_a_held_product_is_not_surveyed(self):
+        """Held and carried share one branch — anything but `fresh` is a
+        product whose own pipeline did not speak this run, so its namespace is
+        not its own to judge."""
+        self.assertEqual(self.env.run(), 0)
+        self.env.ctl('fail-alpha')
+        self.env.ctl('ns-drops-extra')
+        self.assertEqual(self.env.run(), 0)
+        self.assertEqual(self.env.status()['products']['alpha']['fate'], 'held')
+        self.assertNotIn('ABANDONED', self.env.log())
+
+    def test_a_failed_probe_surveys_nothing(self):
+        """An answer that did not arrive is not an empty namespace — the
+        conflation `collect_erddap` and the tropical outlook were fixed for."""
+        self.assertEqual(self.env.run(), 0)
+        self.env.ctl('ns-fails')
+        self.env.ctl('ns-drops-extra')
+        self.assertEqual(self.env.run(), 0)
+        self.assertNotIn('ABANDONED', self.env.log())
+        self.assertIn('probe failed', self.env.log())
+
+    def test_an_empty_answer_surveys_nothing_either(self):
+        self.assertEqual(self.env.run(), 0)
+        self.env.ctl('ns-empty')
+        self.assertEqual(self.env.run(), 0)
+        self.assertNotIn('ABANDONED', self.env.log())
+
+    def test_writing_outside_the_declared_namespace_stops_the_run(self):
+        """Not abandonment: the writer and the declaration disagree, and
+        neither can be trusted to say which is right.
+
+        The hour has to move for this to bite, and that is worth knowing
+        rather than working around. `changed` is content-based, so a step
+        rewriting identical bytes registers as having written nothing — the
+        existing write fence has the same property. A file carried unchanged
+        is an *abandonment*; the same file rewritten with new content is a
+        fence."""
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('ns-drops-extra')                # names alpha.json only
+        with self.assertRaises(SystemExit) as caught:
+            self.env.run()                            # but the step writes -extra
+        self.assertEqual(caught.exception.code, 3)
+        self.assertIn('outside its own declared namespace', self.env.log())
 
     def test_contract_still_failing_stops_the_deploy(self):
         self.env.ctl('contract-fails', 'FAIL  alpha.json: permanently bad\n')

@@ -418,6 +418,77 @@ class Run:
         restore_namespace(self.products[name])
         log(f'held  {name}: {why}')
 
+    # -- what a product no longer owns ---------------------------------------
+
+    def survey_namespaces(self):
+        """Report staged files a fresh product's own pipeline no longer names.
+
+        **The stage is seeded from the last publish, so a file no step writes
+        any more is carried for ever.** Measured 2026-08-21 on the site's
+        60 m to 50 m rename: the tile directories went, because `tiles.match`
+        pairs a directory to its grid; the grids stayed, 32 files and 43.8 MB,
+        frozen and still served. Nothing caught it — `--roots` and
+        `products.toml` agree once a file stops being a root on both sides,
+        the ESPC hour rule reads a hardcoded product list, and
+        `max_age_hours` is per product while the product is fresh.
+
+        **Intent, not outcome.** The obvious rule is "prune what the step did
+        not write this run", and it would be catastrophic: `fetch-currents.py`
+        keeps the previous files and exits 0 when HYCOM is down, so a
+        degrading run writes nothing and the rule would delete the product.
+        A product declares a `namespace` command instead — a set of glob
+        patterns derived from its own constants, answered without the network
+        so a bad afternoon cannot look like an empty namespace.
+
+        **Reporting only, deliberately, and this is the first version of a
+        thing that will eventually delete published data at 3 a.m. on a
+        flaky upstream.** It names what it would drop and drops nothing. Arm
+        it once real runs have shown it naming the right files and only
+        those; the failure it must never have is the one this repository has
+        already paid for three times, where two correct components leave a
+        state that reads as deliberate and was an accident.
+
+        Two answers are kept apart on purpose. A probe that **fails** is
+        reported and prunes nothing — an absent answer is not an empty
+        namespace, which is the conflation `collect_erddap` and the tropical
+        outlook were both fixed for. And a file the step **wrote this run**
+        that matches no pattern is a *fault*, not an abandonment: the
+        pipeline is writing outside its own declared namespace, which is the
+        write fence one level down.
+        """
+        for name, spec in self.products.items():
+            cmd = spec.get('namespace')
+            if not cmd or self.fate[name] != 'fresh':
+                continue
+            ok, detail, out, err = run_cmd(cmd, SITE, 2, f'{name} namespace')
+            if not ok:
+                log(f'namespace {name}: probe failed ({detail}) — nothing surveyed. '
+                    'An answer that did not arrive is not an empty namespace.')
+                continue
+            patterns = [line.strip() for line in out.splitlines() if line.strip()]
+            if not patterns:
+                log(f'namespace {name}: probe answered with no patterns — nothing '
+                    'surveyed, since a product owning nothing would own nothing to fetch')
+                continue
+            staged = sorted(f.name for f in STAGE.iterdir()
+                            if f.is_file() and match_any(f.name, spec['writes']))
+            stray = [n for n in staged if not match_any(n, patterns)]
+            wrote_stray = sorted(n for n in stray if n in self.changed)
+            if wrote_stray:
+                # Not abandonment. The step is writing names its own namespace
+                # does not describe, so the declaration and the writer
+                # disagree and neither can be trusted to say which is right.
+                for n in wrote_stray:
+                    log(f'FENCE  {n}: written by {name} this run but outside its '
+                        'own declared namespace')
+                raise SystemExit(3)
+            if stray:
+                total = sum((STAGE / n).stat().st_size for n in stray)
+                log(f'namespace {name}: {len(stray)} carried file(s) it no longer '
+                    f'names, {total / 1e6:.1f} MB — reporting only, nothing removed')
+                for n in stray:
+                    log(f'ABANDONED  {n}')
+
     # -- validation ----------------------------------------------------------
 
     def validate_products(self):
@@ -757,6 +828,7 @@ def cmd_run(cfg):
     # already refuses, against a rule that cannot drift.
     run = Run(cfg, plan)
     run.fetch_all()
+    run.survey_namespaces()
     run.validate_products()
     run.settle_tiles()
     run.assemble()

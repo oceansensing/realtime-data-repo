@@ -159,6 +159,17 @@ roots = ["currents.json", "currents-50m.json"]
 writes = ["currents*.json"]
 max_age_hours = 9
 
+# What this product still owns, asked of the pipeline rather than declared
+# here. `writes` is the broad claim the write fence uses; this is the narrow
+# current shape, derived in fetch-currents.py from LEVELS, GLOBAL and DETAILS
+# so that adding a depth or a region extends it with no edit on this side.
+#
+# It exists because the stage is seeded from the last publish: a file no step
+# writes any more is carried for ever, and the 60 m grids were 32 files and
+# 43.8 MB of exactly that. Answered without the network, so an upstream
+# outage cannot read as an empty namespace.
+namespace = ["python3", "scripts/fetch-currents.py", "--namespace"]
+
 [products.currents.tiles]
 build = ["python3", "scripts/fetch-currents.py", "--tiles"]
 key = ["python3", "scripts/fetch-currents.py", "--tile-key"]
