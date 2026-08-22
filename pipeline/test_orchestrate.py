@@ -669,6 +669,19 @@ class OrchestrateTests(unittest.TestCase):
             self.assertEqual(orchestrate.cmd_plan(self.env.cfg, 'full'), 0)
         self.assertIn('nothing reads cache-key-alpha-tiles', log.getvalue())
 
+    def test_a_workflow_step_reading_a_cache_no_product_declares_is_named(self):
+        """The inverse, and it is fatal rather than wasteful: the step gets an
+        empty key and actions/cache refuses it with `Input required and not
+        supplied: key`, naming neither the cache nor the reason. Measured
+        2026-08-22, when a product was removed from espc-model-repo and its
+        two steps were left behind."""
+        self._workflow('steps:\n  - key: ${{ steps.plan.outputs.cache-key-ghost-tiles }}\n'
+                       '  - key: ${{ steps.plan.outputs.cache-key-alpha-tiles }}\n')
+        with self.capture() as log:
+            self.assertEqual(orchestrate.cmd_plan(self.env.cfg, 'full'), 0)
+        self.assertIn('reads cache-key-ghost-tiles and no product declares', log.getvalue())
+        self.assertNotIn('nothing reads', log.getvalue())
+
     def test_a_cache_a_workflow_step_does_read_is_not_named(self):
         self._workflow('steps:\n  - key: ${{ steps.plan.outputs.cache-key-alpha-tiles }}\n')
         with self.capture() as log:

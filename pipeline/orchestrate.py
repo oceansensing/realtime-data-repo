@@ -420,8 +420,10 @@ def caches_without_a_consumer(caches):
     # this check being unable to see, which is a different claim. Say
     # nothing rather than name every cache.
     if not text:
-        return []
-    return [c for c in caches if f'cache-key-{c}' not in text]
+        return [], []
+    return ([c for c in caches if f'cache-key-{c}' not in text],
+            sorted({c for c in re.findall(r'cache-key-([a-z0-9-]+)', text)}
+                   - set(caches)))
 
 
 def cmd_plan(cfg, mode):
@@ -448,10 +450,29 @@ def cmd_plan(cfg, mode):
         paths = '\n'.join(f'site/public/map/{d}' for d, _ in tiles['match'])
         gh_output(f'cache-paths-{tiles["cache"]}', paths)
         log(f'plan: {name} -> {cache_key}')
-    for cache in caches_without_a_consumer(
-            [s['tiles']['cache'] for s in cfg['products'].values() if 'tiles' in s]):
+    unread, unfed = caches_without_a_consumer(
+        [s['tiles']['cache'] for s in cfg['products'].values() if 'tiles' in s])
+    for cache in unread:
         log(f'plan: nothing reads cache-key-{cache} — this workflow has no'
             f' Restore/Save pair for it, so those tiles rebuild every run')
+    # **The inverse, and it is fatal rather than wasteful.** A workflow step
+    # naming a cache no product declares gets an *empty* key, and
+    # `actions/cache` refuses that with `Input required and not supplied:
+    # key` — a message that names neither the cache nor the reason. Measured
+    # 2026-08-22: removing a product from espc-model-repo's products.toml
+    # left its two steps behind and the next run died there, before fetching
+    # anything.
+    #
+    # Reported here because `plan` runs before those steps, so the log says
+    # why moments before the cryptic failure. Exiting non-zero as well would
+    # only move the failure earlier without making it clearer, and `plan`
+    # succeeding is what lets the run reach a step whose own error the reader
+    # can now interpret.
+    for cache in unfed:
+        log(f'plan: this workflow reads cache-key-{cache} and no product'
+            f' declares that cache — the Restore step will fail with "Input'
+            f' required and not supplied: key". Remove the Restore/Save pair,'
+            f' or give a product a [tiles] block naming it.')
     PLAN_FILE.write_text(json.dumps(plan, indent=1))
     gh_output('mode', mode)
     return 0
