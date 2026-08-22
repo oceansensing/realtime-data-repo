@@ -873,14 +873,37 @@ class Run:
 
     # -- the consumer's gate ---------------------------------------------------
 
+
+    def owned(self):
+        """`--owned=` for the contract check: the roots this tree answers for.
+
+        **The contract is every file the map reads, from every origin; this
+        repository publishes a share of it.** `test-schema.mjs` fails on a
+        required root that is absent — deliberately, because deriving the
+        list from what is present turns a product that stopped publishing
+        into a check that quietly tests less, and this project has been
+        bitten by that twice. That is the right rule and it asks a question
+        only one origin could answer while one origin published everything.
+
+        Measured on the two trees the ESPC split produces, built from live
+        published data: unscoped, the ESPC tree fails six required roots and
+        the remaining tree fails four, each naming exactly what the *other*
+        repository owns. Scoped, both pass. So this is not tidiness — no
+        origin can publish without it.
+
+        Derived from the same `roots` the agreement gate compares against, so
+        it cannot drift from what this repository actually fetches.
+        """
+        roots = sorted({r for spec in self.products.values() for r in spec['roots']})
+        return '--owned=' + ','.join(roots)
     def contract_gate(self):
         """The site's own schema check over the assembled tree, with one
         demote-and-retry: failures name files, files name products, and a
         product that cannot pass ships its previous version instead."""
         for attempt in (1, 2):
             ok, detail, out, err = run_cmd(
-                self.cfg['contract']['check'] + [str(OUT / 'map')], SITE, 10,
-                'contract')
+                self.cfg['contract']['check'] + [str(OUT / 'map'), self.owned()],
+                SITE, 10, 'contract')
             log(out.rstrip() if out.strip() else f'contract: {detail}')
             if err.strip():
                 log(err.rstrip())

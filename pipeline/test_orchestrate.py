@@ -78,6 +78,11 @@ elif cmd == 'key-alpha':
     sys.stderr.write('probing the fake catalog...\\n')
     print('kA')
 elif cmd == 'contract':
+    # Record what the caller handed over. The contract check is told which
+    # share of the contract this tree answers for, and a scope that silently
+    # went missing would make the check quietly test less -- the exact
+    # failure the scope exists to prevent.
+    (CTL / 'contract-argv').write_text(json.dumps(sys.argv[2:]))
     fails = CTL / 'contract-fails'
     if fails.is_file():
         sys.stdout.write(fails.read_text())
@@ -603,6 +608,19 @@ class OrchestrateTests(unittest.TestCase):
                 yield buf
         finally:
             sys.stdout.write(buf.getvalue())
+
+    def test_the_contract_check_is_told_which_share_this_tree_owns(self):
+        """Without it a tree holding one origin's share fails every required
+        root belonging to the others. Measured on the two trees the ESPC
+        split produces, built from live published data: six failures on one
+        side and four on the other, each naming exactly what the other
+        repository owns.
+
+        Derived from the products' own roots, so it cannot drift from what
+        this repository fetches."""
+        self.assertEqual(self.env.run(), 0)
+        argv = json.loads((orchestrate.SITE / 'ctl' / 'contract-argv').read_text())
+        self.assertIn('--owned=alpha.json,beta.json', argv)
 
     def test_roots_disagreement_refuses_to_run(self):
         self.env.ctl('roots-short')
