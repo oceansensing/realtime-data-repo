@@ -258,6 +258,23 @@ match = [
   ["tiles-sit-navy", "sit-navy.json"],
 ]
 
+# **Sea surface height, its own product because it is its own
+# aggregation.** `surf_el` comes off `FMRC_ESPC-D-V02_ssh` while the
+# temperature and salinity come off `ts3z`, so it can fail on its own and
+# should be held on its own — which is what a product is for. It shares the
+# `fields` step, the same arrangement the Navy fields and OISST already have.
+#
+# No tile tier: a free surface is a smooth field, and the region stride at
+# 0.16 deg already resolves the mesoscale eddies a reader looks for. See the
+# note on the product in `fetch-ocean-fields.py`.
+[products.ssh-navy]
+title = "Navy ESPC sea surface height"
+step = "fields"
+roots = ["ssh-navy.json"]
+writes = ["ssh-navy*.json"]
+max_age_hours = 9
+namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=ssh-navy"]
+
 [products.fields-oisst]
 title = "NOAA OISST temperature, anomaly and ice"
 step = "fields"
