@@ -77,6 +77,15 @@ PLAN_FILE = ROOT / 'plan.json'
 # prefix sitting in the cache. The currents restored from an exact key in the
 # same run, which is the control — their paths did not move.
 #
+# **Confirmed by the timestamps, after being doubted on a partial reading.**
+# Every miss is before the first save under the new paths and every hit is
+# after it: 22:43:39 `Cache not found`, 23:02:36 the save that created the
+# two-product entries, 23:04:03 `Cache restored from key: field-tiles-v2-…`.
+# The 21:24 miss is the one that carries the argument — a *light* run, so the
+# `field-tiles-v2-` prefix was supplied and is listed in its own error, with
+# an entry carrying exactly that prefix sitting in the cache since 18:54.
+# Nothing but the path version explains it.
+#
 # So a `tiles.match` edit costs one cold rebuild, and the light-gap guard
 # turns that into a withheld deploy for one cycle. That is the guard being
 # right; the thing to do is expect it, not to widen the guard. Bumping this
