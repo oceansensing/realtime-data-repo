@@ -1,0 +1,215 @@
+{
+ "schema": 2,
+ "generated": "2026-08-22T22:28:19Z",
+ "mode": "light",
+ "run": {
+  "id": "32602350245",
+  "url": "https://github.com/oceansensing/realtime-data-repo/actions/runs/32602350245"
+ },
+ "products": {
+  "assets": {
+   "title": "Storms, gliders, USVs and Argo floats",
+   "roots": [
+    "ocean-assets.json",
+    "argo.json",
+    "wsp34.json",
+    "wsp50.json",
+    "wsp64.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-08-22T22:28:19Z",
+   "updated": "2026-08-22T22:28:19Z",
+   "hour": "2026-08-22T18:00:00Z",
+   "modelRun": null,
+   "source": "National Hurricane Center",
+   "hours": [
+    "2026-08-22T18:00:00Z"
+   ],
+   "stale": false
+  },
+  "buoys": {
+   "title": "NDBC buoys and coastal stations",
+   "roots": [
+    "buoys.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-08-22T22:28:19Z",
+   "updated": "2026-08-22T22:28:19Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false
+  },
+  "tides": {
+   "title": "CO-OPS tide gauges",
+   "roots": [
+    "tides.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-08-22T22:28:19Z",
+   "updated": "2026-08-22T22:28:19Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false
+  },
+  "gtmba": {
+   "title": "Tropical moored arrays (GTMBA)",
+   "roots": [
+    "gtmba.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-08-22T22:28:19Z",
+   "updated": "2026-08-22T22:28:19Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false
+  },
+  "ships": {
+   "title": "US academic research fleet",
+   "roots": [
+    "ships.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-08-22T22:28:19Z",
+   "updated": "2026-08-22T22:28:19Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false
+  },
+  "sondes": {
+   "title": "Radiosondes aloft (SondeHub)",
+   "roots": [
+    "sondes.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-08-22T22:28:19Z",
+   "updated": "2026-08-22T22:28:19Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false
+  },
+  "fields-navy": {
+   "title": "Navy ESPC temperature and salinity",
+   "roots": [
+    "sst-navy.json",
+    "sss-navy.json"
+   ],
+   "fate": "carried",
+   "reason": null,
+   "checked": "2026-08-22T21:44:45Z",
+   "updated": "2026-08-22T18:51:27Z",
+   "hour": "2026-08-22T21:00:00Z",
+   "modelRun": "2026-08-21T12:00:00Z",
+   "source": "US Navy ESPC-D-V02",
+   "hours": [
+    "2026-08-22T21:00:00Z"
+   ],
+   "stale": false
+  },
+  "ice-navy": {
+   "title": "Navy ESPC sea ice concentration and thickness",
+   "roots": [
+    "sic-navy.json",
+    "sit-navy.json"
+   ],
+   "fate": "carried",
+   "reason": null,
+   "checked": "2026-08-22T21:44:45Z",
+   "updated": "2026-08-22T19:47:49Z",
+   "hour": "2026-08-22T21:00:00Z",
+   "modelRun": "2026-08-21T12:00:00Z",
+   "source": "US Navy ESPC-D-V02",
+   "hours": [
+    "2026-08-22T21:00:00Z"
+   ],
+   "stale": false
+  },
+  "ssh-navy": {
+   "title": "Navy ESPC sea surface height",
+   "roots": [
+    "ssh-navy.json"
+   ],
+   "fate": "carried",
+   "reason": null,
+   "checked": "2026-08-22T21:44:45Z",
+   "updated": "2026-08-22T18:51:27Z",
+   "hour": "2026-08-22T21:00:00Z",
+   "modelRun": "2026-08-21T12:00:00Z",
+   "source": "US Navy ESPC-D-V02",
+   "hours": [
+    "2026-08-22T21:00:00Z"
+   ],
+   "stale": false
+  },
+  "fields-oisst": {
+   "title": "NOAA OISST temperature, anomaly and ice",
+   "roots": [
+    "sst-oisst.json",
+    "ssta-oisst.json",
+    "sic-oisst.json"
+   ],
+   "fate": "carried",
+   "reason": null,
+   "checked": "2026-08-22T21:44:45Z",
+   "updated": "2026-08-22T17:38:57Z",
+   "hour": "2026-08-21T00:00:00Z",
+   "modelRun": null,
+   "source": "NOAA PSL OISST v2.1",
+   "hours": [
+    "2026-08-21T00:00:00Z"
+   ],
+   "stale": false
+  },
+  "wind": {
+   "title": "ECMWF 10 m wind, 2 m air temperature and cloud cover",
+   "roots": [
+    "wind.json",
+    "air.json",
+    "cloud.json"
+   ],
+   "fate": "carried",
+   "reason": null,
+   "checked": "2026-08-22T21:44:45Z",
+   "updated": "2026-08-22T20:46:05Z",
+   "hour": "2026-08-22T21:00:00Z",
+   "modelRun": "2026-08-22T12:00:00Z",
+   "source": "ECMWF IFS",
+   "hours": [
+    "2026-08-22T21:00:00Z"
+   ],
+   "stale": false
+  },
+  "waves": {
+   "title": "ECWAM significant wave height",
+   "roots": [
+    "waves.json"
+   ],
+   "fate": "carried",
+   "reason": null,
+   "checked": "2026-08-22T21:44:45Z",
+   "updated": "2026-08-22T20:46:05Z",
+   "hour": "2026-08-22T21:00:00Z",
+   "modelRun": "2026-08-22T12:00:00Z",
+   "source": "ECMWF ECWAM",
+   "hours": [
+    "2026-08-22T21:00:00Z"
+   ],
+   "stale": false
+  }
+ }
+}

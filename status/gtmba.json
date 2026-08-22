@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "gtmba",
+ "title": "Tropical moored arrays (GTMBA)",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-08-22T22:28:19Z",
+ "updated": "2026-08-22T22:28:19Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "gtmba.json": {
+   "bytes": 12124,
+   "sha256": "40eff9ac63d7d70669bbf43b8cdd1855d908fb1cb766617df7e76a65d644c110"
+  }
+ }
+}

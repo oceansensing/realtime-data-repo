@@ -1,0 +1,13 @@
+{
+ "schema": 1,
+ "generated": "2026-08-22T22:25:02Z",
+ "mode": "light",
+ "products": {
+  "fields-navy": {
+   "tile_key": "sstnavy20260821T12v20260822T21-sssnavy20260821T12v20260822T21"
+  },
+  "ice-navy": {
+   "tile_key": "sicnavy20260821T12v20260822T21-sitnavy20260821T12v20260822T21"
+  }
+ }
+}

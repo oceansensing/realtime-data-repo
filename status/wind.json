@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "product": "wind",
+ "title": "ECMWF 10 m wind, 2 m air temperature and cloud cover",
+ "fate": "carried",
+ "reason": null,
+ "checked": "2026-08-22T21:44:45Z",
+ "updated": "2026-08-22T20:46:05Z",
+ "hour": "2026-08-22T21:00:00Z",
+ "modelRun": "2026-08-22T12:00:00Z",
+ "source": "ECMWF IFS",
+ "hours": [
+  "2026-08-22T21:00:00Z"
+ ],
+ "files": {
+  "air.json": {
+   "bytes": 5166255,
+   "sha256": "be9a8f4b32afdd567e96f22e0f5b4c12705f2d17299d5f1c033908ea6f7ee21b"
+  },
+  "cloud.json": {
+   "bytes": 4709420,
+   "sha256": "2f91874d9f3f33e4f4357f3aae0d47f98ea732f68e7ed0234372b6aae9ff8cb9"
+  },
+  "wind.json": {
+   "bytes": 9417382,
+   "sha256": "9988472437aed1e11c7190179ee4b94c29735b91d2e41e6f7372a0a23edf2f33"
+  }
+ }
+}

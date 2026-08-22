@@ -1,0 +1,27 @@
+{
+ "schema": 1,
+ "generated": "2026-08-22T22:28:19Z",
+ "mode": "light",
+ "fates": {
+  "assets": "fresh",
+  "buoys": "fresh",
+  "tides": "fresh",
+  "gtmba": "fresh",
+  "ships": "fresh",
+  "sondes": "fresh",
+  "fields-navy": "carried",
+  "ice-navy": "carried",
+  "ssh-navy": "carried",
+  "fields-oisst": "carried",
+  "wind": "carried",
+  "waves": "carried"
+ },
+ "reasons": {},
+ "built": {},
+ "withheld": {
+  "fields-navy": {},
+  "ice-navy": {}
+ },
+ "deploy": true,
+ "notes": []
+}

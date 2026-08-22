@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "product": "assets",
+ "title": "Storms, gliders, USVs and Argo floats",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-08-22T22:28:19Z",
+ "updated": "2026-08-22T22:28:19Z",
+ "hour": "2026-08-22T18:00:00Z",
+ "modelRun": null,
+ "source": "National Hurricane Center",
+ "hours": [
+  "2026-08-22T18:00:00Z"
+ ],
+ "files": {
+  "argo.json": {
+   "bytes": 285915,
+   "sha256": "630362b05fac0cf4da32667edb92bbeac0e46b8f6ff9c71abadec710904feadd"
+  },
+  "ocean-assets.json": {
+   "bytes": 228146,
+   "sha256": "a57587644bdea4b473cb4312b9555303da7b43b91c4f741254f7eb51fbf5e717"
+  },
+  "wsp34.json": {
+   "bytes": 1009557,
+   "sha256": "714e473fbe763122baba72d47318c83eb92d55993bcb0d61d0a42141bead4a19"
+  },
+  "wsp50.json": {
+   "bytes": 1010545,
+   "sha256": "cdb1d0ceb32d28634811417695854c137618c63874a2254d573b1d7a352bedd2"
+  },
+  "wsp64.json": {
+   "bytes": 1010783,
+   "sha256": "b815e6b7f056aa04871f21d16edce30093680a181e4f93da34abf456c21e9455"
+  }
+ }
+}
