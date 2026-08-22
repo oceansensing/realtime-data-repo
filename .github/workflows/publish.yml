@@ -148,10 +148,30 @@ jobs:
       # would attach this explanation to any earlier failure in the job and
       # so describe the wrong fault — the label-that-names-something-else
       # shape.
+      # **The message a failure gives is not the message anybody needs**, and
+      # this step's own first real failure proved it. It used to say: if the
+      # secret is set, check the key is on the site repository and not
+      # revoked. The failure when it came was neither — the log said
+      # `Load key ...: error in libcrypto`, meaning the private key could not
+      # be *parsed*, so ssh offered none and the server denied it. Not an
+      # access problem at all, and the reader was sent to two places that
+      # were both fine.
+      #
+      # Three failures look alike in a step summary and want different
+      # answers, so this branches on the line the log actually carries rather
+      # than listing causes in prose. **A message that points at the wrong
+      # thing is worse than none**, because it is believed.
+      #
+      # Corrected in espc-model-repo the day it happened and left here for
+      # another day: the copy was fixed and the original was not, which is
+      # the shape this project keeps paying for.
       - name: Say why the pipelines could not be checked out
         if: failure() && steps.pipelines.outcome == 'failure'
         run: |
-          echo "::error title=Cannot read the pipelines::Could not check out oceansensing/oceansensing.github.io. If that repository is private, this run needs PIPELINES_SSH_KEY - the private half of a read-only deploy key whose public half is on that repository's Deploy keys page - set as a secret here. If the secret is already set, check the key was added to the site repo and not revoked. See README.md."
+          echo "::error title=Cannot read the pipelines::Could not check out oceansensing/oceansensing.github.io. Read the step log before assuming which of these it is - they need different fixes and the messages look alike."
+          echo "::error title=If the log says 'error in libcrypto'::The private key could not be PARSED, so ssh offered none and the server denied it. Not an access problem. Almost always a missing trailing newline on the PIPELINES_SSH_KEY secret - an OpenSSH key must end with a newline after -----END OPENSSH PRIVATE KEY-----, and pasting by hand usually drops it. Re-paste the whole file (pbcopy < keyfile). Less likely: the .pub half pasted by mistake, or a passphrase on the key."
+          echo "::error title=If the log says only 'Permission denied (publickey)'::The key parsed but the server would not take it. The public half is missing from the site repository's Deploy keys page, or was revoked, or does not match this private half."
+          echo "::error title=If the log says 'Repository not found'::No credential was used at all - the secret is unset or empty, so actions/checkout fell back to this workflow's GITHUB_TOKEN, which holds no grant on the site repository."
 
       # The last publish — the seed, the previous manifests, and the whole
       # of what a held product falls back to. Tolerated missing exactly
