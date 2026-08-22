@@ -56,10 +56,6 @@ lane = "noaa"
 light = true
 timeout_minutes = 15
 
-[steps.currents]
-cmd = ["python3", "scripts/fetch-currents.py"]
-lane = "hycom"
-
 [steps.fields]
 cmd = ["python3", "scripts/fetch-ocean-fields.py"]
 lane = "hycom"
@@ -163,39 +159,6 @@ writes = ["sondes.json"]
 # position from four hours ago is still roughly where the glider is — and
 # this one does not.
 max_age_hours = 2
-
-[products.currents]
-title = "Surface and 50 m currents (ESPC)"
-step = "currents"
-roots = ["currents.json", "currents-50m.json"]
-writes = ["currents*.json"]
-max_age_hours = 9
-
-# What this product still owns, asked of the pipeline rather than declared
-# here. `writes` is the broad claim the write fence uses; this is the narrow
-# current shape, derived in fetch-currents.py from LEVELS, GLOBAL and DETAILS
-# so that adding a depth or a region extends it with no edit on this side.
-#
-# It exists because the stage is seeded from the last publish: a file no step
-# writes any more is carried for ever, and the 60 m grids were 32 files and
-# 43.8 MB of exactly that. Answered without the network, so an upstream
-# outage cannot read as an empty namespace.
-namespace = ["python3", "scripts/fetch-currents.py", "--namespace"]
-
-[products.currents.tiles]
-build = ["python3", "scripts/fetch-currents.py", "--tiles"]
-key = ["python3", "scripts/fetch-currents.py", "--tile-key"]
-cache = "currents-tiles"
-# Each tile directory belongs to one grid, and must be its hour. A `*` in the
-# directory carries into the grid name — the forecast frames are named for
-# their lead, and the lead moves with the run's lateness.
-match = [
-  ["tiles", "currents.json"],
-  ["tiles-50m", "currents-50m.json"],
-  ["tiles-f*h", "currents-f*h.json"],
-  ["tiles-50m-f*h", "currents-50m-f*h.json"],
-]
-
 # **Two products off the Navy fields, not one, and the split is what makes
 # the ESPC move a declaration rather than a rewrite.** The temperature and
 # salinity go to `espc-model-repo`; the ice stays here, deliberately, as a
