@@ -249,15 +249,22 @@ namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=
 max_age_hours = 60
 
 [products.wind]
-# Three fields off one fetch: the 10 m wind pair, the 2 m air temperature and
-# the total cloud cover, all from one ECMWF index on one step of one run, so
-# each is a byte-range read rather than a source of its own. The script
-# degrades per field — a missing `tcc` costs the cloud alone and leaves the
-# wind and the air standing — which is why all three are named here rather
-# than trusting one to stand for the others.
-title = "ECMWF 10 m wind, 2 m air temperature and cloud cover"
+# Four fields off one fetch: the 10 m wind pair, the 2 m air temperature, the
+# total cloud cover and the 850 hPa air temperature, all from one ECMWF index
+# on one step of one run, so each is a byte-range read rather than a source of
+# its own. The script degrades per field — a missing `tcc` costs the cloud
+# alone and leaves the wind and the air standing — which is why all four are
+# named here rather than trusting one to stand for the others.
+#
+# 850 hPa is the first pressure level this fetch takes (2026-08-22). It is the
+# same index and the same file, 604,672 bytes measured on the 12z run's step
+# 0, against a 136 MB whole step. `writes` needed nothing: `air*.json` already
+# matched it, which is a glob doing its job and also the reason `roots` has to
+# be explicit — a file this repository fetches but does not declare is one the
+# contract cannot see.
+title = "ECMWF 10 m wind, 2 m air temperature, cloud cover and 850 hPa temperature"
 step = "wind"
-roots = ["wind.json", "air.json", "cloud.json"]
+roots = ["wind.json", "air.json", "cloud.json", "air-850.json"]
 writes = ["wind*.json", "air*.json", "cloud*.json"]
 max_age_hours = 13
 
