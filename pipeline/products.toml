@@ -117,15 +117,23 @@ title = "Storms, gliders, USVs and Argo floats"
 step = "assets"
 roots = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
 writes = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
-# Eight, for a SIX-HOURLY product. NHC issues the wind-speed
-# probabilities at 00/06/12/18Z and they appear an hour or two after
-# the synoptic time, so the nearest frame is legitimately up to ~8 h
-# from the reader at the end of a cycle. Four was calibrated against
-# `updated` — how recently the pipeline RAN — where it meant
-# something else entirely, and against the hour it would have fired
-# for roughly half of every cycle. An alarm that is usually on is an
-# alarm nobody reads, which this project has already measured once.
-max_age_hours = 8
+# Ten, and the bound is derived rather than tuned: NHC issues the
+# wind-speed probabilities at 00/06/12/18Z, so a 6 h cycle, plus the
+# time they take to appear. **The delay is the part I sized wrong
+# twice.** Four was an `updated` number and fired immediately. Eight
+# assumed "an hour or two" and was still short — measured 2026-08-27
+# at 19:54Z, the newest product on hand was 12:00Z, so the 18Z had
+# not landed nearly two hours after its synoptic time and the age was
+# 7.92 h and climbing. Six for the cycle, three for issuance, one for
+# margin.
+#
+# **The honest fix is upstream of this number**: `hour` here is the
+# SYNOPTIC time, so a product's age counts from a moment NHC had not
+# yet published it for. Were it the issuance time, the budget would
+# be about the cycle alone and would not need a delay term at all.
+# Worth doing if this proves noisy; recorded so the next person
+# sizing it knows the number is compensating for the wrong clock.
+max_age_hours = 10
 
 # Its own product on the assets step — the fields pattern, one fetch feeding
 # two products — so an NDBC outage holds the buoys and nothing else. The
