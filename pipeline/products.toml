@@ -47,13 +47,10 @@ timeout_minutes = 30
 # `lane` names the upstream a step leans on. Steps in different lanes run
 # concurrently; steps in the same lane queue. Two HYCOM reads competing for
 # the same THREDDS server help nobody, least of all HYCOM.
-# `light = true` marks the steps a light run still performs; everything else
-# is carried.
 
 [steps.assets]
 cmd = ["python3", "scripts/fetch-ocean-assets.py"]
 lane = "noaa"
-light = true
 timeout_minutes = 15
 
 [steps.fields]

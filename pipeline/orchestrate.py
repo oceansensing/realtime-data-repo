@@ -123,7 +123,6 @@ def parse_config(text):
     default_timeout = cfg.get('defaults', {}).get('timeout_minutes', 30)
     for step in cfg['steps'].values():
         step.setdefault('timeout_minutes', default_timeout)
-        step.setdefault('light', False)
     for name, product in cfg['products'].items():
         if product['step'] not in cfg['steps']:
             raise SystemExit(f'products.toml: {name} names unknown step {product["step"]}')
@@ -527,10 +526,17 @@ class Run:
                         log(stream.rstrip())
             return ok, detail
 
-        to_run = {
-            sname: step for sname, step in self.steps.items()
-            if self.mode != 'light' or step['light']
-        }
+        # **Every step, every run.** There was a `light` mode that ran only
+        # the steps marked for it, and it existed on a real number: a full
+        # run cost 56 minutes against a light run's 5, so refreshing the
+        # storms three times an hour meant not fetching the fields. The
+        # probe-first exits removed that number — measured 2026-08-27, a
+        # full run whose probes all rested took 3 min 59 s, FASTER than the
+        # light run it was avoiding — and what the split still cost was
+        # visible the same day: the Navy fields sat nine hours stale because
+        # the runs the scheduler delivered were the light ones, which skip
+        # them by construction.
+        to_run = dict(self.steps)
         with ThreadPoolExecutor(max_workers=max(1, len(lanes))) as pool:
             futures = {sname: pool.submit(one, sname, step)
                        for sname, step in to_run.items()}
@@ -721,8 +727,7 @@ class Run:
                        if header_of(STAGE / dict(tiles['match'])[d]) is not None
                        and not (STAGE / d / 'index.json').is_file()]
 
-            if (self.fate[name] == 'fresh' and self.mode != 'light'
-                    and (adrift or missing)):
+            if self.fate[name] == 'fresh' and (adrift or missing):
                 log(f'tiles {name}: building ({len(adrift)} adrift, '
                     f'{len(missing)} missing)')
                 ok, detail, out, err = run_cmd(
@@ -1095,26 +1100,6 @@ class Run:
             self.assemble()
         return False
 
-    # -- the light run's floor -------------------------------------------------
-
-    def light_gap_guard(self):
-        """A light run must not deploy a tree without its tiles: Pages
-        replaces everything, so an absent directory here is a deletion
-        there. The branch still pushes — nothing fetched is thrown away."""
-        if self.mode != 'light':
-            return
-        for name, spec in self.products.items():
-            for d, _ in spec.get('tiles', {}).get('match', []):
-                if '*' in d:
-                    continue
-                if not (OUT / 'map' / d / 'index.json').is_file():
-                    self.deploy = False
-                    self.notes.append(
-                        f'light run without {d}; deploy skipped, branch kept')
-                    log(f'light gap: {d} absent — skipping deploy')
-                    return
-
-
 # A published root is a bare lowercase filename. Used only as a positive
 # control on the contract's own answer — see cmd_run.
 ROOT_NAME = re.compile(r'^[a-z0-9-]+\.json$')
@@ -1200,7 +1185,6 @@ def cmd_run(cfg):
     run.settle_tiles()
     run.assemble()
     run.contract_gate()
-    run.light_gap_guard()
     run.write_record()
 
     gh_output('deploy', 'true' if run.deploy else 'false')
@@ -1304,7 +1288,7 @@ def main():
     sub = parser.add_subparsers(dest='cmd', required=True)
     sub.add_parser('seed')
     p_plan = sub.add_parser('plan')
-    p_plan.add_argument('--mode', choices=['full', 'light'], default='full')
+    p_plan.add_argument('--mode', choices=['full'], default='full')
     sub.add_parser('run')
     p_boot = sub.add_parser('seed-published')
     p_boot.add_argument('--from', dest='base', required=True)

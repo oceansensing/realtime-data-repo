@@ -2,7 +2,7 @@
 """Unit tests for the orchestrator. No network, no node: a fake fetch tool
 and a fake contract stand in for the site checkout, and every fate path is
 driven through them — fresh, held, carried, the write fence, the coherence
-group, tile withholding, the demote loop and the light run's floor.
+group, tile withholding and the demote loop.
 
 Run with:  python3 pipeline/test_orchestrate.py
 """
@@ -136,7 +136,6 @@ timeout_minutes = 1
 [steps.alpha]
 cmd = ["python3", "fake_tool.py", "fetch-alpha"]
 lane = "a"
-light = true
 
 [steps.beta]
 cmd = ["python3", "fake_tool.py", "fetch-beta"]
@@ -660,28 +659,35 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(self.env.run(), 0)
         self.assertFalse(self.env.receipt()['deploy'])
 
-    def test_light_run_carries_and_guards_the_tiles(self):
-        self.env.set_mode('light')
+    def test_every_step_runs_now_that_there_is_no_light_mode(self):
+        """**The split is gone and this is what replaced two tests for it.**
+        It existed on a real number — a full run cost 56 minutes against a
+        light run's 5, so refreshing the storms three times an hour meant
+        not fetching the fields. The probe-first exits removed that number
+        (a fully-rested full run measured 3 min 59 s on 2026-08-27, faster
+        than the light run it was avoiding), and what the split still cost
+        was nine hours of stale Navy fields the same day, because the runs
+        the scheduler delivered were the light ones.
+
+        So the property to hold is the plain one: no step is skipped."""
         self.assertEqual(self.env.run(), 0)
         st = self.env.status()
-        self.assertEqual(st['products']['alpha']['fate'], 'fresh')
-        self.assertEqual(st['products']['beta']['fate'], 'carried')
-        # No tiles restored, none built on a light run: deploy refused,
-        # branch kept, so the fetch is banked rather than thrown away.
-        self.assertFalse(self.env.receipt()['deploy'])
-        self.assertTrue((orchestrate.BRANCH / 'map' / 'alpha.json').is_file())
-
-    def test_light_run_with_restored_tiles_deploys(self):
-        self.env.set_mode('light')
-        orchestrate.cmd_seed(self.env.cfg)
-        tiles = orchestrate.STAGE / 'atiles'
-        tiles.mkdir()
-        (tiles / 'index.json').write_text(json.dumps({'refTime': H0}))
-        self.assertEqual(orchestrate.cmd_run(self.env.cfg), 0)
+        for name in ('alpha', 'beta'):
+            self.assertEqual(st['products'][name]['fate'], 'fresh', name)
         self.assertTrue(self.env.receipt()['deploy'])
-        manifest = json.loads(
-            (orchestrate.OUT / 'status' / 'alpha.json').read_text())
-        self.assertEqual(manifest['tiles']['atiles']['state'], 'kept')
+
+    def test_no_mode_can_skip_a_step(self):
+        """The control on the one above: `--mode` no longer accepts anything
+        that would. A mode argument that silently fell back to full would
+        satisfy the test above while leaving the trapdoor open."""
+        import argparse
+        with self.assertRaises(SystemExit):
+            parser = argparse.ArgumentParser()
+            sub = parser.add_subparsers(dest='cmd', required=True)
+            p_plan = sub.add_parser('plan')
+            p_plan.add_argument('--mode', choices=['full'], default='full')
+            with contextlib.redirect_stderr(io.StringIO()):
+                parser.parse_args(['plan', '--mode', 'light'])
 
     def test_adrift_tiles_are_withheld_when_the_build_cannot_fix_them(self):
         self.env.ctl('hour-alpha', H1)

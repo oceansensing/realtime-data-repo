@@ -189,15 +189,21 @@ the map's own gate has the last word.
    and four lazily-fetched layers 404'd their way to nothing on the live
    map for a day.
 7. **Publish** — the small products and status force-push to `published`;
-   the whole tree deploys to Pages. A light run that would deploy a tree
-   without tiles skips the deploy but still pushes the branch, so nothing
-   fetched is ever thrown away.
+   the whole tree deploys to Pages.
 
 ## Operating it
 
 - **Dispatch a run**: Actions → *Publish realtime ocean data* → Run workflow.
-  `mode: light` fetches only the products marked `light` (the storms and
-  platforms) and carries the rest.
+  There is one kind of run, and it fetches everything whose upstream has
+  moved. **The `light` mode is gone (2026-08-27)** — it fetched only the
+  storms and platforms, and it existed on a real number: a full run cost 56
+  minutes against a light run's 5. The probe-first exits removed that
+  number (a fully-rested full run measured 3 min 59 s, faster than the
+  light run it was avoiding, because the four minutes are the observation
+  fetches a light run performed anyway), and what the split still cost was
+  nine hours of stale Navy fields on the day it was retired — the runs
+  GitHub delivered were the light ones, which skip those steps by
+  construction.
 - **Read the health**: `curl -s https://oceansensing.org/realtime-data-repo/status/status.json | python3 -m json.tool`
 - **First-time setup** (already done, recorded for the next repo like this):
   seed `map/` static files from the predecessor, run
