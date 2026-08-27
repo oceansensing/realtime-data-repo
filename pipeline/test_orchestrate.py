@@ -366,6 +366,59 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(self.env.out_hour('beta.json'), H1)
         self.assertTrue(self.env.receipt()['deploy'])
 
+    def test_contract_failing_only_on_a_held_product_still_deploys(self):
+        """The live 2026-08-27 case, in miniature.
+
+        A product is held (its step failed, exactly as a quality rejection
+        or an upstream outage holds one), and the consumer's contract then
+        fails naming that product's file — which is what the ESPC hour rule
+        does when a held layer sits at an older hour than its fresh
+        siblings. Nothing this run fetched is implicated, so the deploy must
+        proceed with the healthy products; freezing the whole tree until the
+        sick one heals is what the fault-domain split exists to prevent.
+        """
+        self.env.ctl('fail-alpha')
+        self.env.ctl('hour-beta', H1)
+        self.env.ctl('contract-fails', 'FAIL  alpha.json: is valid H0, not one of the hours beta publishes\n')
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'held')
+        self.assertEqual(st['products']['beta']['fate'], 'fresh')
+        # The deploy proceeds, and the reason is on the record rather than
+        # silent — a tolerated contract failure nobody can see is how a real
+        # one gets tolerated later.
+        self.assertTrue(self.env.receipt()['deploy'])
+        notes = self.env.receipt()['notes']
+        self.assertTrue(any('held product' in n for n in notes), notes)
+        self.assertEqual(self.env.out_hour('beta.json'), H1)
+
+    def test_an_unmapped_contract_failure_still_stops_the_deploy(self):
+        """The tolerance is scoped by ATTRIBUTION, not by having a hold.
+
+        Two shapes, and the second is the one that matters. A failure naming
+        something no product owns is fatal on its own — but the hazard the
+        guard exists for is an unmapped failure arriving ALONGSIDE a held
+        product's, where 'something else is also wrong' could ride out on
+        the hold's coat-tails. Written with only the first shape, a mutation
+        deleting the unmapped guard survived: the empty culprit set was
+        already blocking the branch, so the guard was never reached.
+        """
+        self.env.ctl('fail-alpha')
+        self.env.ctl('contract-fails', 'FAIL  mystery.json: unattributable\n')
+        self.assertEqual(self.env.run(), 0)
+        self.assertFalse(self.env.receipt()['deploy'])
+
+    def test_an_unmapped_failure_beside_a_held_one_still_stops_the_deploy(self):
+        self.env.ctl('fail-alpha')
+        self.env.ctl('hour-beta', H1)
+        self.env.ctl('contract-fails',
+                     'FAIL  alpha.json: is valid H0, not one of the hours beta publishes\n'
+                     'FAIL  mystery.json: unattributable\n')
+        self.assertEqual(self.env.run(), 0)
+        # alpha alone would be tolerated; the unattributable failure beside
+        # it must not be.
+        self.assertFalse(self.env.receipt()['deploy'])
+
     # -- the namespace survey ------------------------------------------------
 
     def test_a_file_the_pipeline_stopped_naming_is_reported(self):

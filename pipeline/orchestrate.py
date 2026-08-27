@@ -961,7 +961,12 @@ class Run:
     def contract_gate(self):
         """The site's own schema check over the assembled tree, with one
         demote-and-retry: failures name files, files name products, and a
-        product that cannot pass ships its previous version instead."""
+        product that cannot pass ships its previous version instead.
+
+        A failure attributable only to products this run already HELD is a
+        note rather than a stop — see the block below for why, and for what
+        is still fatal."""
+        demoted_here: set[str] = set()
         for attempt in (1, 2):
             ok, detail, out, err = run_cmd(
                 self.cfg['contract']['check'] + [str(OUT / 'map'), self.owned()],
@@ -989,6 +994,55 @@ class Run:
                     unmapped.append(token)
             fresh_culprits = [c for c in sorted(culprits)
                               if self.fate[c] == 'fresh']
+            held_culprits = [c for c in sorted(culprits)
+                             if self.fate[c] != 'fresh']
+
+            # **Every failure attributable to a product this run HELD is that
+            # hold's own consequence, and does not stop the deploy.**
+            #
+            # The case, live on 2026-08-27: the currents split into three
+            # fault domains so a clean surface could publish while a corrupt
+            # depth held — and then the consumer's ESPC hour rule failed the
+            # tree, because a held `currents-caps` at 21Z sits beside a fresh
+            # `currents-surface` advanced to 00Z of the SAME model run. The
+            # culprit was already held, so `not fresh_culprits` sent this
+            # gate down the fatal path and froze the WHOLE Pages tree — the
+            # good surface included — for as long as the upstream stayed
+            # broken. That is the fault-domain split defeating itself: the
+            # case it exists for is the case that stopped every deploy.
+            #
+            # The justification is not "the hour rule is unimportant" — this
+            # gate deliberately knows nothing about which rule failed, and
+            # parsing the consumer's messages to find out is how two copies
+            # of a rule start drifting. It is that NOTHING THIS RUN FETCHED
+            # IS IMPLICATED: every product refreshed this run passed, and the
+            # disagreement is between those and data carried forward from a
+            # previous publish, which is the ordinary state of a partial
+            # outage. The tree is not made worse by shipping it, and the
+            # alternative — freezing every product until the sick one heals —
+            # is what the split was built to stop.
+            #
+            # Deliberately NOT tolerated: an unmapped failure (nothing to
+            # attribute it to) or a failure with no culprits at all. Those
+            # still stop the deploy, because an unexplained contract failure
+            # is exactly the shape that publishes a tree the map cannot read.
+            # ...but NOT a product this gate itself demoted a moment ago.
+            # If the contract failed on it, we held it, and it fails again,
+            # then the version carried forward is itself unacceptable — the
+            # case `test_contract_still_failing_stops_the_deploy` pins, and
+            # the one shape where a hold does NOT make the tree safe. That
+            # test caught this exact over-reach when the tolerance was first
+            # written to trust every hold.
+            if (not unmapped and culprits and not fresh_culprits
+                    and not (culprits & demoted_here)):
+                who = ', '.join(held_culprits)
+                self.notes.append(
+                    f'contract failed only on held product(s) {who}; '
+                    f'deploying anyway — nothing fetched this run is implicated')
+                log(f'contract: failures attributable only to held '
+                    f'{who} — deploying the rest')
+                return True
+
             if attempt == 2 or unmapped or not fresh_culprits:
                 for token in unmapped:
                     log(f'contract: cannot map {token} to a product')
@@ -997,6 +1051,7 @@ class Run:
                 return False
             for name in fresh_culprits:
                 self.hold(name, 'failed the consumer contract')
+                demoted_here.add(name)
             self.settle_tiles()
             self.assemble()
         return False
