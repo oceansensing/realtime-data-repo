@@ -96,6 +96,16 @@ timeout_minutes = 20
 #   and not this repository's doing. See `nearest_frame_age` in
 #   orchestrate.py.
 #
+#   **Every number here was re-derived on 2026-08-27, and the old ones should
+#   not be trusted as precedent.** They were all calibrated against `updated`,
+#   where they answered a different question, and against the hour they were
+#   simply wrong: the ESPC products sat at nine when their frames bracket the
+#   reader inside 1.5, and `assets` at four for a SIX-HOURLY product, which
+#   would have fired for half of every cycle. Size each one to its product's
+#   own cadence plus the delay its upstream takes to publish, and no tighter —
+#   an alarm that is usually on is an alarm nobody reads, and this project has
+#   measured that once already (CLAUDE.md, on red CI).
+#
 # There is no cross-product agreement declared here, on purpose. How the
 # ESPC members must relate is the consumer contract's rule (test-schema.mjs
 # owns it, frames and run-raggedness included), and a copy of it here was
@@ -107,7 +117,15 @@ title = "Storms, gliders, USVs and Argo floats"
 step = "assets"
 roots = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
 writes = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
-max_age_hours = 4
+# Eight, for a SIX-HOURLY product. NHC issues the wind-speed
+# probabilities at 00/06/12/18Z and they appear an hour or two after
+# the synoptic time, so the nearest frame is legitimately up to ~8 h
+# from the reader at the end of a cycle. Four was calibrated against
+# `updated` — how recently the pipeline RAN — where it meant
+# something else entirely, and against the hour it would have fired
+# for roughly half of every cycle. An alarm that is usually on is an
+# alarm nobody reads, which this project has already measured once.
+max_age_hours = 8
 
 # Its own product on the assets step — the fields pattern, one fetch feeding
 # two products — so an NDBC outage holds the buoys and nothing else. The
@@ -302,11 +320,19 @@ title = "ECMWF 10 m wind, 2 m and 850 hPa temperature, cloud cover and 500 hPa h
 step = "wind"
 roots = ["wind.json", "air.json", "cloud.json", "air-850.json", "gh-500.json"]
 writes = ["wind*.json", "air*.json", "cloud*.json", "gh-*.json"]
-max_age_hours = 13
+# Four. ECMWF runs 6-hourly with 3-hourly steps, and the published
+# frame tracked the reader at 1.4 h when this was measured
+# (2026-08-27). Thirteen was an `updated` number and would have let
+# these go half a day stale in silence.
+max_age_hours = 4
 
 [products.waves]
 title = "ECWAM significant wave height"
 step = "waves"
 roots = ["waves.json"]
 writes = ["waves*.json"]
-max_age_hours = 13
+# Four. ECMWF runs 6-hourly with 3-hourly steps, and the published
+# frame tracked the reader at 1.4 h when this was measured
+# (2026-08-27). Thirteen was an `updated` number and would have let
+# these go half a day stale in silence.
+max_age_hours = 4
