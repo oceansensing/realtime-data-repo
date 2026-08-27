@@ -61,7 +61,27 @@ name: Publish realtime ocean data
 on:
   schedule:
     - cron: '35 * * * *'
-    - cron: '2 0,6,12,18 * * *'
+    # **Follows the ANCHOR, which is three-hourly since 2026-08-27**, not a
+    # fixed six. The Navy fields take the last step of the currents' window,
+    # so the hour they publish moves when the anchor rolls — and a boundary
+    # cron still aimed at 0/6/12/18 gives a dedicated attempt at four of the
+    # eight moments there is new work.
+    #
+    # It is a SECOND chance, not the only one: the hourly `35` above is
+    # already a full run. Both are needed because GitHub delivers neither
+    # reliably — measured 2026-08-27, the Navy fields sat NINE HOURS stale
+    # (published 09:00Z at 17:58Z) with every run in between succeeding,
+    # because the ones that arrived were the light `15,55` and the full ones
+    # were simply not delivered.
+    #
+    # Deliberately NOT raised to three attempts an hour like the sibling
+    # repository's. `fetch-currents.py` can afford that because its
+    # probe-first exit makes a run with nothing new cost two metadata reads;
+    # `fetch-ocean-fields.py` has no such exit and re-downloads SST, SSS, SSH
+    # and ice in full every time, about four minutes of upstream work. Until
+    # it has one, more attempts means more load on a server already answering
+    # some requests with timeouts.
+    - cron: '18 0,3,6,9,12,15,18,21 * * *'
     - cron: '15,55 * * * *'
   workflow_dispatch:
     inputs:
