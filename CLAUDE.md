@@ -33,20 +33,25 @@ python3 pipeline/test_orchestrate.py   # the unit suite; CI runs it before every
 ```
 
 There is no other local entry point to memorize; the workflow runs
-`orchestrate.py seed`, `plan --mode <full|light>`, then `run`, and each can
-be run by hand in that order. A full local rehearsal against real upstreams:
+`orchestrate.py seed`, `plan`, then `run`, and each can be run by hand in
+that order. A full local rehearsal against real upstreams:
 
 ```sh
 git clone https://github.com/oceansensing/oceansensing.github.io site
 python3 pipeline/orchestrate.py seed-published --from https://oceansensing.org/realtime-data-repo/map
 cp -R branch-out published
 python3 pipeline/orchestrate.py seed
-python3 pipeline/orchestrate.py plan --mode light
+python3 pipeline/orchestrate.py plan
 python3 pipeline/orchestrate.py run
 ```
 
-Light mode is the polite rehearsal: one assets fetch, no HYCOM tile builds,
-and the real contract still runs over the real assembled tree. `site/`,
+**A rehearsal is polite by the probe rather than by a mode now.** There was
+a `--mode light` that fetched assets only and skipped the HYCOM tile
+builds; it was retired on 2026-08-27 and `--mode` accepts only `full`. What
+replaced it is better for a rehearsal anyway: the probe-first exits mean a
+local run against real upstreams fetches only what has actually moved since
+the seed, and the real contract still runs over the real assembled tree.
+`site/`,
 `published/`, `out/`, `branch-out/` and `plan.json` are all gitignored
 working state.
 
@@ -277,8 +282,19 @@ through. A value read at import can only be tested by a fresh import.
 
 ## How a run starts, and why a push does not
 
-Three crons and `workflow_dispatch`. **No push trigger**, dropped 2026-08-21
+Two crons and `workflow_dispatch`. **No push trigger**, dropped 2026-08-21
 after measuring what one cost.
+
+**Every run is a full run as of 2026-08-27** — the light mode is gone, so
+read the paragraphs below as the record of an incident rather than a
+description of the machinery. It existed on the number they quote, 56
+minutes against 5, and the probe-first exits removed it: a full run whose
+probes all rested measured 3 min 59 s, faster than the light run it was
+avoiding, because those minutes are the observation fetches a light run
+performed anyway. What the split still cost was nine hours of stale Navy
+fields, the runs GitHub delivered being the light ones, which skipped those
+steps by construction. The conclusion below is unchanged and is still why
+there is no push trigger.
 
 It had run `full`, because the mode selector treats anything that is not the
 light cron string as full — deliberately, since "a light run that was meant
@@ -291,11 +307,13 @@ previously queued one. Three consecutive scheduled runs were cancelled and
 nothing published between 03:16 and 04:28, on a schedule that promises three
 an hour. The map's staleness note needs three hours, so nothing said so.
 
-**Making a push run *light* was the other candidate and is worse for the case
-that matters.** A push here is usually a change to a fetcher or to the
-orchestrator, and a light run performs one of the five steps — you would be
+**Making a push run *light* was the other candidate and was worse for the
+case that matters.** A push here is usually a change to a fetcher or to the
+orchestrator, and a light run performed one of the five steps — you would be
 watching a run that did not do the thing you changed, which defeats the
-deploy-and-watch habit rather than serving it.
+deploy-and-watch habit rather than serving it. (Moot since the split was
+retired, and kept because the reasoning applies to any future "cheap run"
+proposal.)
 
 So: **push freely, then dispatch when there is something to watch.**
 `gh workflow run publish.yml` defaults to full for the same safe-direction

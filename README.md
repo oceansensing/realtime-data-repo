@@ -353,9 +353,10 @@ fragility are identical — an outage now produces *labeled* staleness, not
 less of it. Full-run wall time is roughly unchanged, since tile builds
 dominate. A deploy is still whole-tree, because Pages is. There was also
 one real regression at first publish: storms refreshed hourly here against
-three times an hour on the predecessor. Closed the same day — light runs
-are scheduled at :15 and :55 now, matching the predecessor's three
-publishes an hour.
+three times an hour on the predecessor. Closed the same day with light runs
+at :15 and :55; since 2026-08-27 the split is gone and the three runs an
+hour at 3,23,43 are all full, so the storms keep that cadence and the
+fields ride along.
 
 ## License
 
