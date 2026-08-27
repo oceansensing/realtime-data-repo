@@ -661,6 +661,47 @@ class Run:
                 return f'advertises {name}, which is not in the stage'
         return None
 
+    # -- data quality ----------------------------------------------------------
+
+    def quality_products(self):
+        """A product's own physics check, run against what its fetch staged.
+
+        **Why this exists: 2026-08-26, HYCOM served depth as stripes.** For
+        one three-hour step the upstream returned fields constant down every
+        column for every depth below ~20 m, with HTTP 200 throughout. The
+        fetchers kept-previous-on-error as designed — but there was no error,
+        so five corrupt current products published and the site drew them
+        faithfully for hours until the owner's eye caught it. Structural
+        validation cannot see this: the files were well-formed JSON with the
+        right shapes. Only the product knows what its own field should look
+        like, so the check is a command the product declares, beside its
+        `namespace` and `tiles` commands, living with the fetcher it checks.
+
+        Runs AFTER structural validation (a physics check on an unreadable
+        file would report physics) and BEFORE `settle_tiles` — a hold here
+        keeps the seeded previous publish, tiles included, which is exactly
+        the fallback the fetchers' own kept-previous discipline provides for
+        upstream OUTAGES, extended to upstream LIES.
+
+        The command's contract: exit 0 to accept; non-zero to reject, with
+        the reason on the last non-empty line of stdout. A missing command
+        means no check — products opt in."""
+        for name, spec in self.products.items():
+            if self.fate[name] != 'fresh':
+                continue
+            cmd = spec.get('quality')
+            if not cmd:
+                continue
+            ok, detail, out, err = run_cmd(
+                cmd, SITE, spec.get('timeout_minutes', 10), f'quality:{name}')
+            for stream in (out, err):
+                if stream.strip():
+                    log(stream.rstrip())
+            if not ok:
+                lines = [l for l in out.strip().splitlines() if l.strip()]
+                why = lines[-1] if lines else detail
+                self.hold(name, f'quality: {why}')
+
     # -- tiles -----------------------------------------------------------------
 
     def settle_tiles(self):
@@ -1061,6 +1102,7 @@ def cmd_run(cfg):
     run.fetch_all()
     run.survey_namespaces()
     run.validate_products()
+    run.quality_products()
     run.settle_tiles()
     run.assemble()
     run.contract_gate()

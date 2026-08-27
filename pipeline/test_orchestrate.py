@@ -62,6 +62,15 @@ elif cmd == 'fetch-beta':
     if (CTL / 'fail-beta').is_file():
         sys.exit(1)
     MAP.joinpath('beta.json').write_text(json.dumps({'header': {'refTime': hour('beta')}}))
+elif cmd == 'quality-alpha':
+    # The physics check's contract: exit 0 accepts; non-zero rejects with the
+    # reason on the last non-empty stdout line. The striped-ocean shape from
+    # 2026-08-26 is the reason this hook exists.
+    if (CTL / 'bad-quality').is_file():
+        print('checking alpha against its own physics...')
+        print('u field constant down every column (anisotropy 212689746202)')
+        sys.exit(1)
+    sys.exit(0)
 elif cmd == 'tiles-alpha':
     if (CTL / 'fail-tiles').is_file():
         sys.exit(1)
@@ -141,6 +150,7 @@ writes = ["alpha*.json"]
 max_age_hours = 4
 
 namespace = ["python3", "fake_tool.py", "ns-alpha"]
+quality = ["python3", "fake_tool.py", "quality-alpha"]
 
 [products.alpha.tiles]
 build = ["python3", "fake_tool.py", "tiles-alpha"]
@@ -275,6 +285,44 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(st['products']['beta']['checked'], PREV_CHECKED)
         self.assertEqual(st['products']['alpha']['fate'], 'fresh')
         self.assertTrue(self.env.receipt()['deploy'])
+
+    def test_quality_rejection_holds_and_restores(self):
+        """The 2026-08-26 shape: the fetch succeeds, the files are valid
+        JSON, and the field is garbage — HYCOM served every depth below 20 m
+        constant down its columns with HTTP 200 throughout. Structural
+        validation passed it; five corrupt products published. The quality
+        hook is the product's own physics check, and a rejection must land
+        exactly like an upstream outage: previous fields served, tiles not
+        rebuilt from the bad grids, everything else untouched."""
+        self.env.ctl('bad-quality')
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('hour-beta', H1)
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'held')
+        # The reason carries the check's own last line, not a generic label —
+        # a red light that cannot say WHY is a red light nobody can act on.
+        self.assertIn('quality:', st['products']['alpha']['reason'])
+        self.assertIn('constant down every column',
+                      st['products']['alpha']['reason'])
+        self.assertEqual(self.env.out_hour('alpha.json'), H0)   # previous served
+        # No tiles from the bad grids: an unbuilt cache is absent from the
+        # receipt (or false), never true.
+        self.assertNotEqual(
+            self.env.receipt()['built'].get('alpha-tiles'), True)
+        self.assertEqual(st['products']['beta']['fate'], 'fresh')     # blast radius: one product
+        self.assertTrue(self.env.receipt()['deploy'])
+
+    def test_quality_passing_is_fresh_and_beta_needs_none(self):
+        # Passing is exercised by every green test now that alpha declares a
+        # quality command; this pins the two edges by name — a pass publishes
+        # the new hour, and a product with NO quality command is never asked.
+        self.env.ctl('hour-alpha', H1)
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'fresh')
+        self.assertEqual(self.env.out_hour('alpha.json'), H1)
+        self.assertEqual(st['products']['beta']['fate'], 'fresh')
 
     def test_checked_advances_while_updated_carries(self):
         # Both fetch the same bytes as the last publish: the attempt is
