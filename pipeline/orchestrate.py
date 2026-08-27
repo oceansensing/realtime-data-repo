@@ -7,8 +7,8 @@ Subcommands, in the order a run uses them:
                   fetcher starts from the last good publish
   plan            probe the model catalogs once, write plan.json, and emit
                   the tile cache keys for the workflow to restore against
-  run             fetch, validate, resolve fates, build tiles, assemble the
-                  candidate tree, write manifests and status, gate on the
+  run             fetch, validate, judge quality, resolve fates, build tiles,
+                  assemble the candidate tree, write manifests and status, gate on the
                   consumer's contract, and say what may publish
   seed-published  one-time bootstrap: pull the current publish from the old
                   live site into branch-out/, ready to push as `published`
