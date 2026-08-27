@@ -77,9 +77,24 @@ timeout_minutes = 20
 #   as globs. A step writing outside every product's namespace fails the run
 #   outright. Held products are restored from the seed by these same globs,
 #   which is what makes the restore exact rather than a hand-kept list.
-# `max_age_hours` is how old `updated` may grow before the status calls the
-#   product stale — sized to each product's own cadence, not to the cron.
-#   `checked` going quiet is flagged for every product alike.
+# `max_age_hours` is how far the NEAREST PUBLISHED FRAME may sit from the
+#   reader's clock before the status calls the product stale — sized to each
+#   product's own cadence, not to the cron. `checked` going quiet is flagged
+#   for every product alike.
+#
+#   **It measured `updated` until 2026-08-27, and that was the wrong
+#   quantity.** `updated` is when this pipeline last PUBLISHED, so a run that
+#   republishes a nine-hour-old field every hour reported perfectly fresh. On
+#   2026-08-27 every product on both origins said `stale: false` while the
+#   Navy fields sat nine hours behind and OISST forty-three; both were found
+#   by the owner looking at the map, with every suite green. A product with no
+#   valid hour at all — the observation sets — has nothing to measure and is
+#   left alone, as before.
+#
+#   Going past the budget is only a FAULT when the product's fate is not
+#   `fresh`: old-but-fetched means upstream has nothing newer, which is a note
+#   and not this repository's doing. See `nearest_frame_age` in
+#   orchestrate.py.
 #
 # There is no cross-product agreement declared here, on purpose. How the
 # ESPC members must relate is the consumer contract's rule (test-schema.mjs
@@ -184,7 +199,12 @@ title = "Navy ESPC temperature and salinity"
 step = "fields"
 roots = ["sst-navy.json", "sss-navy.json"]
 writes = ["sst-navy*.json", "sss-navy*.json"]
-max_age_hours = 9
+# Two, not nine. These are ESPC 3-hourly products and the anchor
+# publishes frames that BRACKET the reader, so the nearest is at
+# most 1.5 h away by construction (see REFRESH_HOURS in
+# fetch-currents.py). Two leaves room for a late run without
+# hiding the nine-hour case this was blind to.
+max_age_hours = 2
 namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=sst-navy,sss-navy"]
 
 [products.fields-navy.tiles]
@@ -201,7 +221,12 @@ title = "Navy ESPC sea ice concentration and thickness"
 step = "fields"
 roots = ["sic-navy.json", "sit-navy.json"]
 writes = ["sic-navy*.json", "sit-navy*.json"]
-max_age_hours = 9
+# Two, not nine. These are ESPC 3-hourly products and the anchor
+# publishes frames that BRACKET the reader, so the nearest is at
+# most 1.5 h away by construction (see REFRESH_HOURS in
+# fetch-currents.py). Two leaves room for a late run without
+# hiding the nine-hour case this was blind to.
+max_age_hours = 2
 namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=sic-navy,sit-navy"]
 
 # **Its own cache, and it has to be.** `plan` writes one
@@ -235,7 +260,12 @@ title = "Navy ESPC sea surface height"
 step = "fields"
 roots = ["ssh-navy.json"]
 writes = ["ssh-navy*.json"]
-max_age_hours = 9
+# Two, not nine. These are ESPC 3-hourly products and the anchor
+# publishes frames that BRACKET the reader, so the nearest is at
+# most 1.5 h away by construction (see REFRESH_HOURS in
+# fetch-currents.py). Two leaves room for a late run without
+# hiding the nine-hour case this was blind to.
+max_age_hours = 2
 namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=ssh-navy"]
 
 [products.fields-oisst]

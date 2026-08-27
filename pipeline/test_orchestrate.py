@@ -286,6 +286,94 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(st['products']['alpha']['fate'], 'fresh')
         self.assertTrue(self.env.receipt()['deploy'])
 
+    # -- currency: is what we serve actually current? ----------------------
+    #
+    # Every check in this file asks whether the tree is CORRECT. None of them
+    # asked whether it was CURRENT, and on 2026-08-27 that gap cost a day:
+    # both origins reported `stale: false` on every product while the Navy
+    # fields sat nine hours behind and OISST forty-three, with twenty of
+    # twenty runs green. The owner found both by looking at the map.
+
+    @staticmethod
+    def _ago(hours):
+        """A valid time that many hours in the past, as the manifests spell
+        them. Computed rather than fixed, because the whole quantity under
+        test is a distance from NOW."""
+        from datetime import datetime, timedelta, timezone
+        return (datetime.now(timezone.utc)
+                - timedelta(hours=hours)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def test_currency_measures_the_nearest_frame_not_the_base_hour(self):
+        """The map opens each layer on whichever published frame is closest
+        to the reader, so a product publishing 15:00Z and 18:00Z at 17:00Z is
+        an hour off and not two. Measuring the base hour would have called
+        the currents 4.1 h stale on a day they were 1.1 h from the reader."""
+        self.assertAlmostEqual(
+            orchestrate.nearest_frame_age([self._ago(4), self._ago(1)]),
+            1, delta=0.05)
+        self.assertIsNone(orchestrate.nearest_frame_age([]))
+        self.assertIsNone(orchestrate.nearest_frame_age(None))
+
+    def test_old_data_that_was_fetched_is_upstream_s_fault_not_ours(self):
+        """ESPC skipped two daily runs this week and the map correctly showed
+        the newest thing that existed. A product whose fetch SUCCEEDED and is
+        still old must not turn the run red, or the red means nothing within
+        a day."""
+        self.env.ctl('hour-alpha', self._ago(99))
+        self.env.ctl('hour-beta', self._ago(99))
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'fresh')
+        self.assertTrue(st['products']['alpha']['stale'])
+        # Reported, and reported as theirs.
+        self.assertEqual(self.env.receipt()['behind'], [])
+        self.assertTrue(any('nothing newer' in n
+                            for n in self.env.receipt()['notes']))
+
+    def test_old_data_that_was_not_fetched_is_ours_and_turns_the_run_red(self):
+        """The 2026-08-27 shape exactly: newer data was there, the step never
+        ran, the previous file was carried forward, and every gate stayed
+        green. `behind` is what the workflow fails on — AFTER deploying,
+        because refusing to publish would leave the reader something older
+        still."""
+        self.env.ctl('hour-alpha', self._ago(99))
+        self.env.ctl('fail-alpha')
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'held')
+        self.assertTrue(st['products']['alpha']['stale'])
+        behind = self.env.receipt()['behind']
+        self.assertTrue(any(b.startswith('alpha') for b in behind), behind)
+        # And the tree still went out. This is the half that is easy to get
+        # backwards: staleness must never gate the deploy, because refusing
+        # to publish is the one response that makes it worse.
+        self.assertTrue(self.env.receipt()['deploy'])
+
+    def test_a_product_declaring_no_budget_is_never_judged(self):
+        """`beta` declares no `max_age_hours`, and the observation sets are
+        the real instance of it — a buoy feed has no model hour to be late
+        against. Silence there must stay silence, or this check becomes the
+        noise that trains its own alarm away."""
+        self.env.ctl('hour-alpha', self._ago(1))
+        self.env.ctl('hour-beta', self._ago(500))
+        self.env.ctl('fail-beta')
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['beta']['fate'], 'held')
+        self.assertFalse(st['products']['beta']['stale'])
+        self.assertEqual(self.env.receipt()['behind'], [])
+
+    def test_data_inside_its_budget_is_neither_stale_nor_behind(self):
+        """The control. Without it every assertion above is satisfied by a
+        check that simply always fires."""
+        self.env.ctl('hour-alpha', self._ago(1))
+        self.env.ctl('hour-beta', self._ago(1))
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertFalse(st['products']['alpha']['stale'])
+        self.assertEqual(self.env.receipt()['behind'], [])
+        self.assertAlmostEqual(st['products']['alpha']['ageHours'], 1, delta=0.05)
+
     def test_quality_rejection_holds_and_restores(self):
         """The 2026-08-26 shape: the fetch succeeds, the files are valid
         JSON, and the field is garbage — HYCOM served every depth below 20 m

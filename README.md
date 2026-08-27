@@ -31,6 +31,32 @@ drifted — always silently, always on the newest product. A list that is
 derived cannot fall behind, and the one list that remains (the roots) is
 checked against the consumer's contract on every run.
 
+**Currency is measured and gated, not merely reported.** Every other check
+here asks whether the tree is CORRECT — the contract, the fences, the
+quality gate, the tile guards. None asked whether it was CURRENT, and on
+2026-08-27 that gap cost a day: both origins reported `stale: false` on
+every product while the Navy fields sat nine hours behind and OISST
+forty-three, with twenty of twenty runs green. Both were found by a human
+looking at the map.
+
+The bug was the quantity. `stale` compared `updated` — when the pipeline
+last PUBLISHED — against `max_age_hours`, which answers "did we run
+recently?" and not "is what we serve current?". A pipeline republishing a
+nine-hour-old field every hour is perfectly live and completely stale. It
+now measures the NEAREST published frame against the reader's clock, which
+is what the map actually shows, and publishes it as `ageHours` beside the
+flag.
+
+**Whose fault it is decides how loud it gets.** A product that is old with
+a fate of `fresh` means upstream has nothing newer — ESPC skipped two daily
+runs that week and the map correctly showed the newest thing that existed.
+That is a note. A product that is old with any other fate means the newer
+data was there and this pipeline did not publish it; that goes in `behind`,
+and the workflow FAILS on it after the deploy. After, never instead:
+refusing to publish would leave the reader something older still, which is
+the one response to staleness that makes it worse. The red mark on the
+schedule is the alert, and GitHub already knows how to send it.
+
 **The product is the unit of build, validation and fate.** A product is a set
 of files that are true together — a grid, its regions, its forecast frames,
 its tiles. Each one is fetched, validated and published as a unit, and each

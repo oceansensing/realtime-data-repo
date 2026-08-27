@@ -501,6 +501,10 @@ class Run:
         self.withheld = {}  # product -> {dir: why}
         self.tile_state = {}  # product -> {dir: state}
         self.notes = []
+        # Products serving old data that newer data existed for — ours to
+        # answer for, and what turns the run red. See the note by
+        # `nearest_frame_age`.
+        self.behind = []
         self.deploy = True
         self.changed = set()
 
@@ -889,6 +893,34 @@ class Run:
             for dest in (OUT / 'status', BRANCH / 'status'):
                 (dest / f'{name}.json').write_text(json.dumps(manifest, indent=1))
             age_limit = spec.get('max_age_hours')
+            age = nearest_frame_age(manifest['hours'])
+            overdue = bool(age_limit and age is not None and age > age_limit)
+            if overdue:
+                # **Whose fault it is decides how loud this gets, and the
+                # two cases are genuinely different.** A product whose fetch
+                # SUCCEEDED and is still old means upstream has nothing
+                # newer — ESPC skipped two daily runs this week and the map
+                # correctly showed the newest thing that exists. That is a
+                # note. A product that is old while its fate is anything but
+                # `fresh` means the newer data was there and this pipeline
+                # did not publish it: on 2026-08-27 the Navy fields were
+                # `carried` at nine hours while upstream had 18:00Z waiting,
+                # because the full runs the scheduler owed simply never
+                # arrived. That is ours, and it is what the run should go
+                # red for.
+                if self.fate[name] == 'fresh':
+                    self.notes.append(
+                        f'{name}: nearest frame is {age:.1f} h old, past its '
+                        f'{age_limit} h budget — upstream has nothing newer')
+                    log(f'currency: {name} {age:.1f} h — upstream, not us')
+                else:
+                    self.behind.append(f'{name} ({age:.1f} h, {self.fate[name]})')
+                    # An Actions annotation, so it is visible on the run
+                    # without opening the log.
+                    log(f'::error title=Stale data::{name}: nearest published '
+                        f'frame is {age:.1f} h old against a {age_limit} h '
+                        f'budget, and its fate is {self.fate[name]} — newer '
+                        f'data was available and was not published')
             status['products'][name] = {
                 'title': spec['title'],
                 # **Which files this origin serves.** The routing half of the
@@ -907,9 +939,12 @@ class Run:
                 'modelRun': manifest['modelRun'],
                 'source': manifest['source'],
                 'hours': manifest['hours'],
-                'stale': bool(
-                    age_limit and manifest['updated']
-                    and hours_since(manifest['updated']) > age_limit),
+                # The READER's distance from the data, which is what the
+                # credit-line light shows. `updated` is still published
+                # above for anyone asking when the pipeline last ran; it is
+                # no longer mistaken for currency.
+                'stale': overdue,
+                'ageHours': None if age is None else round(age, 2),
             }
 
         receipt = {
@@ -917,6 +952,10 @@ class Run:
             'fates': dict(self.fate), 'reasons': dict(self.reason),
             'built': dict(self.built), 'withheld': dict(self.withheld),
             'deploy': self.deploy, 'notes': self.notes,
+            # Products serving old data that newer data existed for. In the
+            # receipt as well as the workflow output, so a test can read the
+            # same answer the schedule fails on.
+            'behind': self.behind,
         }
         for dest in (OUT / 'status', BRANCH / 'status'):
             (dest / 'status.json').write_text(json.dumps(status, indent=1))
@@ -1169,6 +1208,15 @@ def cmd_run(cfg):
         gh_output(f'built-{cache}', 'true' if built else 'false')
     log(f'run: fates {run.fate}')
     log(f'run: deploy={run.deploy}')
+    # **Handed to the workflow rather than returned, because a stale tree
+    # must still DEPLOY.** Refusing the publish would leave the reader with
+    # something older still — the one response to staleness that makes it
+    # worse. So the tree goes out and the run is failed afterwards, which
+    # is what puts a red mark on the schedule and sends the notification
+    # GitHub already knows how to send. Nothing here needs new plumbing.
+    gh_output('behind', ', '.join(run.behind))
+    if run.behind:
+        log(f'run: BEHIND — {", ".join(run.behind)}')
     return 0
 
 
@@ -1228,6 +1276,27 @@ def hours_since(stamp):
     except (TypeError, ValueError):
         return 0.0
     return (datetime.now(timezone.utc) - then).total_seconds() / 3600
+
+
+def nearest_frame_age(hours):
+    """Hours between now and the NEAREST published valid time, or None.
+
+    **The reader's own distance from the data**, and that is the quantity
+    this pipeline was not measuring. `stale` compared `updated` — when the
+    pipeline last PUBLISHED — against `max_age_hours`, which answers "did
+    we run recently?" and not "is what we serve current?". A pipeline
+    republishing a nine-hour-old field every hour is perfectly live and
+    completely stale, and on 2026-08-27 that is exactly what happened:
+    every product on both origins reported `stale: false` while the Navy
+    fields sat nine hours behind and OISST forty-three. Both were found by
+    the owner looking at the map, twice in one day, with every suite green.
+
+    NEAREST rather than the base hour, because the map opens each layer on
+    whichever published frame is closest to the reader's clock — a product
+    publishing 15:00Z and 18:00Z at 17:00Z is an hour off, not two.
+    """
+    ages = [abs(hours_since(h)) for h in (hours or []) if h]
+    return min(ages) if ages else None
 
 
 def main():
