@@ -6,6 +6,53 @@ is shaped the way it is, what a product is, what the fates mean — lives in
 maintainer's half: what to run, what must move together, and what has
 already gone wrong.
 
+<!-- DOC-DOCTRINE v1 begin — identical in all four repositories; `check:docs` holds them equal. Edit one, sync all. -->
+## Where truth lives, and what "update docs" means
+
+Four repositories carry this project, and each carries the same four
+documents: `oceanlet.js` (the engine), `oceansensing.github.io` (the site,
+and every fetch script), `realtime-data-repo` (the orchestrator both data
+repositories run, and most products), `espc-model-repo` (the ESPC currents).
+Each document answers exactly one question.
+
+| file | answers | tense | it is stale when |
+| --- | --- | --- | --- |
+| `README.md` | what this is, how to run it | present | a reader types a command or trusts a number and is wrong |
+| `CLAUDE.md` | what must not be got wrong here | imperative | the next session is about to repeat a mistake |
+| `PLAN.md` | what happened, measured, and what is open | dated past | "why is it like this?" has no answer here |
+| `DECISIONS.md` | which one-way door closed, and when | dated | a reversal would cost a migration and nothing says so |
+
+Frozen interfaces and deliberate divergences live beside them under `docs/` —
+the compat ledger, the renderer contract — one row per rule, each pinned by a
+test.
+
+**"Update docs" means a sweep of all four repositories, not the one in hand.**
+Docs are part of the change, never a follow-up and never a separate ask. Five
+questions, asked of every repository the change touched:
+
+1. Did a command, a path, a script name or a number a reader would type or
+   trust move? → `README.md`
+2. Did a rule, a trap, or a things-that-must-move-together change or come to
+   light? → `CLAUDE.md`
+3. Did something *happen* — a measurement, a defect, a yield, a mechanism, an
+   open question opened or answered? → `PLAN.md`
+4. Did a one-way door close? → `DECISIONS.md`
+5. **Does a document in another repository now say something false because of
+   this change?** → fix it there, in the same sitting.
+
+**Question 5 is the one that gets missed, and it is why this block is
+identical in four places.** Measured 2026-08-28: one tile-tier measurement
+falsified `espc-model-repo`'s README, its `products.toml` header and the
+site's README at once. Two were found; the third took a reminder from the
+owner, who then asked for this doctrine.
+
+A number in prose is only as good as its anchor. `check:docs` gates every
+claim it can tie to a source constant and nothing else, so when a figure has
+no anchor — a measurement, a live reading, a byte count off a build log —
+write **where it was measured and when**, or the next reader cannot tell a
+fact from a guess that aged.
+<!-- DOC-DOCTRINE v1 end -->
+
 ## The one relationship that explains everything else
 
 The fetch scripts and the data contract live in

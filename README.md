@@ -375,7 +375,7 @@ in the LICENSE and credited on the map.
 - **Fetchers reading the plan.** They still decide their hour internally;
   the pipeline validates the outcome instead of dictating the input. Moving
   the decision into the plan entirely means teaching each fetcher a `--hour`
-  flag, queued in the site repository's PLAN.md.
+  flag, queued in `PLAN.md` here (the fetchers themselves are the site's).
 - **The predecessor's freeze.** Cutover happened on 2026-08-14 — `MAP_DATA`
   in the site's `src/config.ts` points here, after the development map ran
   against this pipeline first and proved it. The predecessor deliberately
