@@ -117,6 +117,15 @@ repository's PLAN.
 Two reports, the same four words, unrelated mechanisms — worth keeping
 straight, because the instruments that would catch them are different.
 
+**Fixed upstream of this repository the same evening**, on the owner's
+instruction: the currents fetcher's step probe now reads every depth a run
+reads instead of the surface alone, so a step corrupt below the surface is
+walked past at selection rather than fetched and then held. All three ESPC
+products move together to a step that serves at every depth, which means
+this collision — a held depth product sitting at an older hour than its
+fresh sibling — no longer arises from THIS cause. It can still arise from
+any other per-domain hold, so the open item below stands.
+
 **The escape hatch worked, and this is its first live exercise.** The held
 products failed the consumer's ESPC hour rule — four `FAIL` lines, since a
 held depth product sits at an older hour than the fresh surface — and the run
