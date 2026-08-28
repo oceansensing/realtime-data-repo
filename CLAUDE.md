@@ -2,7 +2,8 @@
 
 Guidance for working in this repository. The **design** — why the pipeline
 is shaped the way it is, what a product is, what the fates mean — lives in
-`README.md` and is not repeated here. This file is the operator's and
+`README.md` and is not repeated here, and what has *happened* — measurements,
+defects, open items — is in `PLAN.md`. This file is the operator's and
 maintainer's half: what to run, what must move together, and what has
 already gone wrong.
 
@@ -454,10 +455,13 @@ Planned 2026-08-20 in the site repository's `PLAN.md`, to be built next
 session. Recorded here because it is most of what this repository currently
 carries and the change will be felt here first.
 
-**ESPC is 91% of the published tree** — 114 MB of committed grids and 505 MB
-of CI-built tiles, against 59 MB of everything else. It moves to
-`espc-model-repo`, a public repository of its own, taking the currents and the
-four Navy field products with it. What is left here is the observing
+**ESPC was 91% of the published tree**, and the currents MOVED on 2026-08-22
+— this passage described the move in the future tense until the doc sweep of
+2026-08-28. The figures it planned against (114 MB of grids, 505 MB of tiles)
+predated the third depth cap and the second forecast lead; re-measured
+2026-08-28 the tier is 738.7 MB and the grids 93 MB, and `espc-model-repo` is
+832 MB of a 1 GB cap. **The four Navy field products did NOT go** — the
+owner's call, on storage — so what is left here is those and the observing
 platforms, the storms, the buoys, the tides, the arrays, the vessels, the
 sondes and the OISST fields: about 59 MB.
 

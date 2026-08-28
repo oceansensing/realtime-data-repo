@@ -18,16 +18,15 @@ name: Publish realtime ocean data
 # ESPC layers ageing to ~4.3 h at every window's tail before the turn
 # published (~13:12–13:30 for a 12:00 window). Nominal :02 dispatches
 # ~:21–:39 and publishes the new window inside its own hour, holding the
-# tail near 3.7 h. It needs no mode plumbing: any schedule string that is
-# not the light one falls through to full. Until the predecessor is frozen
-# its own :05 full run lands ~:24–:42, so the two overlap at these four
-# hours a day — accepted as transient, since the standby's output feeds
-# nothing and the freeze is the standing plan.
+# tail near 3.7 h. It needs no mode plumbing at all now — every run is full,
+# and there is no mode to select. The overlap this note used to describe —
+# the predecessor's own :05 full run landing ~:24–:42 at these four hours a
+# day — ended with it: its last run was 2026-08-17.
 #
 # **There is no push trigger, and there was one until 2026-08-21.** It ran
-# `full` — the mode selector treats anything that is not the light cron
-# string as full, deliberately — so a push that changed one markdown file
-# started a complete fetch of every product. Measured on exactly that: 56
+# `full` — the mode selector then in place read anything that was not the
+# light cron string as full, deliberately — so a push changing one markdown
+# file started a complete fetch of every product. Measured on that: 56
 # minutes against a light run's 5, and because this workflow is
 # `concurrency: publish` with `cancel-in-progress: false` a new run cannot
 # cancel the one in flight, it queues; each arrival then cancels the
@@ -43,20 +42,21 @@ name: Publish realtime ocean data
 # deploy-and-watch habit defeated rather than served. `workflow_dispatch`
 # makes the choice explicit instead — push freely, then dispatch a full run
 # when there is something to watch. It defaults to full for the same
-# safe-direction reason the mode selector does.
+# safe-direction reason the mode selector did.
 #
 # Nothing is lost by waiting: an unpushed change is picked up by the next
-# scheduled run either way, within about twenty minutes for a light one.
+# scheduled run either way, within about twenty minutes.
 #
-# The light runs at :15 and :55 refresh the storms and platforms only,
-# spreading three publishes across the hour, because the NHC does not
-# publish on our schedule — an advisory every three hours, every two under
-# watches, a special one whenever a forecaster judges it. The dispatch
-# delay shuffles the spacing per run, so this buys three publishes an hour
-# rather than three evenly spaced ones; nothing downstream may assume a
-# publish lands at its nominal time. What a light run does and refuses to
-# do is the orchestrator's business — see the light path in
-# pipeline/orchestrate.py and the gap guard note in the README.
+# **The light runs are gone as of 2026-08-27 and the paragraph that stood
+# here described them in the present tense** — two schedules at :15 and :55
+# refreshing storms and platforms only. What they existed for survives them
+# and is why the cron above is three an hour: the NHC does not publish on
+# our schedule (an advisory every three hours, every two under watches, a
+# special one whenever a forecaster judges it), so three publishes an hour
+# is the point rather than three evenly spaced ones. GitHub's dispatch
+# delay shuffles the spacing anyway, and nothing downstream may assume a
+# publish lands at its nominal time. A probed full run costs what a light
+# run did — 3 min 59 s — which is what made the split unnecessary.
 
 on:
   schedule:

@@ -51,6 +51,25 @@ the receipt's `withheld` map, both of which are read as lists of what left. A
 control that checks only `state` cannot see it; the kept-tier control asserts
 a present tier carries no reason now. 45 tests.
 
+## 2026-08-28: what the first doc sweep found here
+
+Three claims, none of which any gate could anchor:
+
+- **The workflow described light runs in the present tense** — a mode
+  selector that no longer exists, a `:15`/`:55` schedule that no longer runs,
+  and a pointer to "the light path in `pipeline/orchestrate.py`" that is gone.
+  Rewritten to keep the reason three runs an hour is still right (the NHC does
+  not publish on our schedule) without claiming the machinery.
+- **`CLAUDE.md` described the ESPC move in the FUTURE tense**, six days after
+  it happened, and said the four Navy field products were going with it. They
+  are not — the owner's call, on storage — and its planning figures (114 MB of
+  grids, 505 MB of tiles) predated the third depth cap and the second lead.
+- **The predecessor was described as a live warm standby.**
+  `ocean-data-repo` last ran 2026-08-17 and serves no status document, so the
+  freeze is effectively in place; the README had been eleven days stale, and
+  the workflow still noted the two pipelines overlapping four times a day
+  with it.
+
 ## Open
 
 - **Product budgets are still being learned from live runs.** `assets` was

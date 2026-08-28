@@ -18,6 +18,12 @@ design brief for this repository. The fetch scripts themselves are unchanged
 and live in the site repository; what is rebuilt here is everything around
 them.
 
+`CLAUDE.md` is the operator's and maintainer's half — what to run, what must
+move together, what has already gone wrong. `PLAN.md` is the running record of
+what has happened here and what is open. Which document gets what, across all
+four repositories of this project, is the doctrine block at the top of
+`CLAUDE.md`.
+
 ## The shape
 
 **One declaration.** `pipeline/products.toml` says everything the pipeline
@@ -376,10 +382,13 @@ in the LICENSE and credited on the map.
   the pipeline validates the outcome instead of dictating the input. Moving
   the decision into the plan entirely means teaching each fetcher a `--hour`
   flag, queued in `PLAN.md` here (the fetchers themselves are the site's).
-- **The predecessor's freeze.** Cutover happened on 2026-08-14 — `MAP_DATA`
-  in the site's `src/config.ts` points here, after the development map ran
-  against this pipeline first and proved it. The predecessor deliberately
-  keeps publishing on its own crons for a few days as a warm standby
-  (switching back is that one string again), and is then to be frozen in
-  place: workflow disabled, nothing deleted, a readable record and a
-  restartable fallback.
+- **The predecessor's freeze — done, and it happened without being written
+  down.** Cutover was 2026-08-14: `MAP_DATA` in the site's `src/config.ts`
+  points here, after the development map ran against this pipeline first and
+  proved it. The predecessor was to keep publishing on its own crons for a
+  few days as a warm standby and then be frozen — workflow disabled, nothing
+  deleted, a readable record and a restartable fallback. **Its last run was
+  2026-08-17** and it has served no `status.json` since, so the freeze is
+  effectively in place; this passage went on describing it as a live standby
+  for eleven days, which is what the doc sweep of 2026-08-28 caught. Switching
+  back is still that one string, against a tree eleven days cold.
