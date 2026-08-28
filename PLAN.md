@@ -110,7 +110,10 @@ cause.** The first (above) was a model run eighteen hours late with every
 signal healthy. This one was a single poisoned time step: HYCOM served
 non-deterministic garbage below the surface at one valid hour, `espc-model-repo`'s
 quality gate held `currents-50m` and `currents-caps`, and the depth layers
-froze nine hours behind. The full measurement is in that repository's PLAN.
+froze three hours behind the surface — 5.7 h old against the reader's clock
+at the moment of the report, on the `+3h` frame the map actually opens on
+rather than the `hour` in `status.json`. The full measurement is in that
+repository's PLAN.
 Two reports, the same four words, unrelated mechanisms — worth keeping
 straight, because the instruments that would catch them are different.
 
