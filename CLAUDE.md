@@ -22,13 +22,17 @@ Each document answers exactly one question.
 | `CLAUDE.md` | what must not be got wrong here | imperative | the next session is about to repeat a mistake |
 | `PLAN.md` | what happened, measured, and what is open | dated past | "why is it like this?" has no answer here |
 | `DECISIONS.md` | which one-way door closed, and when | dated | a reversal would cost a migration and nothing says so |
+| `docs/` | contracts, ledgers and the guide | present | it describes an interface, a divergence or a concept that has moved on |
 
-Frozen interfaces and deliberate divergences live beside them under `docs/` —
-the compat ledger, the renderer contract — one row per rule, each pinned by a
-test.
+**`docs/` is a first-class part of "all docs", not an appendix** — the owner
+asked for that explicitly on 2026-08-28, and the reason is that these are the
+documents everything else points AT. A frozen contract, a divergence ledger
+whose rows are pinned by tests, a guide that introduces the model: each is
+the thing a reader is sent to when the short answer will not do, so each is
+the worst place for a claim that has quietly stopped being true.
 
 **"Update docs" means a sweep of all four repositories, not the one in hand.**
-Docs are part of the change, never a follow-up and never a separate ask. Five
+Docs are part of the change, never a follow-up and never a separate ask. Six
 questions, asked of every repository the change touched:
 
 1. Did a command, a path, a script name or a number a reader would type or
@@ -38,10 +42,12 @@ questions, asked of every repository the change touched:
 3. Did something *happen* — a measurement, a defect, a yield, a mechanism, an
    open question opened or answered? → `PLAN.md`
 4. Did a one-way door close? → `DECISIONS.md`
-5. **Does a document in another repository now say something false because of
+5. Did an interface, a deliberate divergence, or a concept the guide explains
+   move? → the matching file under `docs/`
+6. **Does a document in another repository now say something false because of
    this change?** → fix it there, in the same sitting.
 
-**Question 5 is the one that gets missed, and it is why this block is
+**Question 6 is the one that gets missed, and it is why this block is
 identical in four places.** Measured 2026-08-28: one tile-tier measurement
 falsified `espc-model-repo`'s README, its `products.toml` header and the
 site's README at once. Two were found; the third took a reminder from the
