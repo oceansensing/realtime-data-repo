@@ -176,7 +176,9 @@ the map's own gate has the last word.
 4. **Validate** — per product: roots parse, and every file the headers
    advertise exists.
 5. **Tiles** — restored tiles verified by content; wrong or missing tiers
-   rebuilt for fresh products only; still-incoherent tiers withheld.
+   rebuilt for fresh products only; still-incoherent tiers withheld. A tier
+   a product no longer carries stops being advertised whatever its fate —
+   *rebuilding* is for fresh products, *accounting* is for all of them.
 6. **Assemble and gate** — static seeds + the stage become the candidate,
    the site's contract check runs over it, and a failure demotes the
    product it names rather than the tree; manifests and status record what

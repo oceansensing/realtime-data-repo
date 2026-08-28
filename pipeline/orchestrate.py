@@ -779,6 +779,30 @@ class Run:
                 pairs = tile_pairs(spec)
                 states = {d: tile_dir_state(d, g) for d, g in pairs}
 
+            # **A directory the stage still owes is absent whatever the fate,
+            # and gating that on `fresh` was the 2026-08-28 defect.** The
+            # block above runs only for a fresh product, so a HELD one never
+            # recomputed what it owed: nothing was seeded, `final` came out
+            # empty, and its carried-forward grid went on advertising a tier
+            # the publish did not carry. Live for two hours that night — four
+            # of the five ESPC current layers serving `tileIndex` against a
+            # 404, while surface, which stayed fresh, was correct throughout.
+            #
+            # This is the 2026-08-16 lesson one branch further in: withholding
+            # must not walk the directories that EXIST. That fix computed the
+            # owed list from `match` instead of the walk, and then put it
+            # inside the fresh-only branch, where a held product could not
+            # reach it.
+            #
+            # `setdefault` on the inner key, so a build that ran and produced
+            # nothing keeps its more specific reason.
+            for d in [d for d in bases
+                      if header_of(STAGE / dict(tiles['match'])[d]) is not None
+                      and not (STAGE / d / 'index.json').is_file()]:
+                self.withheld.setdefault(name, {}).setdefault(
+                    d, f'absent: the product is {self.fate[name]}, '
+                       'so no build ran')
+
             # Whatever is still not its grid's hour leaves the publish: a
             # removal, recorded. Absent degrades to the coarse grid; adrift
             # would be wrong data with no tell.

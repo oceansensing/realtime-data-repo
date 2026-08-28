@@ -152,6 +152,19 @@ write means the restore logic can no longer reason about the stage.
   integration fixture cannot show: the currents are a *list* of two grids,
   so touching only `doc[0]` leaves the second depth advertising, and it
   takes a direct test of `unadvertise_tiles` to catch it.
+- **And the fix above was put inside the fresh-only branch, where a HELD
+  product could not reach it.** 2026-08-28, HYCOM's `.das` timing out: the
+  ESPC 50 m and depth-averaged currents held, their tile directories were
+  gone, and their carried-forward grids advertised `tileIndex` against a
+  404 for two hours. Surface stayed fresh, so its build ran and its tier
+  was right — one layer correct and four wrong, which is what made it hard
+  to see. **Rebuilding is for fresh products; accounting is for all of
+  them.** The seeding is unconditional now. Note what the mutation test
+  found on the way: dropping the `index.json` existence check *survived*,
+  because `final` corrects the state back through the walk — the leak is
+  the *reason*, into the manifest and the receipt's `withheld` map, both
+  read as lists of what left. A control that only checks `state` cannot
+  see it.
 
 The unit suite's load-bearing checks — the write fence, the tile-drift
 check, the held-product restore — are mutation-tested: plant the fault,

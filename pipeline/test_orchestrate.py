@@ -753,6 +753,38 @@ class OrchestrateTests(unittest.TestCase):
         self.assertIn('details', head)
         self.assertEqual(head['refTime'], H1)
 
+    def test_a_held_product_stops_advertising_a_tier_it_does_not_carry(self):
+        """**The absent-directory check was gated on `fresh`, so a HELD
+        product never recomputed what it owed.** Measured live 2026-08-28:
+        HYCOM's `.das` timed out, the ESPC 50 m and depth-averaged currents
+        held, their tile directories were gone, and the carried-forward grids
+        went on naming `tileIndex` — four layers whose every high-zoom view
+        fetched a 404, for two hours. Surface stayed fresh, so its build ran
+        and its tier was correct throughout, which is what made the shape
+        hard to see from the outside: one layer right, four wrong.
+
+        The hold itself is not the fault and must not be undone here; what
+        the publish must not do is keep advertising a tier that left with
+        it."""
+        self.env.ctl('bad-quality')
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('hour-beta', H1)
+        self.assertEqual(self.env.run(), 0)
+        self.assertEqual(self.env.status()['products']['alpha']['fate'], 'held')
+        # No build runs for a held product, so the tier is genuinely absent —
+        # this is the state, not a contrivance of the fixture.
+        self.assertFalse((orchestrate.OUT / 'map' / 'atiles').exists())
+        head = json.loads(
+            (orchestrate.OUT / 'map' / 'alpha.json').read_text())['header']
+        self.assertNotIn('tileIndex', head)
+        # And it is on the record with a reason that names the hold, so a
+        # tier absent because its product is held reads differently from one
+        # absent because a build produced nothing.
+        manifest = json.loads(
+            (orchestrate.OUT / 'status' / 'alpha.json').read_text())
+        self.assertEqual(manifest['tiles']['atiles']['state'], 'absent')
+        self.assertIn('held', manifest['tiles']['atiles']['reason'])
+
     def test_a_kept_tier_is_still_advertised(self):
         """The positive control, and the reason it is not optional: a change
         that stripped `tileIndex` unconditionally would satisfy the check
@@ -763,6 +795,19 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(head.get('tileIndex'), '/map/atiles/index.json')
         self.assertTrue(
             (orchestrate.OUT / 'map' / 'atiles' / 'index.json').is_file())
+        # **And a tier that is THERE carries no reason for being gone.** The
+        # absent-check above asks whether a directory the stage owes is
+        # missing; drop that question and every healthy tier is seeded into
+        # `withheld` too. `final` then corrects the state back to `fresh` via
+        # the walk, so nothing above this line can see it — but the reason
+        # rides along into the manifest and the receipt, and both are read as
+        # lists of what left. A fault reported against a directory that never
+        # moved is the shape a reader acts on and finds nothing.
+        manifest = json.loads(
+            (orchestrate.OUT / 'status' / 'alpha.json').read_text())
+        self.assertEqual(manifest['tiles']['atiles']['state'], 'fresh')
+        self.assertIsNone(manifest['tiles']['atiles']['reason'])
+        self.assertNotIn('atiles', self.env.receipt()['withheld'].get('alpha', {}))
 
     def test_unadvertising_reaches_every_grid_in_the_file(self):
         """**The currents are a list of two grids, and the integration
