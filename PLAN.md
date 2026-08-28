@@ -103,6 +103,48 @@ days old... which is how the currents sat two days stale while looking
 current". The display was fixed then. This is the same sentence asked of the
 gate.
 
+## 2026-08-28: the attribution path's first live outage, and what `checked` said
+
+**"The map is out of date" for the second time in two days, and a different
+cause.** The first (above) was a model run eighteen hours late with every
+signal healthy. This one was a single poisoned time step: HYCOM served
+non-deterministic garbage below the surface at one valid hour, `espc-model-repo`'s
+quality gate held `currents-50m` and `currents-caps`, and the depth layers
+froze nine hours behind. The full measurement is in that repository's PLAN.
+Two reports, the same four words, unrelated mechanisms — worth keeping
+straight, because the instruments that would catch them are different.
+
+**The escape hatch worked, and this is its first live exercise.** The held
+products failed the consumer's ESPC hour rule — four `FAIL` lines, since a
+held depth product sits at an older hour than the fresh surface — and the run
+deployed anyway: `contract: failures attributable only to held currents-50m,
+currents-caps — deploying the rest`, `run: deploy=True`. Before `58a7207`
+that would have frozen the whole Pages tree, including the surface currents
+that fetched cleanly. The open item below is unchanged — this shape still
+cannot be *cured* by re-checking — but the tolerance is doing what it was
+built to do, and the site's and espc's docs both claimed the old behavior
+until this run falsified them.
+
+**And one instrument lesson, which is a reading trap rather than a defect.**
+The manifest writes `'checked': now if fresh else prev.get('checked')`, so a
+product rejected every twenty minutes for six hours advertises a `checked`
+six hours old. Reading the live document during this outage, the first
+conclusion drawn from that field was "the pipeline has stopped running for
+these products" — when it was running constantly and rejecting every time.
+
+**The field is right and the reading was wrong.** `README.md` defines
+`checked` as *the last time the pipeline successfully attempted the product*,
+which is exactly what it did, and `CLAUDE.md` is careful to say `checked`
+going quiet **across products** means the pipeline is not completing. What
+neither says is the single-product case: one product's frozen `checked`
+beside a current `generated` is the ordinary signature of a hold, not of a
+stopped pipeline. `generated` at the top of the document is the run that
+actually ran, and it is the field to read first.
+
+Nothing changed in the code; the sentence is now in `espc-model-repo`'s
+`CLAUDE.md` under "Reading a run", where somebody debugging a held ESPC
+product will meet it.
+
 ## Open
 
 - **Product budgets are still being learned from live runs.** `assets` was
