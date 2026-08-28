@@ -70,6 +70,39 @@ Three claims, none of which any gate could anchor:
   the workflow still noted the two pipelines overlapping four times a day
   with it.
 
+## Deferred feature: the model run has an age and nothing watches it
+
+**Proposed 2026-08-28, and the owner held off — logged so it is not lost.**
+
+The report that raised it: the owner found the ESPC currents "out of date"
+while every signal read healthy — `fate=fresh`, `stale=false`,
+`ageHours=0.61`. Both were true. HYCOM's own `time_run` axis, probed
+directly, offered nothing newer than the **2026-08-26T12:00:00Z** run at
+03:39Z on 08-28, so the map was drawing a **+39 h forecast** whose valid time
+was an hour old. Picking the frame nearest the reader's clock is right — a
+late run should degrade into a forecast about the present, not a
+confidently-labeled past — and the map's credit line named the run, which is
+how the owner spotted it.
+
+**What is missing is the alarm, not the display.** `ageHours` measures the
+distance from the reader's clock to the nearest VALID TIME. Nothing measures
+the distance to the MODEL RUN, so "upstream stopped running for two days" is
+invisible to the currency gate and to the watchdog. The instruments did not
+catch this; a person reading a credit line did.
+
+The shape, if it is built: `runAgeHours` beside `ageHours` in
+`status/status.json`, a per-product `max_run_age_hours` in the declaration
+(30 h for a daily model — one missed cycle of slack), and a watchdog NOTE
+rather than a red run. Old run with a fate of `fresh` is upstream's, and
+refusing to publish a +39 h forecast would leave the reader nothing at all,
+which is the one response to staleness that makes it worse.
+
+Note the map already carries the reasoning, beside its `credit()` call: a
+forecast valid an hour from now "is worthless if it came from a run three
+days old... which is how the currents sat two days stale while looking
+current". The display was fixed then. This is the same sentence asked of the
+gate.
+
 ## Open
 
 - **Product budgets are still being learned from live runs.** `assets` was
