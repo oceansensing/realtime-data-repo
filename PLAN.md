@@ -243,7 +243,8 @@ identical all-or-nothing tile rule governing the SST, SSS, SSH and ice tiers:
 one refused corner discarded the tier, and the build stopped at the first
 failure because any failure abandoned the index anyway.
 
-Both now use the shared `gap_budget()` (`TILE_GAP_MAX_FRACTION`, 5%, in
+Both now use the shared `gap_budget()` (`TILE_GAP_MAX_FRACTION`, **6%** since
+2026-08-29, applied per tier so each frame gets its own allowance, in
 `espc_window.py` — one definition, because a tier policy that differs between
 two pipelines reading the same flaky upstream is a difference nobody chose).
 A tier publishes with `gaps` naming every refused corner; past the budget it
