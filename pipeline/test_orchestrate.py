@@ -10,6 +10,7 @@ Run with:  python3 pipeline/test_orchestrate.py
 import contextlib
 import io
 import json
+import pathlib
 import os
 import shutil
 import subprocess
@@ -775,6 +776,66 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(manifest['tiles']['atiles']['state'], 'absent')
         self.assertEqual(manifest['tiles']['atiles']['reason'],
                          'build produced no tiles')
+
+    def test_expected_tiers_sees_a_forecast_frames_tier(self):
+        """**An absent tier has to be derivable from the GRIDS.**
+
+        `tile_pairs` walks the directories that exist, so it can say a tier is
+        adrift and can never say one is absent. The absence check therefore
+        read the declaration's dir patterns — and filtered out every starred
+        one, which is every forecast frame. Live on 2026-08-29: `tiles-f18h`
+        was absent for the ESPC surface currents, no build was triggered, the
+        produced-nothing check could not see it, and `receipt.json` reported
+        the product as having nothing withheld. Meanwhile the map, which opens
+        each layer on the frame nearest the reader's clock, was on that very
+        frame and fell back to the 0.24 deg regional grid.
+        """
+        spec = {'tiles': {'match': [['atiles', 'alpha.json'],
+                                    ['atiles-f*h', 'alpha-f*h.json']]}}
+        stage = pathlib.Path(tempfile.mkdtemp(prefix='tiers-'))
+        real = orchestrate.STAGE
+        try:
+            orchestrate.STAGE = stage
+            for name in ('alpha.json', 'alpha-f18h.json', 'alpha-f24h.json'):
+                (stage / name).write_text('{}')
+            # A grid belonging to another product must not conjure a tier.
+            (stage / 'beta.json').write_text('{}')
+            # Nor must a sibling that is not a forecast frame.
+            (stage / 'alpha-vbar1d.json').write_text('{}')
+            got = dict(orchestrate.expected_tiers(spec))
+
+            self.assertEqual(got.get('atiles'), 'alpha.json')
+            # The half that was missing entirely.
+            self.assertEqual(got.get('atiles-f18h'), 'alpha-f18h.json')
+            self.assertEqual(got.get('atiles-f24h'), 'alpha-f24h.json')
+            # **Controls.** A rule that derives a tier for every file in the
+            # stage would trigger an endless build of directories nothing
+            # declares — the opposite failure and a costlier one.
+            self.assertEqual(len(got), 3, got)
+            self.assertNotIn('beta.json', got.values())
+            self.assertNotIn('alpha-vbar1d.json', got.values())
+        finally:
+            orchestrate.STAGE = real
+            shutil.rmtree(stage, ignore_errors=True)
+
+    def test_expected_tiers_is_empty_without_the_grids(self):
+        """A tier is owed only where its grid actually landed — otherwise a
+        product whose fetch produced nothing would demand tiers for files
+        that do not exist, and the build would run against nothing every
+        run."""
+        spec = {'tiles': {'match': [['atiles', 'alpha.json'],
+                                    ['atiles-f*h', 'alpha-f*h.json']]}}
+        stage = pathlib.Path(tempfile.mkdtemp(prefix='tiers-'))
+        real = orchestrate.STAGE
+        try:
+            orchestrate.STAGE = stage
+            self.assertEqual(orchestrate.expected_tiers(spec), [])
+            (stage / 'alpha.json').write_text('{}')
+            self.assertEqual(orchestrate.expected_tiers(spec),
+                             [('atiles', 'alpha.json')])
+        finally:
+            orchestrate.STAGE = real
+            shutil.rmtree(stage, ignore_errors=True)
 
     def test_a_withheld_tier_stops_being_advertised(self):
         """**A grid must not point at a tier the publish has just dropped.**

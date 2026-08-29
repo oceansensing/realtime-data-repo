@@ -98,6 +98,19 @@ the workflow, and the published record. Two consequences:
   another repository's output, test it against a real line from that
   repository**, not against the shape you have in mind.
 
+- **"Which tiers does this product owe?" is answered from the GRIDS, never
+  from a list of directory names.** `expected_tiers(spec)` is the only right
+  answer; `tile_pairs` walks what exists and structurally cannot see an
+  absent tier. Three separate call sites once read
+  `[d for d, g in tiles['match'] if '*' not in d]`, which filters out every
+  starred pattern — so a forecast frame's tier (`tiles-f*h`) was invisible to
+  the build trigger, to the produced-nothing check AND to the withheld
+  accounting. Live on 2026-08-29 the ESPC surface currents had no `tiles-f18h`
+  for hours, `receipt.json` said the product had nothing withheld, and the map
+  — which opens each layer on the frame nearest the reader — drew that frame
+  at 0.24° instead of 0.08°. If you add a fourth place that needs the owed
+  list, call `expected_tiers`.
+
 ## Commands
 
 ```sh

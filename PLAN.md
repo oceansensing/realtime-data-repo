@@ -49,7 +49,7 @@ fresh-only branch, where a held product could not reach it.
 state back through the walk. What leaks is the *reason*, into the manifest and
 the receipt's `withheld` map, both of which are read as lists of what left. A
 control that checks only `state` cannot see it; the kept-tier control asserts
-a present tier carries no reason now. 47 tests.
+a present tier carries no reason now. 49 tests.
 
 ## 2026-08-28: what the first doc sweep found here
 
@@ -258,6 +258,57 @@ index inline rather than through a function a self-test could drive, so the
 shared `gap_budget` is tested and the contract validates the `gaps` shape,
 but the publish-or-refuse branch itself is not. Extracting an index writer,
 as `fetch-currents.py` has, is what would close it.
+
+## 2026-08-29: a forecast frame's tier could not be seen to be missing
+
+Reported as *"how come coarse resolution current data is still served"*, with
+a share link at zoom 9 over the Chesapeake. The tile tiers had just been
+restored and the base tier was complete, so the report looked wrong. It was
+not.
+
+The surface currents publish two frames — 03:00Z and 06:00Z — and the map
+opens each layer on the one nearest the reader's clock. At 05:30Z that is the
+**+18h** frame, and `tiles-f18h/index.json` was 404, so it fell back to
+`currents-atlantic-f18h.json` at 0.24°. The browser's own resource timings
+confirmed it: `tiles/20_-80.json` fetched for the base frame,
+`tiles-f18h/index.json` asked for twice and `currents-atlantic-f18h.json`
+loaded instead.
+
+**Why that tier never built.** Three places asked "which tiers does this
+product owe?", and all three read the same list:
+
+```python
+bases = [d for d, g in tiles['match'] if '*' not in d]
+```
+
+which filters out `tiles-f*h` **by construction**. So a forecast frame's tier
+was invisible to the build trigger, to the produced-nothing check, and to the
+withheld accounting. It could only ever be built as a side effect of the BASE
+tier being missing in the same run — which is exactly why `tiles-50m-f18h`
+existed (its base had been missing, and a build does every lead at once) and
+`tiles-f18h` did not (the surface's base was cached and fine).
+
+The accounting was the worst of the three: `receipt.json` reported
+`"currents-surface": {}` — nothing withheld, nothing wrong — while that
+product's forecast tier was absent and the map was drawing it coarse.
+
+**`expected_tiers(spec)`** replaces all three. It is the counterpart to
+`tile_pairs`, and the difference is the whole point: `tile_pairs` walks the
+directories that EXIST, so it can call a tier adrift and can never call one
+absent; `expected_tiers` walks the GRIDS and derives the directory each is
+declared to owe. First match wins, same declaration order read the other way
+round.
+
+Two tests, three mutations killed: restore the unstarred-only list, derive a
+tier for every file in the stage (the opposite failure, and costlier — an
+endless build of directories nothing declares), and owe a tier where the grid
+is absent.
+
+**This is the 2026-08-16 lesson's third instalment**, and the pattern is
+worth naming: *withholding must not walk the directories that exist* was
+right, the fix computed the owed list from `match` instead — and that list
+was still a list of directories, so it still could not contain a name with a
+star in it. Deriving from the grids is what actually answers the question.
 
 ## Open
 

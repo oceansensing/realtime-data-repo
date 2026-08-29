@@ -256,6 +256,55 @@ def split_glob(pattern):
     return prefix, suffix
 
 
+def expected_tiers(spec):
+    """(directory, grid) for every tier the grids in the stage IMPLY.
+
+    **The counterpart to `tile_pairs`, and the difference is the whole
+    point.** That one walks the directories that EXIST, so it can say a tier
+    is adrift and can never say one is absent. This walks the GRIDS instead
+    and derives the directory each one is declared to have, so an absent tier
+    is visible.
+
+    Measured 2026-08-29. The absence check read
+    `[d for d, g in tiles['match'] if '*' not in d]` — every dir pattern
+    without a star — which filters `tiles-f*h` out by construction. So a
+    forecast frame's tier could only ever be built as a side effect of the
+    BASE tier being missing in the same run: `tiles-50m-f18h` existed because
+    `tiles-50m` had been missing and the build does every lead at once, while
+    `tiles-f18h` did not, because the surface's base tier was cached and
+    fine. The map opens each layer on the frame nearest the reader's clock,
+    so at 05:30Z it was showing the +18h frame and falling back to the 0.24°
+    regional grid — reported as "how come coarse resolution current data is
+    still served".
+
+    First match wins, as in `tile_pairs`, so the exact names must precede the
+    starred ones in `products.toml` — the same declaration order, read the
+    other way round.
+    """
+    from fnmatch import fnmatch
+    out, seen = [], set()
+    if not STAGE.is_dir():
+        return out
+    grids = sorted(f.name for f in STAGE.iterdir() if f.is_file())
+    for dglob, gpattern in spec['tiles']['match']:
+        gprefix, gsuffix = split_glob(gpattern)
+        if gsuffix is None:
+            if (STAGE / gpattern).is_file() and dglob not in seen:
+                seen.add(dglob)
+                out.append((dglob, gpattern))
+            continue
+        dprefix, dsuffix = split_glob(dglob)
+        for grid in grids:
+            if not fnmatch(grid, gpattern):
+                continue
+            star = grid[len(gprefix):len(grid) - len(gsuffix)]
+            name = f'{dprefix}{star}{dsuffix}'
+            if name not in seen:
+                seen.add(name)
+                out.append((name, grid))
+    return out
+
+
 def tile_pairs(spec):
     """(directory, grid file) pairs for every tile directory now in the
     stage, resolved through the declaration's match table. A directory is
@@ -722,9 +771,13 @@ class Run:
             pairs = tile_pairs(spec)
             states = {d: tile_dir_state(d, g) for d, g in pairs}
             adrift = [d for d, (s, _) in states.items() if s != 'ok']
-            bases = [d for d, g in tiles['match'] if '*' not in d]
-            missing = [d for d in bases
-                       if header_of(STAGE / dict(tiles['match'])[d]) is not None
+            # **Every tier the grids imply, not just the unstarred ones.**
+            # See `expected_tiers`: reading the declaration's dir patterns
+            # directly filtered out `tiles-f*h` by construction, so a
+            # forecast frame's tier was only ever built when the base tier
+            # happened to be missing in the same run.
+            missing = [d for d, g in expected_tiers(spec)
+                       if header_of(STAGE / g) is not None
                        and not (STAGE / d / 'index.json').is_file()]
 
             if self.fate[name] == 'fresh' and (adrift or missing):
@@ -756,8 +809,8 @@ class Run:
                 # again afterwards. No new concept, and no new source of
                 # truth: `match` already says which directories this product
                 # owes.
-                unbuilt = [d for d in bases
-                           if header_of(STAGE / dict(tiles['match'])[d]) is not None
+                unbuilt = [d for d, g in expected_tiers(spec)
+                           if header_of(STAGE / g) is not None
                            and not (STAGE / d / 'index.json').is_file()]
                 if ok and unbuilt:
                     ok = False
@@ -796,8 +849,16 @@ class Run:
             #
             # `setdefault` on the inner key, so a build that ran and produced
             # nothing keeps its more specific reason.
-            for d in [d for d in bases
-                      if header_of(STAGE / dict(tiles['match'])[d]) is not None
+            # ...and the owed list has to include the STARRED directories,
+            # which is the 2026-08-29 instalment of the same lesson. Computing
+            # it from `match`'s unstarred entries was still a list of
+            # directories that could not contain a forecast frame's tier — so
+            # an absent `tiles-f18h` was invisible here exactly as it was to
+            # the build trigger, and `receipt.json` reported the surface as
+            # having nothing wrong while the map drew its +18h frame at
+            # 0.24 deg. `expected_tiers` derives the list from the GRIDS.
+            for d in [d for d, g in expected_tiers(spec)
+                      if header_of(STAGE / g) is not None
                       and not (STAGE / d / 'index.json').is_file()]:
                 self.withheld.setdefault(name, {}).setdefault(
                     d, f'absent: the product is {self.fate[name]}, '
