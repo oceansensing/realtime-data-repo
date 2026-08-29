@@ -49,7 +49,7 @@ fresh-only branch, where a held product could not reach it.
 state back through the walk. What leaks is the *reason*, into the manifest and
 the receipt's `withheld` map, both of which are read as lists of what left. A
 control that checks only `state` cannot see it; the kept-tier control asserts
-a present tier carries no reason now. 45 tests.
+a present tier carries no reason now. 47 tests.
 
 ## 2026-08-28: what the first doc sweep found here
 
@@ -237,6 +237,21 @@ agreed with the bug. Test a parser against output the other side actually
 produced.
 
 ## Open
+
+- **`fetch-ocean-fields.py` memoises its step selection per PROCESS, and the
+  orchestrator runs it many times per publish.** `forecast_frames` carries
+  the same shape `fetch-currents.py` was fixed for on 2026-08-29: a memo
+  scoped to a process, a docstring that already warns "two calls could
+  disagree", and `--tile-key`, `--tiles` and `--namespace` invoking it
+  separately per product — each re-probing upstream. There it produced three
+  different tile keys in one run and left four tile tiers 404. Here the
+  probe reads surface fields only, which is the cheap-probe case the
+  currents were in before their depth probe landed, so it has been getting
+  away with it. **Not fixed. If any probe in that file becomes costlier or
+  stricter, do the memo first** — the fix is `frame_slot` /
+  `read_frame_memo` / `write_frame_memo` in `fetch-currents.py`, about
+  seventy lines, and its record is in the site's PLAN.
+
 
 - **Product budgets are still being learned from live runs.** `assets` was
   sized wrong twice (4 → 8 → 10 hours) before the real cause was named: its
