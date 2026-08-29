@@ -236,6 +236,29 @@ used `FAIL  alpha.json: bad vibes` — the shape that worked — so the suite
 agreed with the bug. Test a parser against output the other side actually
 produced.
 
+## 2026-08-29: this repository's tile tiers tolerate holes too
+
+Ported from the currents in the same sitting. `fetch-ocean-fields.py` had the
+identical all-or-nothing tile rule governing the SST, SSS, SSH and ice tiers:
+one refused corner discarded the tier, and the build stopped at the first
+failure because any failure abandoned the index anyway.
+
+Both now use the shared `gap_budget()` (`TILE_GAP_MAX_FRACTION`, 5%, in
+`espc_window.py` — one definition, because a tier policy that differs between
+two pipelines reading the same flaky upstream is a difference nobody chose).
+A tier publishes with `gaps` naming every refused corner; past the budget it
+still refuses and keeps the previous complete set.
+
+The measured case that prompted it was in the currents — an HTTP 500 on 1 of
+162 corners costing all 161 others — and the full record is in the site's
+PLAN.
+
+**Not directly pinned here, and worth knowing:** this file writes its tile
+index inline rather than through a function a self-test could drive, so the
+shared `gap_budget` is tested and the contract validates the `gaps` shape,
+but the publish-or-refuse branch itself is not. Extracting an index writer,
+as `fetch-currents.py` has, is what would close it.
+
 ## Open
 
 - **`fetch-ocean-fields.py` memoises its step selection per PROCESS, and the
