@@ -157,6 +157,36 @@ Nothing changed in the code; the sentence is now in `espc-model-repo`'s
 `CLAUDE.md` under "Reading a run", where somebody debugging a held ESPC
 product will meet it.
 
+## 2026-08-29: one null field froze all twelve products
+
+The contract gate did what it is for and the cost was total. PMEL's ERDDAP
+carried no `minTime` for `sd1030_hurricane_2026` — a Saildrone reporting
+hourly — so `ocean-assets.json` published `deployed: null`, the site's
+`test-schema.mjs` refused it, and this repository set `deploy=False` for
+hours. Every one of the twelve products was `fresh`; eleven of them had
+nothing wrong. The full diagnosis and the fix are in
+`oceansensing.github.io`'s PLAN, which owns the fetchers and the contract.
+
+**Two things this repository should take from it.**
+
+**The escape hatch could not help, and correctly so.** It tolerates contract
+failures attributable only to products this run already held — and nothing
+was held. A fresh product publishing a malformed record is exactly the case
+where refusing the tree is right, because the alternative is publishing data
+a consumer has been promised is well-formed. The open item below is about the
+*held* case and is unchanged.
+
+**A frozen tree tells a stale story about itself.** `status/status.json` is
+published with the tree, so while `deploy=False` holds, the document a reader
+fetches is from the last run that succeeded — here reporting six products
+`held` on `step assets exit 1` from 19:39Z, hours after that fault had
+cleared and a different one had taken over. `espc-model-repo`'s `CLAUDE.md`
+had just been given the sentence for this ("read the run log, not only the
+published status, when the two could disagree") and this is its first
+collection. Worth stating here too because this repository is where
+`deploy=False` is decided: **when the tree is frozen, the run log is the only
+current account of why.**
+
 ## Open
 
 - **Product budgets are still being learned from live runs.** `assets` was
