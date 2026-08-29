@@ -479,6 +479,52 @@ class OrchestrateTests(unittest.TestCase):
         self.assertTrue(any('held product' in n for n in notes), notes)
         self.assertEqual(self.env.out_hour('beta.json'), H1)
 
+    def test_contract_attributes_a_failure_naming_a_record_in_a_file(self):
+        """**The failure token is a file; the message may name a record.**
+
+        Every content check in `test-schema.mjs` that says WHICH record is
+        wrong emits `<file> <kind> <id>: <message>`, and the attribution
+        below read only `<file>:`. So those failures matched nothing at all,
+        produced no culprit and no `unmapped` entry, and fell straight
+        through to the fatal branch — the demote-and-retry this class of
+        failure is the ideal customer for was never reached, and nothing in
+        the log said why.
+
+        Live on 2026-08-29: one Saildrone published `deployed: null` and all
+        twelve products froze for six hours. Attributed, it holds `alpha`
+        alone and `beta` publishes.
+        """
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('hour-beta', H1)
+        self.env.ctl('contract-fails',
+                     'FAIL  alpha.json asset sd1030_hurricane_2026: '
+                     'deployed should be an ISO timestamp, got null\n')
+        self.env.ctl('contract-oneshot')
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'held')
+        self.assertEqual(st['products']['alpha']['reason'],
+                         'failed the consumer contract')
+        self.assertEqual(st['products']['beta']['fate'], 'fresh')
+        self.assertEqual(self.env.out_hour('alpha.json'), H0)
+        self.assertEqual(self.env.out_hour('beta.json'), H1)
+        self.assertTrue(self.env.receipt()['deploy'])
+
+    def test_a_record_failure_naming_no_known_file_is_still_fatal(self):
+        """**The CONTROL on the widened match**, and it is the half that
+        keeps it honest. Reading more of the line must not turn an
+        unattributable failure into an attributable one: a record-shaped
+        failure naming a file no product owns is still fatal, exactly as the
+        whole-file form is. Without this, widening the pattern could be
+        'fixed' later by loosening it further until everything attributes to
+        something and nothing is ever fatal again.
+        """
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('contract-fails',
+                     'FAIL  mystery.json asset whatever: unattributable\n')
+        self.assertEqual(self.env.run(), 0)
+        self.assertFalse(self.env.receipt()['deploy'])
+
     def test_an_unmapped_contract_failure_still_stops_the_deploy(self):
         """The tolerance is scoped by ATTRIBUTION, not by having a hold.
 

@@ -80,6 +80,24 @@ the workflow, and the published record. Two consequences:
   exactly that one. If a new cross-product rule is needed, it goes in
   `test-schema.mjs` in the site repository, never here.
 
+  **That mapping is a regex over the consumer's own output, and it was
+  silently missing most of it until 2026-08-29.** It read
+  `^FAIL\s+(\S+?):` — a file name up to the first colon — which matches
+  `FAIL  alpha.json: ...` and matches *nothing at all* in
+  `FAIL  alpha.json asset sd1030: ...`, the shape every content check uses
+  when it names WHICH record is wrong. A line that matches nothing yields no
+  culprit **and no `unmapped` entry**, so the gate fell through to the fatal
+  branch with no attribution, no demote, no retry, and not one word in the
+  log saying why. Everything this file says about demoting one product was
+  true only for whole-file failures.
+
+  Cost: one Saildrone published `deployed: null`, and all twelve products
+  froze for six hours. It now reads `^FAIL\s+([^\s:]+)` — stop at
+  whitespace OR colon — and a token owning nothing still lands in `unmapped`
+  and is still fatal, but says so. **When you touch a gate that parses
+  another repository's output, test it against a real line from that
+  repository**, not against the shape you have in mind.
+
 ## Commands
 
 ```sh

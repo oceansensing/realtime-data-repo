@@ -1046,7 +1046,34 @@ class Run:
                 return True
             culprits = set()
             unmapped = []
-            for m in re.finditer(r'^FAIL\s+(\S+?):', out, re.M):
+            # **A failure token is a FILE; the message after it may name a
+            # record inside that file.** This read `(\S+?):` — non-whitespace
+            # up to the first colon — which silently matched NOTHING whenever
+            # the consumer named what inside the file was wrong:
+            #
+            #   FAIL  currents-50m.json: is valid ...        <- matched
+            #   FAIL  ocean-assets.json asset sd1030_...:    <- matched nothing
+            #
+            # and a line that matches nothing produces no culprit AND no
+            # `unmapped` entry, so the gate fell through to the fatal branch
+            # with no attribution, no demote-and-retry, and not even a
+            # "cannot map" line saying so. Everything below this point —
+            # the demote, the reassemble, the second attempt, the
+            # held-culprit tolerance — was dead for that whole class.
+            #
+            # Measured 2026-08-29: one Saildrone published `deployed: null`,
+            # `test-schema.mjs` said so naming the asset, and this froze all
+            # twelve products for six hours. Attributed, the same failure
+            # holds `assets` alone, ships its previous file, and the other
+            # eleven publish — which is what the retry below was written to
+            # do and had never once been asked to.
+            #
+            # `[^\s:]+` rather than `\S+`: stopping at the colon keeps the
+            # whole-file form (`alpha.json:`) from capturing its own
+            # punctuation, and stopping at whitespace picks the file out of
+            # the record form. A token that still owns nothing lands in
+            # `unmapped` and is fatal — and now says why.
+            for m in re.finditer(r'^FAIL\s+([^\s:]+)', out, re.M):
                 token = m.group(1)
                 top = token.split('/', 1)[0]
                 owners = owners_of(top, self.products)

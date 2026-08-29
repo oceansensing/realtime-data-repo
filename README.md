@@ -113,7 +113,8 @@ The orchestrator carried its own simplified copy of that rule for exactly one
 run, and the copy was wrong — it held two healthy products with a loud reason,
 which is the safe direction, and it is also why the copy is gone. When the
 contract objects, the gate maps the failure to its product and demotes just
-that one. The OISST fields are their own product for the same spirit of
+that one — for every failure shape since 2026-08-29, and only for whole-file
+ones before that; see `PLAN.md` for the regex that quietly excluded the rest. The OISST fields are their own product for the same spirit of
 isolation: a daily analysis from a different source, so a Navy outage cannot
 touch it even though one script fetches both.
 

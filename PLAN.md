@@ -187,6 +187,55 @@ collection. Worth stating here too because this repository is where
 `deploy=False` is decided: **when the tree is frozen, the run log is the only
 current account of why.**
 
+## 2026-08-29: the demote-and-retry was dead code for most failures
+
+Asked after a night of instance-fixes: *why is the pipeline so brittle?* The
+answer, for this repository, was not a missing capability. It was a regex.
+
+`contract_gate` attributes each `FAIL` line to a product, demotes the fresh
+culprits, reassembles and retries — so one bad file costs its own product and
+the rest of the tree publishes. It is described that way in this file, in
+`README.md`, in `CLAUDE.md` and in three tests. **For most failures it never
+ran.**
+
+The attribution read `^FAIL\s+(\S+?):`, non-whitespace up to the first
+colon. The consumer emits two shapes:
+
+```
+FAIL  currents-50m.json: is valid ...            <- matched
+FAIL  ocean-assets.json asset sd1030_...: ...    <- matched NOTHING
+```
+
+Every content check that names *which record* is wrong — assets, sondes,
+tracks, the semicolon rule — uses the second. And a line matching nothing
+produces no culprit **and no `unmapped` entry**, so the gate reached the
+fatal branch with an empty culprit set, took `not fresh_culprits`, set
+`deploy = False`, and logged nothing about why. Silent, and it looked exactly
+like an ordinary contract failure.
+
+Measured cost the night it was found: one Saildrone with `deployed: null`
+froze all twelve products for six hours. Attributed, the same failure holds
+`assets` alone — its previous file ships, the other eleven publish, and the
+watchdog names it.
+
+Now `^FAIL\s+([^\s:]+)`: stop at whitespace **or** colon. The whole-file
+form keeps working (`\S+` alone would have captured the colon — a mutation
+proves it), the record form attributes, and a token owning nothing still
+lands in `unmapped` and is still fatal, now with the "cannot map" line it
+always should have printed.
+
+Two tests, three mutations killed: the old colon-only pattern, a greedy
+`.+`, and `\S+` without the colon stop. The negative control — a
+record-shaped failure naming a file no product owns must stay fatal — is
+what stops this being "loosened" later until nothing is ever fatal again.
+
+**The lesson is not about regexes.** A gate that parses another repository's
+output is a contract with no compiler behind it, and this one was checked
+against the shape someone imagined rather than a real line. Its own tests
+used `FAIL  alpha.json: bad vibes` — the shape that worked — so the suite
+agreed with the bug. Test a parser against output the other side actually
+produced.
+
 ## Open
 
 - **Product budgets are still being learned from live runs.** `assets` was
