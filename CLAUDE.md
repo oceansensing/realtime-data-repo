@@ -117,6 +117,20 @@ the workflow, and the published record. Two consequences:
 python3 pipeline/test_orchestrate.py   # the unit suite; CI runs it before every publish
 ```
 
+**Python 3.10 or newer, and on the sync machine that is not the default.**
+`orchestrate.py` uses `str | None` annotations, so the system
+`/usr/bin/python3` (3.9.6) fails at *import* — `TypeError: unsupported
+operand type(s) for |` on a line that is correct — and it fails that way for
+the suite AND for `orchestrate.py --help`, which makes it look like the file
+is broken. Conda's is 3.13 but its init is in `~/.zshrc`, which only
+interactive shells read, so a script or an agent shell will not have it:
+
+```sh
+PATH=/opt/anaconda3/bin:$PATH python3 pipeline/test_orchestrate.py
+```
+
+CI provisions its own and never meets this.
+
 There is no other local entry point to memorize; the workflow runs
 `orchestrate.py seed`, `plan`, then `run`, and each can be run by hand in
 that order. A full local rehearsal against real upstreams:
