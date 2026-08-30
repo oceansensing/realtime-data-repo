@@ -49,7 +49,7 @@ fresh-only branch, where a held product could not reach it.
 state back through the walk. What leaks is the *reason*, into the manifest and
 the receipt's `withheld` map, both of which are read as lists of what left. A
 control that checks only `state` cannot see it; the kept-tier control asserts
-a present tier carries no reason now. 49 tests.
+a present tier carries no reason now. 51 tests.
 
 ## 2026-08-28: what the first doc sweep found here
 
@@ -311,7 +311,44 @@ right, the fix computed the owed list from `match` instead — and that list
 was still a list of directories, so it still could not contain a name with a
 star in it. Deriving from the grids is what actually answers the question.
 
+## 2026-08-30: `ageHours` has a sign now
+
+It is a magnitude, so a forecast published seven hours AHEAD reported
+identically to data left seven hours BEHIND. That is not hypothetical: at
+20:16Z on 08-29 all three ESPC products read `stale: true, ageHours 7.15`
+while publishing 2026-08-30T03:00Z. The report it produced — "the currents
+are hours out" — was true, pointed the wrong way, and cost a full
+investigation of the step picker rather than a glance at the status
+document.
+
+`nearestOffsetHours` is published beside it: **positive is behind the
+reader, negative is ahead**. `ageHours` is unchanged, because it is what
+`max_age_hours` compares against and staleness genuinely has no sign; what
+changed is that `nearest_frame_age` is now computed as `abs()` of the offset
+rather than independently, so no later edit can drift the pair apart.
+
+The site's watchdog prints the direction — `7.2 h ahead` against `7.2 h old`
+— and keeps the old rendering as a fallback for an origin that has not
+published the new field yet, which is pinned by its own control.
+
+Five cases here, four mutations: throw the sign away, pick the first frame
+instead of the nearest, do not publish the field, and compute the age
+independently. **The last is an equivalent mutant and is recorded as one** —
+it gives the same number today, the reason to derive age from offset is
+structural rather than behavioral, and no test can distinguish them. Saying
+so is better than contriving one that seems to.
+
 ## Open
+
+- ~~**`fetch-ocean-fields.py` memoises its step selection per PROCESS.**~~
+  **CLOSED 2026-08-30**: the mechanism moved to `espc_window.py` and both
+  fetchers share it, scoped so neither they nor the fields' six products can
+  read each other's answer. Two pins that were not pins came out of it — a
+  module imported by name only (every call would have raised `NameError`,
+  and the suite passed because nothing exercised the new code) and a
+  never-write mutation that survived until `memoized_frames` was extracted
+  and driven with a counting stub. Record in the site's PLAN. The original
+  entry follows.
 
 - **`fetch-ocean-fields.py` memoises its step selection per PROCESS, and the
   orchestrator runs it many times per publish.** `forecast_frames` carries

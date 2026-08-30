@@ -983,7 +983,8 @@ class Run:
             for dest in (OUT / 'status', BRANCH / 'status'):
                 (dest / f'{name}.json').write_text(json.dumps(manifest, indent=1))
             age_limit = spec.get('max_age_hours')
-            age = nearest_frame_age(manifest['hours'])
+            offset = nearest_frame_offset(manifest['hours'])
+            age = None if offset is None else abs(offset)
             overdue = bool(age_limit and age is not None and age > age_limit)
             if overdue:
                 # **Whose fault it is decides how loud this gets, and the
@@ -1035,6 +1036,11 @@ class Run:
                 # no longer mistaken for currency.
                 'stale': overdue,
                 'ageHours': None if age is None else round(age, 2),
+                # Signed, so "seven hours out" can be read as behind or
+                # ahead without opening the run log. See
+                # `nearest_frame_offset`.
+                'nearestOffsetHours':
+                    None if offset is None else round(offset, 2),
             }
 
         receipt = {
@@ -1391,8 +1397,34 @@ def nearest_frame_age(hours):
     whichever published frame is closest to the reader's clock — a product
     publishing 15:00Z and 18:00Z at 17:00Z is an hour off, not two.
     """
-    ages = [abs(hours_since(h)) for h in (hours or []) if h]
-    return min(ages) if ages else None
+    offset = nearest_frame_offset(hours)
+    return None if offset is None else abs(offset)
+
+
+def nearest_frame_offset(hours):
+    """The SIGNED distance to the nearest published valid time, or None.
+
+    **Positive is behind the reader, negative is ahead.** `hours_since` is
+    `now - then`, so a frame in the past is positive and a forecast is
+    negative; `nearest_frame_age` is simply the magnitude of this, which is
+    what makes the pair impossible to disagree.
+
+    **The sign was being thrown away, and it cost a night.** Measured
+    2026-08-29: an interleaved upstream aggregation led the step picker to
+    publish 2026-08-30T03:00Z while the reader's clock said 20:16Z, so all
+    three ESPC products reported `stale: true, ageHours 7.15` — identical
+    to what they would have reported sitting seven hours BEHIND. The owner
+    read it as the currents being hours out of date, which was true and the
+    wrong direction, and the diagnosis took a full investigation of the
+    picker rather than a glance at the status document.
+
+    An alarm that cannot say which side of now it is on describes two
+    opposite faults with one number. `ageHours` stays as it is — it is what
+    `max_age_hours` compares against and staleness genuinely has no sign —
+    and this is published beside it for anyone asking what went wrong.
+    """
+    offsets = [hours_since(h) for h in (hours or []) if h]
+    return min(offsets, key=abs) if offsets else None
 
 
 def main():

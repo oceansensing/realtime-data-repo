@@ -132,7 +132,11 @@ touch it even though one script fetches both.
   verified by content on every restore.
 
 **Fate is loud.** `status/status.json` records, per product: its fate this
-run, the reason if held, the model hour it represents, and two timestamps
+run, the reason if held, the model hour it represents, how far the nearest
+published frame is from the reader — `ageHours` as a magnitude and
+`nearestOffsetHours` **signed, positive behind and negative ahead**, because
+a forecast published too far into the future is a different fault from data
+left behind and the two read identically without it — and two timestamps
 whose difference is the whole point — **`checked`**, the last time the
 pipeline successfully attempted the product, and **`updated`**, the last time
 its bytes changed. A quiet upstream and a broken pipeline look identical in

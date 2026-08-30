@@ -10,6 +10,7 @@ Run with:  python3 pipeline/test_orchestrate.py
 import contextlib
 import io
 import json
+from datetime import datetime, timedelta, timezone
 import pathlib
 import os
 import shutil
@@ -776,6 +777,65 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(manifest['tiles']['atiles']['state'], 'absent')
         self.assertEqual(manifest['tiles']['atiles']['reason'],
                          'build produced no tiles')
+
+    def test_the_nearest_offset_says_which_side_of_now(self):
+        """**An alarm that cannot say which side of now it is on describes
+        two opposite faults with one number.**
+
+        Live on 2026-08-29: an interleaved upstream led the picker to
+        publish 2026-08-30T03:00Z against a 20:16Z clock, and all three ESPC
+        products reported `stale: true, ageHours 7.15` — byte-identical to
+        what they would have said sitting seven hours BEHIND. It read as
+        stale data and was a forecast published too far ahead; the diagnosis
+        cost a full investigation of the picker.
+        """
+        now = datetime.now(timezone.utc)
+        behind = (now - timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        ahead = (now + timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        self.assertAlmostEqual(
+            orchestrate.nearest_frame_offset([behind]), 5, delta=0.05)
+        self.assertAlmostEqual(
+            orchestrate.nearest_frame_offset([ahead]), -5, delta=0.05)
+
+        # **The magnitude cannot tell them apart, which is the point.**
+        self.assertAlmostEqual(orchestrate.nearest_frame_age([behind]),
+                               orchestrate.nearest_frame_age([ahead]),
+                               delta=0.05)
+
+        # And the pair can never disagree: `nearest_frame_age` IS the
+        # magnitude of `nearest_frame_offset`, computed from it rather than
+        # beside it, so no future edit can drift them apart. Compared with a
+        # tolerance only because two separate calls read the clock a few
+        # microseconds apart — the structure, not the arithmetic, is what
+        # this holds.
+        for hours in ([behind], [ahead], [behind, ahead], []):
+            offset = orchestrate.nearest_frame_offset(hours)
+            age = orchestrate.nearest_frame_age(hours)
+            if offset is None:
+                self.assertIsNone(age)
+            else:
+                self.assertAlmostEqual(age, abs(offset), delta=0.001)
+
+        # NEAREST, not first: a product publishing both frames is judged on
+        # whichever the map would open on.
+        near = (now + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        far = (now - timedelta(hours=9)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        self.assertAlmostEqual(
+            orchestrate.nearest_frame_offset([far, near]), -1, delta=0.05)
+
+    def test_the_status_document_publishes_the_sign(self):
+        """The signed offset reaches `status.json`, beside `ageHours`.
+
+        A field computed and not published is the shape this repository has
+        been bitten by — a constant nothing reads. The point of the sign is
+        that somebody looking at the status document can see it.
+        """
+        self.env.ctl('hour-alpha', H1)
+        self.assertEqual(self.env.run(), 0)
+        alpha = self.env.status()['products']['alpha']
+        self.assertIn('nearestOffsetHours', alpha)
+        self.assertEqual(alpha['ageHours'], abs(alpha['nearestOffsetHours']))
 
     def test_expected_tiers_sees_a_forecast_frames_tier(self):
         """**An absent tier has to be derivable from the GRIDS.**

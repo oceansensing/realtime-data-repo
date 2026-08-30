@@ -111,6 +111,14 @@ the workflow, and the published record. Two consequences:
   at 0.24° instead of 0.08°. If you add a fourth place that needs the owed
   list, call `expected_tiers`.
 
+- **`ageHours` is a magnitude; `nearestOffsetHours` carries the sign.**
+  Positive is behind the reader, negative is ahead. Read the signed one when
+  diagnosing: a forecast published too far into the future and data left
+  behind report the same `ageHours`, and on 2026-08-29 that sent an
+  investigation at the wrong half of the pipeline. `nearest_frame_age` is
+  computed as `abs()` of the offset, never beside it, so the two cannot
+  drift.
+
 ## Commands
 
 ```sh
