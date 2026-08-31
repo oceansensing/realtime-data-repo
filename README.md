@@ -20,8 +20,9 @@ them.
 
 `CLAUDE.md` is the operator's and maintainer's half — what to run, what must
 move together, what has already gone wrong. `PLAN.md` is the running record of
-what has happened here and what is open. Which document gets what, across all
-eight repositories of this project, is the doctrine block at the top of
+what has happened here and what is open. `DECISIONS.md` indexes the dated
+one-way decisions, D1 onward. Which document gets what, across all eight
+repositories of this project, is the doctrine block at the top of
 `CLAUDE.md`.
 
 ## The shape

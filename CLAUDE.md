@@ -2,10 +2,10 @@
 
 Guidance for working in this repository. The **design** — why the pipeline
 is shaped the way it is, what a product is, what the fates mean — lives in
-`README.md` and is not repeated here, and what has *happened* — measurements,
-defects, open items — is in `PLAN.md`. This file is the operator's and
-maintainer's half: what to run, what must move together, and what has
-already gone wrong.
+`README.md` and is not repeated here, what has *happened* — measurements,
+defects, open items — is in `PLAN.md`, and which one-way doors have closed is
+`DECISIONS.md`. This file is the operator's and maintainer's half: what to
+run, what must move together, and what has already gone wrong.
 
 <!-- DOC-DOCTRINE v1 begin — identical in all eight repositories; `check:docs` holds them equal. Edit one, sync all. -->
 ## Where truth lives, and what "update docs" means
@@ -29,10 +29,14 @@ not superseded — GitHub redirects the old name, which is why a rename was
 free there and is not free for `espc-model-repo`: that one has published
 bytes behind a Pages URL, and Pages does not redirect what the API does.)*
 
-**They are MEANT to carry the same four documents and three of them do not**
-— the site and `realtime-data-repo` still owe a `DECISIONS.md` (measured
-2026-08-30). That is a gap in two repositories, not a license to skip the
-file: a data repository closes one-way doors too.
+**All eight carry the same four documents, and since 2026-08-31 a gate holds
+them to it** — `check:docs` requires a `DECISIONS.md` tracked in git in every
+repository. The last two landed that day, the site's and
+`realtime-data-repo`'s, reconstructed from records that already existed:
+nothing was missing but the file, which is exactly how the gap lasted seven
+weeks. What it cost is measurable — the engine promotion's own rehearsal
+listed *"a dated entry in this repo's decisions and oceanlet's"* as its ninth
+step, and the half with nowhere to go was simply not written.
 
 | file | answers | tense | it is stale when |
 | --- | --- | --- | --- |

@@ -2,7 +2,9 @@
 
 What the orchestrator and this repository's products have done, measured, and
 what is open. Started 2026-08-28, when the four repositories were given
-matching document sets; **records before that date live in
+document sets that were meant to match and did not — this repository's
+`DECISIONS.md` did not arrive until 2026-08-31, and the sweep that noticed is
+recorded below. **Records before 2026-08-28 live in
 `oceansensing.github.io/PLAN.md`**, which carried this repository's history
 while it had no record of its own — the fates design, the write fence, the
 cache-key faults, the currency budgets and the quality hook are all there and
@@ -24,6 +26,54 @@ Because the orchestrator is shared, **a change to it is a change to both data
 repositories**, and its unit suite is what stands between an edit and two
 production pipelines. CI runs `python3 pipeline/test_orchestrate.py` before
 every publish, in this repository and in `espc-model-repo`.
+
+## 2026-08-31: a `DECISIONS.md`, eighteen days late, and what the gap was made of
+
+The doctrine has said since 2026-08-28 that every repository carries four
+documents. This one carried three. So did the site. The block asserting
+otherwise was **byte-compared across eight copies the whole time** — held
+equal, and false in two of them.
+
+**That is the finding worth keeping, and it is not about this file.** A gate
+on a text is a gate on the text. Eight identical copies of a sentence prove
+the copies agree; they prove nothing about whether the sentence is true. The
+same sweep found two README pointer sentences still saying the doctrine lives
+"in all four" and "in all five" copies, sitting inches outside the compared
+block — drifting freely while the block they point at could not.
+
+**Ten entries, and only the last was written on the day it was taken.** The
+rest are reconstructed, from `README.md`, from the commit log, and from the
+site's `PLAN.md`, which carried this repository's history before 2026-08-28.
+Each says so. The reconstruction is honest about its weakness in the file's
+own preamble: **a commit message records what was done and almost never what
+was rejected**, so where an alternative survives below it is because some
+document happened to keep it.
+
+What the reconstruction turned up that no single document held:
+
+- **D4, the `published` branch, is the strongest one-way door here and was
+  never written down as one.** One orphan commit, force-pushed every run.
+  The durability argument is in `README.md`; the consequence is not — there
+  is no history, yesterday's publish is unrecoverable, and the stage is
+  seeded from that branch, so a bad publish propagates into the next run's
+  starting point. Keeping history cannot be adopted retroactively.
+- **D1 finished quietly.** The predecessor was to be a warm standby and then
+  frozen. Its last run was 2026-08-17; nothing decided that, and this
+  repository's own README described it as live for eleven days afterwards.
+  **A fallback nobody exercises is a decision that completed without being
+  taken**, which is a shape worth being able to name.
+- **D7, the light/full split, is the only entry here of its kind** — a
+  decision that removed a capability rather than closing a door. It is in the
+  file because the argument for a light run is permanently attractive and the
+  two measurements that killed it (56 min against 5; a rested full run at
+  3 min 59 s) would otherwise have to be re-taken by whoever proposes it next.
+
+**Gated the same day**, in the site's `check:docs`: every repository in the
+doctrine must carry a `DECISIONS.md` **tracked in git**, not merely present
+on disk. Content is deliberately unchecked — an empty file passes, because a
+repository can honestly have closed no doors and a minimum entry count is a
+number nobody chose. The discriminating mutation was a sibling's file left on
+disk and removed from the index: `existsSync` passes it, git does not.
 
 ## 2026-08-30: the five Navy scalars are leaving — DECIDED, not yet moved
 
