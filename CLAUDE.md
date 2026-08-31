@@ -136,12 +136,22 @@ Restore or Save reading a `cache-paths-*` output nothing emits fails on an
 empty path — how a cache step outliving its product died with no reason in
 August. A new tiled product here needs its pair back.
 
-**Their files had to be removed, not merely undeclared.** The stage is seeded
-from the `published` branch, so a withdrawn product is carried forward and
-served frozen for ever. 21 files: 18 grids and regional cuts under `map/`,
-three per-product manifests under `status/`. That is the half of a migration
-that has bitten before and it is not automatic — nothing surveys a product
-that no longer exists to be surveyed.
+**Their files cleaned themselves up in two runs, and knowing why keeps the
+next migration from either panicking or trusting too much.**
+
+The two artifacts a run uploads are assembled differently. `branch-out` — the
+`published` branch — is built from the DECLARED products, so undeclaring a
+product drops its files from the bank on the first run. `out` — the Pages tree
+— is built from the STAGE, which was seeded from the previous branch, so it
+carries them one run longer. Measured 2026-08-31: the four tile tiers 404 at
+once (tiers are paired to their grid under `tiles.match`), all five grids
+still 200, gone the run after.
+
+**That is only true for a product that LEAVES.** Rename a file inside a
+product that still exists and its `writes` glob still matches, so `branch-out`
+goes on banking it and nothing ever removes it — 32 files and 43.8 MB in
+August, found only because somebody went looking. **Undeclaring self-heals;
+renaming does not.**
 
 ## The one relationship that explains everything else
 

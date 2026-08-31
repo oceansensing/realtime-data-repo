@@ -278,9 +278,11 @@ staying behind in August was a live test of.
 Both rules held. Every `roots` entry was one `test-schema.mjs --roots`
 publishes; and **a product that leaves takes its files with it** — 21 of them
 here, 18 grids and regional cuts under `map/` and three per-product manifests
-under `status/`, removed from the `published` branch because the stage is
-seeded from it and a withdrawn product is otherwise carried forward and served
-frozen for ever.
+under `status/`. They were expected to need removing by hand and did not: the
+`published` branch is assembled from the declared products, so undeclaring
+dropped them on the first run, and the Pages tree followed one run later. The
+rule holds; its usual failure mode turns out to be a rename inside a live
+product rather than a product that leaves. `PLAN.md` has the measurement.
 
 **A third rule was learned in the doing and is now gated**: the step's scope
 moves with the products. `fetch-ocean-fields.py` publishes four families, so

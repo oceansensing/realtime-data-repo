@@ -73,12 +73,31 @@ is ESPC-anchored: OISST is a daily analysis, ECMWF has its own cycles, the
 observation products are continuous. Three attempts an hour is the whole
 schedule.
 
-**And the files: 21, removed by hand from the `published` branch.** 18 grids
-and regional cuts under `map/`, three per-product manifests under `status/`.
-Nothing automates this and nothing could: the survey that would name an
-abandoned root works from a product's declared namespace, and a product that
-has left has no declaration to survey. The stage is seeded from that branch,
-so undeclaring without removing is what serves a frozen file for ever.
+**And the files cleaned themselves up, which was NOT what was expected.** The
+plan was to remove 21 of them by hand from the `published` branch — 18 grids
+and regional cuts under `map/`, three per-product manifests under `status/` —
+on the strength of the 2026-08-21 lesson that a product which leaves takes its
+files with it and that grids stay behind when they are not made to.
+
+They did not need it, and the reason is a distinction that lesson does not
+draw. **The two artifacts a run uploads are assembled differently.**
+`branch-out`, which becomes the `published` branch, is built from the DECLARED
+products — so undeclaring these three dropped their files from the bank on the
+very first run, automatically, 06:49Z. `out`, which becomes the Pages tree, is
+built from the STAGE, and the stage was seeded from the *previous* branch, so
+it still carried the grids for exactly one run.
+
+Measured at 06:52Z, and the split is precisely the one 2026-08-21 describes:
+**the four tile tiers were already 404 while all five grids were still 200.**
+Tiers are paired to their grid under `tiles.match` and nothing declared them,
+so they went at once; grids have no such pairing and rode the stage one run
+further. The next run, seeded from the cleaned branch, is what drops them.
+
+**So undeclaring a whole product self-heals in two runs. Renaming a file
+inside a live product does not heal at all** — that is what cost 32 files and
+43.8 MB in August, and the difference is that the product still existed and
+its `writes` glob still matched, so `branch-out` kept banking them. The lesson
+is real; its scope is narrower than it reads.
 
 ## 2026-08-31: what the doctrine's trial run found here
 
