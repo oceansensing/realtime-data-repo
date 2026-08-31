@@ -25,6 +25,44 @@ repositories**, and its unit suite is what stands between an edit and two
 production pipelines. CI runs `python3 pipeline/test_orchestrate.py` before
 every publish, in this repository and in `espc-model-repo`.
 
+## 2026-08-30: the five Navy scalars are leaving — DECIDED, not yet moved
+
+The owner decided the model repositories split two ways, along the axis that
+costs bytes: **`<model>-model-currents-repo`** for the tiled vector fields
+(expensive) and **`<model>-model-fields-repo`** for the scalars (cheap).
+`espc-model-repo` keeps its legacy name as a knowing exception and is the
+currents half; its `DECISIONS.md` D2 carries the reasoning.
+
+**What leaves this repository**: `fields-navy` (`sst-navy.json`,
+`sss-navy.json`), `ice-navy` (`sic-navy.json`, `sit-navy.json`) and
+`ssh-navy` (`ssh-navy.json`) — five roots, to a new
+**`espc-model-fields-repo`**, with an upper-ocean heat content layer expected
+to join them later.
+
+**Why they could not move before**, which is the whole reason they are here:
+moving them into `espc-model-repo` as it stands lands at 982 MB, **96% of the
+1 GB Pages cap** — less than one current frame of margin. The measurement is
+in that repository's own `products.toml` header. Split off from the currents
+instead, they sit at 150.3 MB (14.7%), or 195.3 MB with OHC.
+
+**What this repository gains: one subject.** Observations, rather than
+observations plus one model's output. That is the same argument that created
+`espc-model-repo`, applied again — and the ice staying behind in 2026-08-22
+was explicitly a live test that moving a product between repositories is
+cheap. This is that test being cashed.
+
+**Nothing has moved.** Recorded first, deliberately; the migration is a
+separate sitting. When it happens, the two rules every such move has obeyed
+still apply: every `roots` entry must be one the site's
+`test-schema.mjs --roots` publishes, and **a product that leaves takes its
+files with it** — the stage is seeded from what is already published, so a
+withdrawn product lingers unless it is removed.
+
+**And one thing the move does not fix.** The ESPC hour rule spans ten roots
+and will still span two repositories afterwards; only the site, reading both
+origins, can enforce it. The arrangement that would fix it — all ten in one
+repository — is exactly what storage forbids.
+
 ## 2026-08-28: rebuilding is for fresh products, accounting is for all of them
 
 `settle_tiles` recomputed what a product still owes only
