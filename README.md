@@ -107,7 +107,8 @@ build kept being skipped, and every subsequent run looked healthy.
 
 **Cross-product rules belong to the contract, and only to it.** The map's
 contract requires every ESPC layer to sit at an hour the currents publish,
-from one model run — a rule with real subtlety in it: the currents' base file
+from one model run — **unless it declares a coarser cadence in its own header,
+which `ohc-navy` does since 2026-08-31 and no product here does** — — a rule with real subtlety in it: the currents' base file
 is by design the *earlier* of two frames, and a grid from a different model
 run is a note rather than a failure, because upstream raggedness is the
 ordinary state. The orchestrator carried its own simplified copy of that rule

@@ -446,9 +446,11 @@ confirmed to request none of them.
 - `--roots` and `products.toml` agree, because the file stopped being a root
   on both sides at once. The contract is about what *must* be published, not
   about what must not.
-- The ESPC hour-agreement rule reads a hardcoded product list, so a grid that
-  leaves the list also leaves the check — the very grid most likely to go
-  stale is the one that stops being looked at.
+- ~~The ESPC hour-agreement rule reads a hardcoded product list.~~
+  **Corrected 2026-08-31**: it is derived from each grid's own `source`
+  header, so a product joins the check the day it publishes and cannot leave
+  it by leaving a list. The pruning problem this list is about is unchanged;
+  the reason it is ungated is one reason shorter.
 - `max_age_hours` is per *product*, and the product is fresh. Its abandoned
   files are not the product.
 
