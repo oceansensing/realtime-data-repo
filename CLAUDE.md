@@ -33,10 +33,13 @@ bytes behind a Pages URL, and Pages does not redirect what the API does.)*
 them to it** — `check:docs` requires a `DECISIONS.md` tracked in git in every
 repository. The last two landed that day, the site's and
 `realtime-data-repo`'s, reconstructed from records that already existed:
-nothing was missing but the file, which is exactly how the gap lasted seven
-weeks. What it cost is measurable — the engine promotion's own rehearsal
-listed *"a dated entry in this repo's decisions and oceanlet's"* as its ninth
-step, and the half with nowhere to go was simply not written.
+nothing was missing but the file, which is how the site went seven weeks
+without one and `realtime-data-repo` eighteen days. **This block asserted
+otherwise from the day it was written** — byte-compared in eight places and
+false in two of them, because a gate on a text is a gate on the text. What it
+cost is measurable: the engine promotion's own rehearsal listed *"a dated
+entry in this repo's decisions and oceanlet's"* as its ninth step, and the
+half with nowhere to go was simply not written.
 
 | file | answers | tense | it is stale when |
 | --- | --- | --- | --- |
