@@ -24,6 +24,11 @@ one exception to the convention, kept because its URL is a live origin and
 GitHub Pages does not reliably redirect a renamed project site. Read it and
 `eccofs-model-currents-repo` as the same kind of thing.
 
+*(`eccofs-model-repo` was RENAMED to `eccofs-model-fields-repo` on 2026-08-30,
+not superseded — GitHub redirects the old name, which is why a rename was
+free there and is not free for `espc-model-repo`: that one has published
+bytes behind a Pages URL, and Pages does not redirect what the API does.)*
+
 **They are MEANT to carry the same four documents and three of them do not**
 — the site and `realtime-data-repo` still owe a `DECISIONS.md` (measured
 2026-08-30). That is a gap in two repositories, not a license to skip the
