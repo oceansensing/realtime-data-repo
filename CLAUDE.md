@@ -7,25 +7,21 @@ defects, open items — is in `PLAN.md`. This file is the operator's and
 maintainer's half: what to run, what must move together, and what has
 already gone wrong.
 
-<!-- DOC-DOCTRINE v1 begin — identical in all five repositories; `check:docs` holds them equal. Edit one, sync all. -->
+<!-- DOC-DOCTRINE v1 begin — identical in all six repositories; `check:docs` holds them equal. Edit one, sync all. -->
 ## Where truth lives, and what "update docs" means
 
-Five repositories carry this project: `oceanlet.js` (the engine),
+Six repositories carry this project: `oceanlet.js` (the engine),
 `oceansensing.github.io` (the site, and every fetch script),
 `realtime-data-repo` (the orchestrator every data repository runs, and most
-products), `espc-model-repo` (the ESPC currents), and `sentinel3-data-repo`
-(Sentinel-3 ocean color and HAB indicators, added 2026-08-30). Each document
+products), `espc-model-repo` (the ESPC currents), `sentinel3-data-repo`
+(Sentinel-3 ocean color and HAB indicators) and `eccofs-model-repo` (the
+ECCOFS regional model) — the last two added 2026-08-30. Each document
 answers exactly one question.
 
-`eccofs-model-repo` was created on 2026-08-30 for a future ECCOFS layer and
-is **empty**. It is not in the list above and is not swept, because there is
-nothing yet to be false. **It joins the list in the commit that gives it
-documents** — naming it here so that moment is not missed, which is the
-lesson the sixth repository below cost.
-
 **They are MEANT to carry the same four documents and three of them do not**
-— only `oceanlet.js` and `sentinel3-data-repo` have a `DECISIONS.md`
-(measured 2026-08-30). That is a gap in the repositories, not a license to
+— `oceanlet.js`, `sentinel3-data-repo` and `eccofs-model-repo` have a
+`DECISIONS.md`; the site, `realtime-data-repo` and `espc-model-repo` do not
+(measured 2026-08-30). That is a gap in three repositories, not a license to
 skip the file: a data repository closes one-way doors too, and it has
 nowhere to say so.
 
@@ -44,7 +40,7 @@ whose rows are pinned by tests, a guide that introduces the model: each is
 the thing a reader is sent to when the short answer will not do, so each is
 the worst place for a claim that has quietly stopped being true.
 
-**"Update docs" means a sweep of all five repositories, not the one in hand.**
+**"Update docs" means a sweep of all six repositories, not the one in hand.**
 Docs are part of the change, never a follow-up and never a separate ask. Six
 questions, asked of every repository the change touched:
 
@@ -61,13 +57,13 @@ questions, asked of every repository the change touched:
    this change?** → fix it there, in the same sitting.
 
 **Question 6 is the one that gets missed, and it is why this block is
-identical in five places.** Measured 2026-08-28: one tile-tier measurement
+identical in six places.** Measured 2026-08-28: one tile-tier measurement
 falsified `espc-model-repo`'s README, its `products.toml` header and the
 site's README at once. Two were found; the third took a reminder from the
 owner, who then asked for this doctrine.
 
-**A SIXTH repository consumes this system and is deliberately NOT in the five
-above**: `ocean-now`, the iOS port, which mirrors the site's published
+**A SEVENTH repository consumes this system and is deliberately NOT in the
+six above**: `ocean-now`, the iOS port, which mirrors the site's published
 contract. It is not swept by these six questions and does not carry this
 block — it has a lighter mechanism instead, a pending list in its parity
 ledger, and the two repositories whose changes can reach it (the engine and
