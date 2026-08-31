@@ -27,6 +27,36 @@ repositories**, and its unit suite is what stands between an edit and two
 production pipelines. CI runs `python3 pipeline/test_orchestrate.py` before
 every publish, in this repository and in `espc-model-repo`.
 
+## 2026-08-31: this README described the site's privacy switch as pending, for two weeks
+
+The owner's report, against the site's `LICENSE`; this repository had the same
+fault in a second place. **"If the site repository ever goes private"** was a
+section heading here until today. The site went private on **2026-08-17**, and
+step 6 of the runbook under that heading still read *"Only then make the site
+repository private, and watch the next scheduled run."*
+
+**The corrected account was already in this repository, in the file next
+door.** The checkout step's comment in the publish workflow has said since the
+switch that anonymous read is now a 404, that the SSH path carries it, and
+that a dispatched run checked the private repository out and published end to
+end. **The workflow was right and the README was wrong**, which is the wrong
+half of a repository to be the accurate one: a comment is read by whoever is
+already editing that step, and the README is read by somebody deciding whether
+they need to.
+
+The section is kept, not deleted — it is the runbook for the next repository
+that needs a read-only deploy key, and the ordering hazard it records (the
+secret **arms** the SSH path the moment it exists, measured at 21:00 against a
+key at 21:03) is the part worth having. What changed is that it now says the
+switch is done and dates it, so nobody reads it as work outstanding.
+
+**Nothing here gates prose**, and that is not a gap to be closed by copying
+the site's checker: there is no `package.json`, no npm, and CI here is a
+publish run. The mechanism for this repository is the doc doctrine's question
+6, and this is a clean instance of it failing — the change that made the
+sentence false happened in another repository, so nobody sweeping *this* one
+had a reason to look.
+
 ## 2026-08-31: a `DECISIONS.md`, eighteen days late, and what the gap was made of
 
 The doctrine has said since 2026-08-28 that every repository carries four

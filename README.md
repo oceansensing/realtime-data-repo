@@ -228,22 +228,31 @@ the map's own gate has the last word.
   and are checked out at run time, pinned to `main` — one copy, one contract.
   Their reasoning lives in that repository's `CLAUDE.md` files.
 
-### If the site repository ever goes private
+### The site repository is private, and this is what carries the checkout
+
+**Done 2026-08-17.** The site went private that day, and the section below is
+the record of how — kept because it is the runbook for the next repository
+like this, not because anything here is still pending. It was written in the
+future tense before the switch and stayed that way for two weeks afterwards;
+`.github/workflows/publish.yml` had the corrected account the whole time,
+which is the wrong half of this repository to be the accurate one.
 
 **That checkout is the single thing standing between this pipeline and a dead
-stop.** It works today on anonymous read: `actions/checkout` falls back to
-this workflow's own `GITHUB_TOKEN`, which is scoped to *this* repository and
-holds no grant on the site at all. Make the site private with nothing else in
-place and the next run fails before it has fetched anything — not one product
-going stale, every product, no data published at all.
+stop.** Anonymous read no longer answers: `actions/checkout` would fall back
+to this workflow's own `GITHUB_TOKEN`, which is scoped to *this* repository
+and holds no grant on the site at all, so that path is now a 404 — and it
+would take down not one product but every one of them, nothing fetched at
+all.
 
-The workflow already carries the plumbing, and it is **inert**:
-`ssh-key: ${{ secrets.PIPELINES_SSH_KEY }}`. Verified against
-`actions/checkout` at its pinned commit rather than assumed — `token`
-defaults to `${{ github.token }}`, and the auth helper branches
+What carries it instead is **`ssh-key: ${{ secrets.PIPELINES_SSH_KEY }}`**,
+armed since 2026-08-16. Before the secret existed the line was inert, and
+that was verified against `actions/checkout` at its pinned commit rather than
+assumed — `token` defaults to `${{ github.token }}`, and the auth helper
+branches
 `if (this.settings.sshKey) { … } else { // Configure HTTPS instead of SSH }`,
-so an unset secret is an empty string, which is falsy, and the step behaves
-exactly as it always has.
+so an unset secret is an empty string, which is falsy, and the step behaved
+exactly as it always had. That is what let the line land and run green a day
+before it was needed.
 
 **A read-only deploy key, chosen on what this step actually needs.** It reads
 one repository and writes nothing. A deploy key is scoped to a single
@@ -253,7 +262,8 @@ its expiry date; and it belongs to no person, so it survives somebody leaving
 the org. A GitHub App would also clear those bars and costs more moving parts
 for capabilities not wanted here.
 
-**Do it in this order, and the order is the whole point.**
+**It was done in this order, and the order is the whole point** — repeat it
+verbatim for the next repository that needs the same thing.
 
 1. Generate a key pair with **no passphrase** — Actions cannot type one:
 
@@ -299,14 +309,16 @@ for capabilities not wanted here.
 4. `rm pipelines_key pipelines_key.pub`. Losing them costs two minutes and a
    new pair; keeping them lying about costs more.
 
-5. **Dispatch a run and watch it go green while the site is still public.**
-   This is the step people skip and the only one that proves anything: a key
-   that is wrong fails here, harmlessly, with the pipeline still working
-   underneath it. Do the same for `ocean-data-repo` — a standby that has not
-   been shown to start is not a standby.
+5. **Dispatch a run and watch it go green while the repository being read is
+   still public.** This is the step people skip and the only one that proves
+   anything: a key that is wrong fails here, harmlessly, with the pipeline
+   still working underneath it. `ocean-data-repo` got the same treatment at
+   the time — a standby that has not been shown to start is not a standby —
+   though that standby has since gone cold (last run 2026-08-17).
 
-6. Only then make the site repository private, and watch the next scheduled
-   run.
+6. Only then make the repository private, and watch the next scheduled run.
+   Here that was 2026-08-17, and the run after it checked the private
+   repository out and published end to end.
 
 **Neither half is ever committed.** The private key lives in Actions secrets,
 which is encrypted storage attached to the repository rather than content in

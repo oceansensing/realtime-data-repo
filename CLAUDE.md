@@ -66,7 +66,11 @@ questions, asked of every repository the change touched:
    light? → `CLAUDE.md`
 3. Did something *happen* — a measurement, a defect, a yield, a mechanism, an
    open question opened or answered? → `PLAN.md`
-4. Did a one-way door close? → `DECISIONS.md`
+4. Did a one-way door close — **or has one already recorded stopped being
+   fully true**? → `DECISIONS.md`, in **every** repository the change
+   touched. All eight carry one since 2026-08-31, so this is no longer the
+   engine's question with seven exemptions; the amendment half is here
+   because two entries needed one within a day of being written.
 5. Did an interface, a deliberate divergence, or a concept the guide explains
    move? → the matching file under `docs/`
 6. **Does a document in another repository now say something false because of
