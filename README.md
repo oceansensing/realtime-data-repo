@@ -2,9 +2,10 @@
 
 The data pipeline behind the [C4PO ocean
 map](https://oceansensing.org/visualization/) — the production service
-since 2026-08-14. It fetches storms, gliders, USVs, Argo floats, currents,
-temperature, salinity, ice, wind and waves from their upstream sources
-through the hour and publishes them as static files at
+since 2026-08-14. It fetches storms, gliders, USVs, Argo floats, radiosondes,
+buoys, tide gauges, research vessels, the OISST temperature analysis, and
+ECMWF wind and waves from their upstream sources through the hour and
+publishes them as static files at
 `https://oceansensing.org/realtime-data-repo/map/`, with a machine-readable
 health record beside them at `/status/status.json`.
 
@@ -104,20 +105,28 @@ predecessor trusted cache keys, and a cache that stored an incomplete artifact
 under a key claiming completeness could not heal — the key kept hitting, the
 build kept being skipped, and every subsequent run looked healthy.
 
-**Cross-product rules belong to the contract, and only to it.** The currents
-and the Navy fields come from the same model, and the map's contract requires
-a Navy grid from the currents' run to sit at one of the currents' published
-hours — a rule with real subtlety in it: the currents' base file is by design
-the *earlier* of two frames, and a grid from a different model run is a note
-rather than a failure, because upstream raggedness is the ordinary state.
-The orchestrator carried its own simplified copy of that rule for exactly one
-run, and the copy was wrong — it held two healthy products with a loud reason,
-which is the safe direction, and it is also why the copy is gone. When the
-contract objects, the gate maps the failure to its product and demotes just
-that one — for every failure shape since 2026-08-29, and only for whole-file
-ones before that; see `PLAN.md` for the regex that quietly excluded the rest. The OISST fields are their own product for the same spirit of
-isolation: a daily analysis from a different source, so a Navy outage cannot
-touch it even though one script fetches both.
+**Cross-product rules belong to the contract, and only to it.** The map's
+contract requires every ESPC layer to sit at an hour the currents publish,
+from one model run — a rule with real subtlety in it: the currents' base file
+is by design the *earlier* of two frames, and a grid from a different model
+run is a note rather than a failure, because upstream raggedness is the
+ordinary state. The orchestrator carried its own simplified copy of that rule
+for exactly one run, and the copy was wrong — it held two healthy products
+with a loud reason, which is the safe direction, and it is also why the copy
+is gone. When the contract objects, the gate maps the failure to its product
+and demotes just that one — for every failure shape since 2026-08-29, and only
+for whole-file ones before that; see `PLAN.md` for the regex that quietly
+excluded the rest.
+
+**Since 2026-08-31 this repository holds no ESPC product at all**, so that
+rule now spans `espc-model-repo` and `espc-model-fields-repo` and is enforced
+only by the site, which reads every origin. It is kept here because the
+*reason* the orchestrator holds no copy of a cross-product rule is unchanged
+and is the more general lesson.
+
+The OISST fields stayed, and they are their own product for the same spirit
+of isolation: a daily analysis from a different source, on a script that used
+to fetch the Navy fields too.
 
 **Two tiers of storage, each doing the one thing it is good at.**
 
@@ -128,9 +137,16 @@ touch it even though one script fetches both.
   than resident in a cache that can evict. It is also what seeds the stage,
   at clone speed, replacing the predecessor's re-download of the last publish
   over HTTP on every run.
-- **`actions/cache`** carries only the tile trees (~500 MB that changes four
-  times a day), keyed from the plan, saved only when this run built them, and
-  verified by content on every restore.
+- **`actions/cache` carries nothing here since 2026-08-31.** It held the tile
+  trees — ~500 MB that changed four times a day, keyed from the plan, saved
+  only when a run built them, verified by content on every restore. Both
+  products that declared a cache left with the Navy scalars, and their
+  Restore/Save pairs went with them rather than being left behind: a step
+  reading a `cache-paths-*` output no product emits fails on an empty path.
+  The machinery is unchanged and `espc-model-fields-repo` uses it; what is
+  gone is this repository's need for it. A product here declaring tiles again
+  needs a Restore before `run` and a Save after it, and `plan` says so out
+  loud when a declared cache has neither.
 
 **Fate is loud.** `status/status.json` records, per product: its fate this
 run, the reason if held, the model hour it represents, how far the nearest

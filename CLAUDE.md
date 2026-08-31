@@ -113,21 +113,35 @@ write **where it was measured and when**, or the next reader cannot tell a
 fact from a guess that aged.
 <!-- DOC-DOCTRINE v1 end -->
 
-## The five Navy scalars are leaving, and are still here
+## The five Navy scalars have gone, and what their going left behind
 
-**Decided 2026-08-30, not yet moved.** `sst-navy`, `sss-navy`, `sic-navy`,
-`sit-navy` and `ssh-navy` go to a new **`espc-model-fields-repo`**, under the
-convention that every model splits two ways: `<model>-model-currents-repo`
-for the tiled vector fields, `<model>-model-fields-repo` for the scalars.
-`espc-model-repo` keeps its legacy name and is the currents half.
+**Moved 2026-08-31** to `espc-model-fields-repo`: `sst-navy`, `sss-navy`,
+`sic-navy`, `sit-navy` and `ssh-navy`. This repository holds **no ESPC product
+at all** now, and one subject: observations.
 
-**Until that move happens they are here and are this repository's
-responsibility.** Do not treat them as somebody else's because a plan says
-they are leaving — that is how a product ends up owned by nobody.
+**The `fields` step is scoped, and it must stay scoped.**
+`fetch-ocean-fields.py` publishes four families and this repository owns one,
+so the step carries `--only=oisst`. Left bare it would fetch the Navy fields
+again and write `sst-navy.json` into a tree that no longer declares it — and
+the write fence would refuse the run, **every product, on the next cron**. Not
+a slow degradation; an immediate stop.
 
-**When the move happens**: a product that leaves takes its files with it. The
-stage is seeded from what is already published, so a withdrawn product
-lingers unless it is deliberately removed. That has bitten before.
+**A product is the unit of OWNERSHIP; a step is the unit of EXECUTION.** They
+are one change, never two. The site's `check:docs` holds this across every
+origin now, in both directions, and the other repository met the same fault
+from the opposite side on its first run.
+
+**No cache steps here any more**, because no product declares a cache. A
+Restore or Save reading a `cache-paths-*` output nothing emits fails on an
+empty path — how a cache step outliving its product died with no reason in
+August. A new tiled product here needs its pair back.
+
+**Their files had to be removed, not merely undeclared.** The stage is seeded
+from the `published` branch, so a withdrawn product is carried forward and
+served frozen for ever. 21 files: 18 grids and regional cuts under `map/`,
+three per-product manifests under `status/`. That is the half of a migration
+that has bitten before and it is not automatic — nothing surveys a product
+that no longer exists to be surveyed.
 
 ## The one relationship that explains everything else
 

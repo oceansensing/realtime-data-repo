@@ -269,12 +269,26 @@ content.
 observations plus one model's output. That is D6's argument applied again,
 and D6's live test being cashed.
 
-**Nothing has moved.** Recorded first, deliberately; the migration is a
-separate sitting. Two rules every such move has obeyed still apply: every
-`roots` entry must be one the site's `test-schema.mjs --roots` publishes, and
-**a product that leaves takes its files with it** — the stage is seeded from
-what is already published, so a withdrawn product lingers unless it is
-removed.
+**Moved 2026-08-31**, the sitting after this was recorded. The new origin
+published at 06:26Z — three products fresh, five roots, four tile tiers — and
+this repository stopped declaring them the same hour. What it cost the
+consumer was one line in the site's `MAP_ORIGINS`, which is what the ice
+staying behind in August was a live test of.
+
+Both rules held. Every `roots` entry was one `test-schema.mjs --roots`
+publishes; and **a product that leaves takes its files with it** — 21 of them
+here, 18 grids and regional cuts under `map/` and three per-product manifests
+under `status/`, removed from the `published` branch because the stage is
+seeded from it and a withdrawn product is otherwise carried forward and served
+frozen for ever.
+
+**A third rule was learned in the doing and is now gated**: the step's scope
+moves with the products. `fetch-ocean-fields.py` publishes four families, so
+the `fields` step here carries `--only=oisst`. Left bare it would have written
+`sst-navy.json` into a tree that no longer declares it, and the write fence
+would have stopped every product on the next cron. A product is the unit of
+ownership; a step is the unit of execution; they are one change, never two.
+`PLAN.md` has the record and the site's `check:docs` has the check.
 
 **And one thing it does not fix.** The ESPC hour rule spans ten roots and
 will still span two repositories afterwards; only the site, reading both

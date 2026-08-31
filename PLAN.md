@@ -13,19 +13,72 @@ are not copied here.
 ## Where it stands
 
 Publishes to <https://oceansensing.org/realtime-data-repo/> on its own cron.
-It owns `pipeline/orchestrate.py` — **the orchestrator both data repositories
-run**, `espc-model-repo` pointing it at its own workspace through
-`PIPELINE_ROOT` — plus `pipeline/products.toml` for its own **twelve**
-products, and the static half under `map/` that CI cannot rebuild.
+It owns `pipeline/orchestrate.py` — **the orchestrator every data repository
+runs**, `espc-model-repo` and `espc-model-fields-repo` each pointing it at
+their own workspace through `PIPELINE_ROOT` — plus `pipeline/products.toml`
+for its own **nine** products, and the static half under `map/` that CI cannot
+rebuild.
+
+**Nine since 2026-08-31**, when the five Navy scalars left for
+`espc-model-fields-repo`. This repository holds no ESPC product at all now.
 
 The fetchers and the data contract live in `oceansensing.github.io` and are
 checked out at run time, so a fetcher or `schema.ts` change lands here on the
 **next run**, not on any push here.
 
-Because the orchestrator is shared, **a change to it is a change to both data
-repositories**, and its unit suite is what stands between an edit and two
-production pipelines. CI runs `python3 pipeline/test_orchestrate.py` before
-every publish, in this repository and in `espc-model-repo`.
+Because the orchestrator is shared, **a change to it is a change to three
+production pipelines**, and its unit suite is what stands between an edit and
+all of them. CI runs `python3 pipeline/test_orchestrate.py` before every
+publish, here and in both ESPC repositories.
+
+## 2026-08-31: the five Navy scalars moved, and one subject is left
+
+`sst-navy`, `sss-navy`, `sic-navy`, `sit-navy` and `ssh-navy` are published by
+`espc-model-fields-repo` from 06:26Z. This repository holds **no ESPC product
+at all** now — twelve products became nine, and the subject is observations.
+
+**The ice was a live test set up on 2026-08-22 and it passed.** It stayed
+behind then deliberately, to prove that moving one product between
+repositories is a declaration rather than a rewrite. The consumer's side of
+this move was **one line** in the site's `MAP_ORIGINS`.
+
+**Three things had to move together, and the second is the one that would
+have taken production down.**
+
+The products go. The `fields` step gains `--only=oisst` — because
+`fetch-ocean-fields.py` publishes four families and left bare it would have
+gone on writing `sst-navy.json` into a tree that no longer declares it, which
+the write fence refuses **for the whole run, every product**. And both cache
+Restore/Save pairs go, because no product here declares a cache any more and a
+step reading a `cache-paths-*` output nothing emits fails on an empty path —
+the fault this repository already met on 2026-08-22 when the currents left.
+
+**The other repository met the step-scope fault from the opposite side, on its
+first run**, and that is what caught it here before a cron did: its bare step
+fetched OISST as well as its own three families and wrote three files nobody
+there declared. **A product is the unit of OWNERSHIP; a step is the unit of
+EXECUTION**, and splitting one script's families across repositories splits
+the first without splitting the second.
+
+Gated the same day in the site's `check:docs`, in both directions and across
+every origin. Too wide is loud; too narrow is silent — the files are never
+written and the previous copies carry forward frozen, which is the shape this
+repository has three entries about.
+
+**The anchor-following cron went too.** `18 0,3,6,9,12,15,18,21` existed
+because the Navy fields take the last step of the currents' window, so the
+hour they publish moves when the three-hourly anchor rolls. That reason is in
+the other repository now, and it runs `22 0,3,6,...` there. Nothing left here
+is ESPC-anchored: OISST is a daily analysis, ECMWF has its own cycles, the
+observation products are continuous. Three attempts an hour is the whole
+schedule.
+
+**And the files: 21, removed by hand from the `published` branch.** 18 grids
+and regional cuts under `map/`, three per-product manifests under `status/`.
+Nothing automates this and nothing could: the survey that would name an
+abandoned root works from a product's declared namespace, and a product that
+has left has no declaration to survey. The stage is seeded from that branch,
+so undeclaring without removing is what serves a frozen file for ever.
 
 ## 2026-08-31: what the doctrine's trial run found here
 
