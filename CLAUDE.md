@@ -120,8 +120,8 @@ fact from a guess that aged.
 at all** now, and one subject: observations.
 
 **The `fields` step is scoped, and it must stay scoped.**
-`fetch-ocean-fields.py` publishes four families and this repository owns one,
-so the step carries `--only=oisst`. Left bare it would fetch the Navy fields
+`fetch-ocean-fields.py` publishes six families (2026-08-31) and this
+repository owns one, so the step carries `--only=oisst`. Left bare it would fetch the Navy fields
 again and write `sst-navy.json` into a tree that no longer declares it — and
 the write fence would refuse the run, **every product, on the next cron**. Not
 a slow degradation; an immediate stop.

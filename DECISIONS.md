@@ -285,7 +285,8 @@ rule holds; its usual failure mode turns out to be a rename inside a live
 product rather than a product that leaves. `PLAN.md` has the measurement.
 
 **A third rule was learned in the doing and is now gated**: the step's scope
-moves with the products. `fetch-ocean-fields.py` publishes four families, so
+moves with the products. `fetch-ocean-fields.py` publishes several families
+(six as of 2026-08-31), so
 the `fields` step here carries `--only=oisst`. Left bare it would have written
 `sst-navy.json` into a tree that no longer declares it, and the write fence
 would have stopped every product on the next cron. A product is the unit of

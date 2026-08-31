@@ -54,8 +54,8 @@ lane = "noaa"
 timeout_minutes = 15
 
 # **`--only=oisst` since 2026-08-31, and this is not optional.** The script
-# publishes four families; three of them left for `espc-model-fields-repo` with
-# their products. Left bare, this step would go on fetching the Navy fields and
+# publishes **six** families as of 2026-08-31; five of them are
+# `espc-model-fields-repo`'s, having left with their products. Left bare, this step would go on fetching the Navy fields and
 # writing `sst-navy.json` and its siblings into a tree where no product
 # declares them any more — and the write fence would refuse the whole run:
 # `FENCE  sst-navy.json: written by no declared namespace`. Not a slow
@@ -223,7 +223,7 @@ max_age_hours = 2
 #
 # **What that leaves on the `fields` step here: `fields-oisst`, alone.** The
 # step is unchanged and so is the script — `fetch-ocean-fields.py` still
-# publishes all four families and still lives in the site repository. What
+# publishes all six families and still lives in the site repository. What
 # moved is ownership, which is what a product is.
 #
 # **The partition still has to hold, and it now holds ACROSS repositories.**
