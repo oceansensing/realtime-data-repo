@@ -53,6 +53,16 @@ falsified `espc-model-repo`'s README, its `products.toml` header and the
 site's README at once. Two were found; the third took a reminder from the
 owner, who then asked for this doctrine.
 
+**A FIFTH repository consumes this system and is deliberately NOT in the four
+above**: `ocean-now`, the iOS port, which mirrors the site's published
+contract. It is not swept by these six questions and does not carry this
+block — it has a lighter mechanism instead, a pending list in its parity
+ledger, and the two repositories whose changes can reach it (the engine and
+the site) each say so in their own section. It is named here because "four"
+was read as "all of them" for two weeks while that ledger drifted 176 commits
+behind with nothing noticing — which is question 6 failing at the granularity
+of a whole repository rather than a document.
+
 A number in prose is only as good as its anchor. `check:docs` gates every
 claim it can tie to a source constant and nothing else, so when a figure has
 no anchor — a measurement, a live reading, a byte count off a build log —
