@@ -7,14 +7,27 @@ defects, open items — is in `PLAN.md`. This file is the operator's and
 maintainer's half: what to run, what must move together, and what has
 already gone wrong.
 
-<!-- DOC-DOCTRINE v1 begin — identical in all four repositories; `check:docs` holds them equal. Edit one, sync all. -->
+<!-- DOC-DOCTRINE v1 begin — identical in all five repositories; `check:docs` holds them equal. Edit one, sync all. -->
 ## Where truth lives, and what "update docs" means
 
-Four repositories carry this project, and each carries the same four
-documents: `oceanlet.js` (the engine), `oceansensing.github.io` (the site,
-and every fetch script), `realtime-data-repo` (the orchestrator both data
-repositories run, and most products), `espc-model-repo` (the ESPC currents).
-Each document answers exactly one question.
+Five repositories carry this project: `oceanlet.js` (the engine),
+`oceansensing.github.io` (the site, and every fetch script),
+`realtime-data-repo` (the orchestrator every data repository runs, and most
+products), `espc-model-repo` (the ESPC currents), and `sentinel3-data-repo`
+(Sentinel-3 ocean color and HAB indicators, added 2026-08-30). Each document
+answers exactly one question.
+
+`eccofs-model-repo` was created on 2026-08-30 for a future ECCOFS layer and
+is **empty**. It is not in the list above and is not swept, because there is
+nothing yet to be false. **It joins the list in the commit that gives it
+documents** — naming it here so that moment is not missed, which is the
+lesson the sixth repository below cost.
+
+**They are MEANT to carry the same four documents and three of them do not**
+— only `oceanlet.js` and `sentinel3-data-repo` have a `DECISIONS.md`
+(measured 2026-08-30). That is a gap in the repositories, not a license to
+skip the file: a data repository closes one-way doors too, and it has
+nowhere to say so.
 
 | file | answers | tense | it is stale when |
 | --- | --- | --- | --- |
@@ -31,7 +44,7 @@ whose rows are pinned by tests, a guide that introduces the model: each is
 the thing a reader is sent to when the short answer will not do, so each is
 the worst place for a claim that has quietly stopped being true.
 
-**"Update docs" means a sweep of all four repositories, not the one in hand.**
+**"Update docs" means a sweep of all five repositories, not the one in hand.**
 Docs are part of the change, never a follow-up and never a separate ask. Six
 questions, asked of every repository the change touched:
 
@@ -48,12 +61,12 @@ questions, asked of every repository the change touched:
    this change?** → fix it there, in the same sitting.
 
 **Question 6 is the one that gets missed, and it is why this block is
-identical in four places.** Measured 2026-08-28: one tile-tier measurement
+identical in five places.** Measured 2026-08-28: one tile-tier measurement
 falsified `espc-model-repo`'s README, its `products.toml` header and the
 site's README at once. Two were found; the third took a reminder from the
 owner, who then asked for this doctrine.
 
-**A FIFTH repository consumes this system and is deliberately NOT in the four
+**A SIXTH repository consumes this system and is deliberately NOT in the five
 above**: `ocean-now`, the iOS port, which mirrors the site's published
 contract. It is not swept by these six questions and does not carry this
 block — it has a lighter mechanism instead, a pending list in its parity
@@ -61,7 +74,9 @@ ledger, and the two repositories whose changes can reach it (the engine and
 the site) each say so in their own section. It is named here because "four"
 was read as "all of them" for two weeks while that ledger drifted 176 commits
 behind with nothing noticing — which is question 6 failing at the granularity
-of a whole repository rather than a document.
+of a whole repository rather than a document. Adding a repository to the list
+above is therefore a real act: it buys the sweep, and leaving one off costs
+exactly what that cost.
 
 A number in prose is only as good as its anchor. `check:docs` gates every
 claim it can tie to a source constant and nothing else, so when a figure has
