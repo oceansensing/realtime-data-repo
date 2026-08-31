@@ -15,7 +15,7 @@ are not copied here.
 Publishes to <https://oceansensing.org/realtime-data-repo/> on its own cron.
 It owns `pipeline/orchestrate.py` — **the orchestrator both data repositories
 run**, `espc-model-repo` pointing it at its own workspace through
-`PIPELINE_ROOT` — plus `pipeline/products.toml` for its own eleven-odd
+`PIPELINE_ROOT` — plus `pipeline/products.toml` for its own **twelve**
 products, and the static half under `map/` that CI cannot rebuild.
 
 The fetchers and the data contract live in `oceansensing.github.io` and are
@@ -26,6 +26,25 @@ Because the orchestrator is shared, **a change to it is a change to both data
 repositories**, and its unit suite is what stands between an edit and two
 production pipelines. CI runs `python3 pipeline/test_orchestrate.py` before
 every publish, in this repository and in `espc-model-repo`.
+
+## 2026-08-31: what the doctrine's trial run found here
+
+The owner asked for one deliberate run of the six questions across all eight
+repositories, as a trial of the process rather than as the tail of a change.
+Two things here, both small, both the kind no gate in this repository could
+see:
+
+- **"Eleven-odd products" in "Where it stands", where there are twelve.** A
+  present-tense claim about a number that `grep -c '^\[products\.'` answers,
+  minus the two `.tiles` subsections. **The vagueness was the tell** —
+  "eleven-odd" is what gets written when the number is not re-counted, and it
+  survived every sweep since because it reads as an estimate rather than a
+  claim.
+- **The site's privacy switch, recorded separately above**, which the same
+  trial surfaced from the other direction.
+
+The three questions that fired across the whole sweep were 1, 3 and 6.
+Nothing here needed a `CLAUDE.md` rule, a decision entry or a `docs/` change.
 
 ## 2026-08-31: this README described the site's privacy switch as pending, for two weeks
 
