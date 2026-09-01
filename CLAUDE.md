@@ -7,17 +7,18 @@ defects, open items — is in `PLAN.md`, and which one-way doors have closed is
 `DECISIONS.md`. This file is the operator's and maintainer's half: what to
 run, what must move together, and what has already gone wrong.
 
-<!-- DOC-DOCTRINE v1 begin — identical in all eight repositories; `check:docs` holds them equal. Edit one, sync all. -->
+<!-- DOC-DOCTRINE v1 begin — identical in all ten repositories; `check:docs` holds them equal. Edit one, sync all. -->
 ## Where truth lives, and what "update docs" means
 
-Eight repositories carry this project. The engine and the site:
+Ten repositories carry this project. The engine and the site:
 `oceanlet.js`, `oceansensing.github.io` (the site, and every fetch script).
 The orchestrator and the observations: `realtime-data-repo`. And the data
 repositories, which since 2026-08-30 split **currents from fields** per model:
 `espc-model-repo` (the ESPC currents — a legacy name, see below),
 `espc-model-fields-repo`, `eccofs-model-currents-repo`,
-`eccofs-model-fields-repo`, and `sentinel3-data-repo` (ocean color, which has
-no vector half to split). Each document answers exactly one question.
+`eccofs-model-fields-repo`, `mercator-model-currents-repo`,
+`mercator-model-fields-repo`, and `sentinel3-data-repo` (ocean color, which
+has no vector half to split). Each document answers exactly one question.
 
 **`espc-model-repo` is the ESPC CURRENTS repository** despite its name — the
 one exception to the convention, kept because its URL is a live origin and
@@ -29,13 +30,13 @@ not superseded — GitHub redirects the old name, which is why a rename was
 free there and is not free for `espc-model-repo`: that one has published
 bytes behind a Pages URL, and Pages does not redirect what the API does.)*
 
-**All eight carry the same four documents, and since 2026-08-31 a gate holds
+**All ten carry the same four documents, and since 2026-08-31 a gate holds
 them to it** — `check:docs` requires a `DECISIONS.md` tracked in git in every
 repository. The last two landed that day, the site's and
 `realtime-data-repo`'s, reconstructed from records that already existed:
 nothing was missing but the file, which is how the site went seven weeks
 without one and `realtime-data-repo` eighteen days. **This block asserted
-otherwise from the day it was written** — byte-compared in eight places and
+otherwise from the day it was written** — byte-compared in the eight places there were then, and
 false in two of them, because a gate on a text is a gate on the text. What it
 cost is measurable: the engine promotion's own rehearsal listed *"a dated
 entry in this repo's decisions and oceanlet's"* as its ninth step, and the
@@ -68,7 +69,7 @@ questions, asked of every repository the change touched:
    open question opened or answered? → `PLAN.md`
 4. Did a one-way door close — **or has one already recorded stopped being
    fully true**? → `DECISIONS.md`, in **every** repository the change
-   touched. All eight carry one since 2026-08-31, so this is no longer the
+   touched. All ten carry one, so this is no longer the
    engine's question with seven exemptions; the amendment half is here
    because two entries needed one within a day of being written.
 5. Did an interface, a deliberate divergence, or a concept the guide explains
@@ -77,7 +78,7 @@ questions, asked of every repository the change touched:
    this change?** → fix it there, in the same sitting.
 
 **Question 6 is the one that gets missed, and it is why this block is
-identical in eight places.** Measured 2026-08-28: one tile-tier measurement
+identical in ten places.** Measured 2026-08-28: one tile-tier measurement
 falsified `espc-model-repo`'s README, its `products.toml` header and the
 site's README at once. Two were found; the third took a reminder from the
 owner, who then asked for this doctrine.
@@ -100,7 +101,7 @@ ocean map at all** (the owner's call, 2026-08-31). It publishes the bloom
 photographs for a different part of the website, reached through `HAB_DATA`
 in `src/config.ts`, and carries no interface anything here codes against
 beyond a URL and a filename convention. It needs no mechanism, not even a
-lighter one — nothing in these eight can falsify a claim in it, and it cannot
+lighter one — nothing in these ten can falsify a claim in it, and it cannot
 falsify one here. Do not mix it in.
 
 Adding a repository to the list above is therefore a real act: it buys the
