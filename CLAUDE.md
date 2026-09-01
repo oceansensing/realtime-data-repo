@@ -637,3 +637,11 @@ side**: `test-schema.mjs --roots` in the site repository has to agree with two
 disagreement and has stopped the publish before; a third side is the main risk
 in the move.
 
+**A failure token may carry more than a filename, and the attribution must
+read past it.** Records (`file kind id:`) were the first form, learned
+2026-08-29; vector components (`file[0]:`) the second, 2026-09-01. Each time
+the gate held the deploy correctly and named the wrong cause -- "cannot map
+to a product" for a product declared in plain sight. When `test-schema.mjs`
+grows a new token shape, the mapper needs the case and its control the same
+day, because a gate that misnames its failure sends the reader into the
+wrong repository.

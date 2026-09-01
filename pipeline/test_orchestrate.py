@@ -512,6 +512,43 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(self.env.out_hour('beta.json'), H1)
         self.assertTrue(self.env.receipt()['deploy'])
 
+    def test_contract_attributes_a_vector_component_token(self):
+        """**A vector file's token carries its component, and the glob could
+        not see past it.** `test-schema.mjs` names a component of a vector
+        file as `alpha.json[0]`, and the attribution matched the whole token
+        against the namespace globs -- `alpha*.json` does not match a name
+        ending in `[0]`. So every vector failure was `cannot map`, and fell
+        to the fatal branch with a message saying the product was unknown
+        when it was declared in plain sight.
+
+        Live on 2026-09-01: the first Mercator depth-average roots to reach
+        the contract failed it twelve times, and the log said `cannot map
+        cur-mercator-avg200m.json[0] to a product`. The deploy was rightly
+        held; the diagnosis was wrong. Attributed, it holds `alpha` alone and
+        `beta` publishes."""
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('hour-beta', H1)
+        self.env.ctl('contract-fails',
+                     'FAIL  alpha.json[0]: is named for a 200 m average but '
+                     'declares depthAveraged undefined\n'
+                     'FAIL  alpha.json[1]: is named for a 200 m average but '
+                     'declares depthAveraged undefined\n')
+        self.env.ctl('contract-oneshot')
+        self.assertEqual(self.env.run(), 0)
+        st = self.env.status()
+        self.assertEqual(st['products']['alpha']['fate'], 'held')
+        self.assertEqual(st['products']['alpha']['reason'],
+                         'failed the consumer contract')
+        self.assertEqual(st['products']['beta']['fate'], 'fresh')
+        self.assertTrue(self.env.receipt()['deploy'])
+
+    def test_a_component_token_naming_no_known_file_is_still_fatal(self):
+        """The control: stripping `[N]` must not turn an unknown file into a
+        known one. `nobody.json[1]` is owned by no product and stays fatal."""
+        self.env.ctl('contract-fails', 'FAIL  nobody.json[1]: permanently bad\n')
+        self.assertEqual(self.env.run(), 0)
+        self.assertFalse(self.env.receipt()['deploy'])
+
     def test_a_record_failure_naming_no_known_file_is_still_fatal(self):
         """**The CONTROL on the widened match**, and it is the half that
         keeps it honest. Reading more of the line must not turn an

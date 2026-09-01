@@ -1142,7 +1142,12 @@ class Run:
             # `unmapped` and is fatal — and now says why.
             for m in re.finditer(r'^FAIL\s+([^\s:]+)', out, re.M):
                 token = m.group(1)
-                top = token.split('/', 1)[0]
+                # A vector file's token carries its component -- `cur.json[0]`
+                # -- and no namespace glob matches a name with `[0]` on the
+                # end. Every vector failure was "cannot map" until 2026-09-01,
+                # which is the wrong diagnosis: the product was declared, the
+                # gate simply could not read its own token.
+                top = re.sub(r'\[\d+\]$', '', token.split('/', 1)[0])
                 owners = owners_of(top, self.products)
                 if not owners:
                     owners = [

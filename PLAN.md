@@ -586,3 +586,17 @@ so is better than contriving one that seems to.
   re-checking after the hold can only fail again. Separating "held because
   the data was judged bad" from "held because the fetch failed and the
   carried-forward copy is merely older" is a real design and is not started.
+
+## 2026-09-01 — a vector file's failure was never attributable
+
+`test-schema.mjs` names a component of a vector file as `cur.json[0]`, and
+the contract attribution matched that whole token against the products'
+namespace globs. No glob matches a name ending in `[0]`, so every vector
+failure fell to `cannot map ... to a product` and the fatal branch -- the
+deploy was held, correctly, with a diagnosis that said the product was
+unknown when it was declared in plain sight. Seen on the first Mercator
+depth-average roots to reach the contract: twelve failures, twelve `cannot
+map` lines. The mapper strips the component index now;
+`test_contract_attributes_a_vector_component_token` pins it and its control
+keeps an unknown file fatal. Found by mutation: with the strip reverted, the
+test fails.
