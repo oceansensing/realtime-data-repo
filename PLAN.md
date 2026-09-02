@@ -604,3 +604,24 @@ tests;
 `test_contract_attributes_a_vector_component_token` pins it and its control
 keeps an unknown file fatal. Found by mutation: with the strip reverted, the
 test fails.
+
+## 2026-09-02 — whose stale, published
+
+The owner: "a lot of ESPC products are stale." Measured: every ESPC root's
+newest frame was valid 03Z, 3.0–3.3 h from the reader against 2 h budgets
+(heat content 6.3 against 6), both origins' fates all `fresh`, and HYCOM's
+2026-09-01 12Z run carrying **7 steps** for the currents and **6** for
+temperature and salinity where the two runs before it carried 65 each; sea
+surface height and ice had no 09-01 run at all. The map's health line read
+`stale` eight times. This orchestrator had already decided the split --
+`currency: ice-navy 3.3 h — upstream, not us` is in every such run's log
+since 2026-08-27 -- and left it there, so the one instrument a reader sees
+could not say it.
+
+**`staleCause` is published beside `stale`** now: `upstream` when the fetch
+succeeded and nothing newer exists, `ours` when newer data was there and this
+pipeline did not publish it, null within budget and always present. The map
+reads `stale (upstream)`; the site's watchdog reads the field with the fate
+rule as its fallback. Three mutations of the orchestrator -- the two causes
+swapped, the field dropped, a cause published within budget -- each fail the
+suite; 53 tests.

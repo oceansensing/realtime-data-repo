@@ -213,6 +213,14 @@ the workflow, and the published record. Two consequences:
   computed as `abs()` of the offset, never beside it, so the two cannot
   drift.
 
+- **A verdict that stays in the log is invisible to the instrument that
+  needs it.** The upstream-or-ours split decided how loud a run got and was
+  printed, so the map's health line read `stale` eight times on 2026-09-02,
+  a day HYCOM's run was truncated to seven steps, and could not say the site
+  was doing its job. `staleCause` publishes the same split beside `stale`;
+  the watchdog reads it too, with the fate rule as its fallback. When a
+  pipeline decides something a reader will ask about, put it in the document.
+
 ## Commands
 
 ```sh

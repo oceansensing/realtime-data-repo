@@ -326,7 +326,9 @@ class OrchestrateTests(unittest.TestCase):
         st = self.env.status()
         self.assertEqual(st['products']['alpha']['fate'], 'fresh')
         self.assertTrue(st['products']['alpha']['stale'])
-        # Reported, and reported as theirs.
+        # Reported, and reported as theirs -- in the document the map reads,
+        # not only in the log (2026-09-02).
+        self.assertEqual(st['products']['alpha']['staleCause'], 'upstream')
         self.assertEqual(self.env.receipt()['behind'], [])
         self.assertTrue(any('nothing newer' in n
                             for n in self.env.receipt()['notes']))
@@ -343,6 +345,7 @@ class OrchestrateTests(unittest.TestCase):
         st = self.env.status()
         self.assertEqual(st['products']['alpha']['fate'], 'held')
         self.assertTrue(st['products']['alpha']['stale'])
+        self.assertEqual(st['products']['alpha']['staleCause'], 'ours')
         behind = self.env.receipt()['behind']
         self.assertTrue(any(b.startswith('alpha') for b in behind), behind)
         # And the tree still went out. This is the half that is easy to get
@@ -362,6 +365,7 @@ class OrchestrateTests(unittest.TestCase):
         st = self.env.status()
         self.assertEqual(st['products']['beta']['fate'], 'held')
         self.assertFalse(st['products']['beta']['stale'])
+        self.assertIsNone(st['products']['beta']['staleCause'])
         self.assertEqual(self.env.receipt()['behind'], [])
 
     def test_data_inside_its_budget_is_neither_stale_nor_behind(self):
@@ -372,6 +376,10 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(self.env.run(), 0)
         st = self.env.status()
         self.assertFalse(st['products']['alpha']['stale'])
+        # The field is always there and null while within budget: a reader
+        # must not have to tell an absent key from a healthy product.
+        self.assertIn('staleCause', st['products']['alpha'])
+        self.assertIsNone(st['products']['alpha']['staleCause'])
         self.assertEqual(self.env.receipt()['behind'], [])
         self.assertAlmostEqual(st['products']['alpha']['ageHours'], 1, delta=0.05)
 

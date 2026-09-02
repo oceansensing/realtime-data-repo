@@ -986,6 +986,15 @@ class Run:
             offset = nearest_frame_offset(manifest['hours'])
             age = None if offset is None else abs(offset)
             overdue = bool(age_limit and age is not None and age > age_limit)
+            # **Published with the verdict, since 2026-09-02.** The split below
+            # decided how loud the run got and then stayed in the log, so the
+            # map's health line could say `stale` and nothing about whose
+            # stale it was -- and the owner asked, on a day HYCOM's run was
+            # truncated to seven steps, whether a lot of ESPC products were
+            # stale. `upstream`: the fetch succeeded and nothing newer exists.
+            # `ours`: newer data was there and this pipeline did not publish
+            # it. Null while within budget.
+            stale_cause = None
             if overdue:
                 # **Whose fault it is decides how loud this gets, and the
                 # two cases are genuinely different.** A product whose fetch
@@ -1004,7 +1013,9 @@ class Run:
                         f'{name}: nearest frame is {age:.1f} h old, past its '
                         f'{age_limit} h budget — upstream has nothing newer')
                     log(f'currency: {name} {age:.1f} h — upstream, not us')
+                    stale_cause = 'upstream'
                 else:
+                    stale_cause = 'ours'
                     self.behind.append(f'{name} ({age:.1f} h, {self.fate[name]})')
                     # An Actions annotation, so it is visible on the run
                     # without opening the log.
@@ -1035,6 +1046,7 @@ class Run:
                 # above for anyone asking when the pipeline last ran; it is
                 # no longer mistaken for currency.
                 'stale': overdue,
+                'staleCause': stale_cause,
                 'ageHours': None if age is None else round(age, 2),
                 # Signed, so "seven hours out" can be read as behind or
                 # ahead without opening the run log. See

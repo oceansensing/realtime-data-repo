@@ -244,6 +244,12 @@ instruments in another repository read. **`nearestOffsetHours` joined them on
 forecast published seven hours into the future and data left seven hours
 behind reported identically without it, and the report that produced cost a
 full investigation pointed the wrong way.
+**`staleCause` joined them on 2026-09-02** — `upstream` or `ours`, the very
+split this entry describes, published beside `stale` rather than left in the
+run log, because the map's health line said `stale` eight times on a day
+HYCOM's run was truncated to seven steps and could not say that the site was
+doing its job. Null within budget, so a reader never has to tell an absent
+key from a healthy product.
 
 ## D10 — 2026-08-30 — The five Navy scalars leave for `espc-model-fields-repo`
 

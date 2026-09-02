@@ -155,7 +155,11 @@ run, the reason if held, the model hour it represents, how far the nearest
 published frame is from the reader — `ageHours` as a magnitude and
 `nearestOffsetHours` **signed, positive behind and negative ahead**, because
 a forecast published too far into the future is a different fault from data
-left behind and the two read identically without it — and two timestamps
+left behind and the two read identically without it — **`staleCause`**, since
+2026-09-02, `upstream` when the fetch succeeded and nothing newer exists and
+`ours` when newer data was there and this pipeline did not publish it (null
+within budget), so the map's health line can say whose stale it is — and two
+timestamps
 whose difference is the whole point — **`checked`**, the last time the
 pipeline successfully attempted the product, and **`updated`**, the last time
 its bytes changed. A quiet upstream and a broken pipeline look identical in
