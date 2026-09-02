@@ -227,11 +227,11 @@ max_age_hours = 2
 # moved is ownership, which is what a product is.
 #
 # **The partition still has to hold, and it now holds ACROSS repositories.**
-# `test:probes` on the site asserts that the four `--only` selections —
-# `sst-navy,sss-navy`, `sic-navy,sit-navy`, `ssh-navy`, `oisst` — between them
-# name every file the script publishes, as set equality against the
-# unselected answer. Three of those four are declared in
-# `espc-model-fields-repo` now and one here. A file owned by nobody is
+# `test:probes` on the site asserts that the `--only` selections —
+# `sst-navy,sss-navy`, `sic-navy,sit-navy`, `ssh-navy`, `temp30-navy`,
+# `ohc-navy`, `oisst` — between them name every file the script publishes, as
+# set equality against the unselected answer. All but `oisst` are declared in
+# `espc-model-fields-repo` now and `oisst` here. A file owned by nobody is
 # written by nobody, carried by the seed for ever, and served frozen — the
 # 43.8 MB shape.
 

@@ -22,7 +22,7 @@ them.
 `CLAUDE.md` is the operator's and maintainer's half — what to run, what must
 move together, what has already gone wrong. `PLAN.md` is the running record of
 what has happened here and what is open. `DECISIONS.md` indexes the dated
-one-way decisions, D1 onward. Which document gets what, across all eight
+one-way decisions, D1 onward. Which document gets what, across all ten
 repositories of this project, is the doctrine block at the top of
 `CLAUDE.md`.
 
@@ -115,9 +115,10 @@ ordinary state. The orchestrator carried its own simplified copy of that rule
 for exactly one run, and the copy was wrong — it held two healthy products
 with a loud reason, which is the safe direction, and it is also why the copy
 is gone. When the contract objects, the gate maps the failure to its product
-and demotes just that one — for every failure shape since 2026-08-29, and only
-for whole-file ones before that; see `PLAN.md` for the regex that quietly
-excluded the rest.
+and demotes just that one — for whole-file shapes since 2026-08-29, for
+record tokens since the same day, and for a vector file's component tokens
+(`cur.json[0]`) since 2026-09-01; see `PLAN.md` for the two regexes that each
+quietly excluded a shape.
 
 **Since 2026-08-31 this repository holds no ESPC product at all**, so that
 rule now spans `espc-model-repo` and `espc-model-fields-repo` and is enforced

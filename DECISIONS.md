@@ -293,7 +293,7 @@ would have stopped every product on the next cron. A product is the unit of
 ownership; a step is the unit of execution; they are one change, never two.
 `PLAN.md` has the record and the site's `check:docs` has the check.
 
-**And one thing it does not fix.** The ESPC hour rule spans ten roots and
+**And one thing it does not fix.** The ESPC hour rule spans twelve roots (five and seven, since 2026-08-31) and
 will still span two repositories afterwards; only the site, reading both
 origins, can enforce it. That is the site's D10, and it is permanent rather
 than transitional.

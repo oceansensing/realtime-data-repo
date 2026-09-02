@@ -14,8 +14,10 @@ are not copied here.
 
 Publishes to <https://oceansensing.org/realtime-data-repo/> on its own cron.
 It owns `pipeline/orchestrate.py` — **the orchestrator every data repository
-runs**, `espc-model-repo` and `espc-model-fields-repo` each pointing it at
-their own workspace through `PIPELINE_ROOT` — plus `pipeline/products.toml`
+runs**: `espc-model-repo`, `espc-model-fields-repo`,
+`mercator-model-currents-repo`, `mercator-model-fields-repo` and
+`sentinel3-data-repo` each point it at their own workspace through
+`PIPELINE_ROOT` (the two ECCOFS repositories are queued to) — plus `pipeline/products.toml`
 for its own **nine** products, and the static half under `map/` that CI cannot
 rebuild.
 
@@ -26,10 +28,11 @@ The fetchers and the data contract live in `oceansensing.github.io` and are
 checked out at run time, so a fetcher or `schema.ts` change lands here on the
 **next run**, not on any push here.
 
-Because the orchestrator is shared, **a change to it is a change to three
-production pipelines**, and its unit suite is what stands between an edit and
-all of them. CI runs `python3 pipeline/test_orchestrate.py` before every
-publish, here and in both ESPC repositories.
+Because the orchestrator is shared, **a change to it is a change to six
+production pipelines** (as of 2026-09-01), and its unit suite — 53 cases —
+is what stands between an edit and all of them. CI runs
+`python3 pipeline/test_orchestrate.py` before every publish, here and in
+every repository that runs it.
 
 ## 2026-08-31: the five Navy scalars moved, and one subject is left
 
@@ -46,7 +49,7 @@ this move was **one line** in the site's `MAP_ORIGINS`.
 have taken production down.**
 
 The products go. The `fields` step gains `--only=oisst` — because
-`fetch-ocean-fields.py` publishes four families and left bare it would have
+`fetch-ocean-fields.py` publishes ten families (`PRODUCTS` in `fetch-ocean-fields.py`) and left bare it would have
 gone on writing `sst-navy.json` into a tree that no longer declares it, which
 the write fence refuses **for the whole run, every product**. And both cache
 Restore/Save pairs go, because no product here declares a cache any more and a
@@ -229,7 +232,7 @@ still apply: every `roots` entry must be one the site's
 files with it** — the stage is seeded from what is already published, so a
 withdrawn product lingers unless it is removed.
 
-**And one thing the move does not fix.** The ESPC hour rule spans ten roots
+**And one thing the move does not fix.** The ESPC hour rule spans twelve roots (five in `espc-model-repo`, seven in `espc-model-fields-repo`)
 and will still span two repositories afterwards; only the site, reading both
 origins, can enforce it. The arrangement that would fix it — all ten in one
 repository — is exactly what storage forbids.
@@ -596,7 +599,8 @@ failure fell to `cannot map ... to a product` and the fatal branch -- the
 deploy was held, correctly, with a diagnosis that said the product was
 unknown when it was declared in plain sight. Seen on the first Mercator
 depth-average roots to reach the contract: twelve failures, twelve `cannot
-map` lines. The mapper strips the component index now;
+map` lines. The mapper strips the component index now, and the suite is 53
+tests;
 `test_contract_attributes_a_vector_component_token` pins it and its control
 keeps an unknown file fatal. Found by mutation: with the strip reverted, the
 test fails.

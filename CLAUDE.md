@@ -604,7 +604,7 @@ unchecked — 26 of 30 currents files. It is derived from the tree now: 3 files
 checked became 31. Worth knowing here because it means the contract gate has
 been quieter than it appeared for as long as regional grids have existed.
 
-## Coming: ESPC leaves this repository
+## Done 2026-08-31: ESPC left this repository (the plan below is kept as written)
 
 Planned 2026-08-20 in the site repository's `PLAN.md`, to be built next
 session. Recorded here because it is most of what this repository currently
@@ -615,9 +615,10 @@ carries and the change will be felt here first.
 2026-08-28. The figures it planned against (114 MB of grids, 505 MB of tiles)
 predated the third depth cap and the second forecast lead; re-measured
 2026-08-28 the tier is 738.7 MB and the grids 93 MB, and `espc-model-repo` is
-832 MB of a 1 GB cap. **The four Navy field products did NOT go** — the
-owner's call, on storage — so what is left here is those and the observing
-platforms, the storms, the buoys, the tides, the arrays, the vessels, the
+832 MB of a 1 GB cap. **The five Navy scalars went on 2026-08-31** (see the section at the top of
+this file; the sentence here once said they did not, on a storage judgement
+that the fields repository's own tier sizes overturned) — so what is left
+here is the observing platforms, the storms, the buoys, the tides, the arrays, the vessels, the
 sondes and the OISST fields: about 59 MB.
 
 Two new products go to the new repository rather than this one: currents
@@ -631,9 +632,9 @@ point and leading zero carry nothing. That is what makes the whole set fit
 one cap: 670 MB against the 987 the current encoding would need.
 
 Nothing about `products.toml`'s shape changes, but this repository's own
-product list shrinks, and the **cross-repository contract gains a third
-side**: `test-schema.mjs --roots` in the site repository has to agree with two
-`products.toml` files rather than one. That agreement check already exits 2 on
+product list shrinks, and the **cross-repository contract gains more
+sides**: `test-schema.mjs --roots` in the site repository has to agree with
+the union of every origin's `products.toml` — six of them as of 2026-09-01. That agreement check already exits 2 on
 disagreement and has stopped the publish before; a third side is the main risk
 in the move.
 
