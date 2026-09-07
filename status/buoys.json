@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "buoys",
+ "title": "NDBC buoys and coastal stations",
+ "fate": "held",
+ "reason": "step assets timed out after 15 min",
+ "checked": "2026-09-06T19:21:39Z",
+ "updated": "2026-09-06T19:21:39Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "buoys.json": {
+   "bytes": 141856,
+   "sha256": "2207a3dbcd0676938e563549d4ca724fade4690d5ea56f54da3a539fc6549b9e"
+  }
+ }
+}

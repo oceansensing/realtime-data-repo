@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "tides",
+ "title": "CO-OPS tide gauges",
+ "fate": "held",
+ "reason": "step assets timed out after 15 min",
+ "checked": "2026-09-06T19:21:39Z",
+ "updated": "2026-09-06T19:21:39Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "tides.json": {
+   "bytes": 146703,
+   "sha256": "73cabd552b088e880aa3cc434899a30727305f92f25d9094dc3eb8e65dcc54a8"
+  }
+ }
+}

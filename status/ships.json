@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "ships",
+ "title": "US academic research fleet",
+ "fate": "held",
+ "reason": "step assets timed out after 15 min",
+ "checked": "2026-09-06T19:21:39Z",
+ "updated": "2026-09-06T19:21:39Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "ships.json": {
+   "bytes": 45765,
+   "sha256": "86aa72642929e2630a00343acc2b56209d0d0bffc71308a621d8092afb013a97"
+  }
+ }
+}

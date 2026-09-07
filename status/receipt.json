@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "generated": "2026-09-07T02:44:37Z",
+ "mode": "full",
+ "fates": {
+  "assets": "held",
+  "buoys": "held",
+  "tides": "held",
+  "gtmba": "held",
+  "ships": "held",
+  "sondes": "held",
+  "fields-oisst": "fresh",
+  "wind": "fresh",
+  "waves": "fresh"
+ },
+ "reasons": {
+  "assets": "step assets timed out after 15 min",
+  "buoys": "step assets timed out after 15 min",
+  "tides": "step assets timed out after 15 min",
+  "gtmba": "step assets timed out after 15 min",
+  "ships": "step assets timed out after 15 min",
+  "sondes": "step assets timed out after 15 min"
+ },
+ "built": {},
+ "withheld": {},
+ "deploy": true,
+ "notes": [],
+ "behind": [
+  "assets (14.7 h, held)"
+ ]
+}
