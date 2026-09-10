@@ -3,7 +3,8 @@
 The data pipeline behind the [C4PO ocean
 map](https://oceansensing.org/visualization/) — the production service
 since 2026-08-14. It fetches storms, gliders, USVs, Argo floats, radiosondes,
-buoys, tide gauges, research vessels, the OISST temperature analysis, and
+buoys, tide gauges, research vessels, NSF OOI's moorings and cabled sites, the
+OISST temperature analysis, and
 ECMWF wind and waves from their upstream sources through the hour and
 publishes them as static files at
 `https://oceansensing.org/realtime-data-repo/map/`, with a machine-readable

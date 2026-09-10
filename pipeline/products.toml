@@ -173,6 +173,20 @@ roots = ["gtmba.json"]
 writes = ["gtmba.json"]
 max_age_hours = 4
 
+# Same pattern, one network along (2026-09-10): NSF OOI's fixed sites —
+# the Endurance, Pioneer, Global and Cabled arrays' moorings, profilers and
+# seafloor nodes — folded one record per site from the Data Explorer's
+# ERDDAP. The fetcher says why that interface and not OOINet's credentialed
+# M2M. The collector keeps the previous file on failure and refuses to
+# publish an empty layer; the file's absence from a cold seed is ordinary,
+# and the contract's ooi check is presence-conditional like the buoys'.
+[products.ooi]
+title = "NSF OOI moorings, profilers and cabled sites"
+step = "assets"
+roots = ["ooi.json"]
+writes = ["ooi.json"]
+max_age_hours = 4
+
 # The US academic research fleet, on the assets step like the stations above.
 # Two upstreams behind one product: R2R's registry decides which call signs
 # are research vessels and OSMC's GTS feed says where they are, so the

@@ -626,8 +626,8 @@ predated the third depth cap and the second forecast lead; re-measured
 832 MB of a 1 GB cap. **The five Navy scalars went on 2026-08-31** (see the section at the top of
 this file; the sentence here once said they did not, on a storage judgement
 that the fields repository's own tier sizes overturned) — so what is left
-here is the observing platforms, the storms, the buoys, the tides, the arrays, the vessels, the
-sondes and the OISST fields: about 59 MB.
+here is the observing platforms, the storms, the buoys, the tides, the arrays, the OOI sites
+(since 2026-09-10), the vessels, the sondes and the OISST fields: about 59 MB.
 
 Two new products go to the new repository rather than this one: currents
 **depth-integrated down to 200 m and down to 1000 m**, at the full 1/12° and
