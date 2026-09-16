@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "buoys",
+ "title": "NDBC buoys and coastal stations",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-09-16T01:58:06Z",
+ "updated": "2026-09-16T01:58:06Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "buoys.json": {
+   "bytes": 138206,
+   "sha256": "295753d3b2b4b05223d2bd8810f86e94eebe9920ec44c0e714103b9a4231d499"
+  }
+ }
+}

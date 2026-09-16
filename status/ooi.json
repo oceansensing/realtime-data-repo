@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "ooi",
+ "title": "NSF OOI moorings, profilers and cabled sites",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-09-16T01:58:06Z",
+ "updated": "2026-09-16T01:58:06Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "ooi.json": {
+   "bytes": 8431,
+   "sha256": "0be17d99d12b4c959b9017153327bacb79e7e5be212c70da7eb12e32ab5ed1bd"
+  }
+ }
+}
