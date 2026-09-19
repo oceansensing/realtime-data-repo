@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "tides",
+ "title": "CO-OPS tide gauges",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-09-19T20:32:23Z",
+ "updated": "2026-09-19T20:32:23Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "tides.json": {
+   "bytes": 147042,
+   "sha256": "2800a537942e63b7a17c2130674e81e730d0261152df176f244ff994924a80fa"
+  }
+ }
+}

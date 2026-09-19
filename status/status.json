@@ -1,0 +1,209 @@
+{
+ "schema": 2,
+ "generated": "2026-09-19T20:32:23Z",
+ "mode": "full",
+ "run": {
+  "id": "35467482001",
+  "url": "https://github.com/oceansensing/realtime-data-repo/actions/runs/35467482001"
+ },
+ "products": {
+  "assets": {
+   "title": "Storms, gliders, USVs and Argo floats",
+   "roots": [
+    "ocean-assets.json",
+    "argo.json",
+    "wsp34.json",
+    "wsp50.json",
+    "wsp64.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:32:23Z",
+   "hour": "2026-09-19T12:00:00Z",
+   "modelRun": null,
+   "source": "National Hurricane Center",
+   "hours": [
+    "2026-09-19T12:00:00Z"
+   ],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": 8.54,
+   "nearestOffsetHours": 8.54
+  },
+  "buoys": {
+   "title": "NDBC buoys and coastal stations",
+   "roots": [
+    "buoys.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:32:23Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null
+  },
+  "tides": {
+   "title": "CO-OPS tide gauges",
+   "roots": [
+    "tides.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:32:23Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null
+  },
+  "gtmba": {
+   "title": "Tropical moored arrays (GTMBA)",
+   "roots": [
+    "gtmba.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:32:23Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null
+  },
+  "ooi": {
+   "title": "NSF OOI moorings, profilers and cabled sites",
+   "roots": [
+    "ooi.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:32:23Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null
+  },
+  "ships": {
+   "title": "US academic research fleet",
+   "roots": [
+    "ships.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:32:23Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null
+  },
+  "sondes": {
+   "title": "Radiosondes aloft (SondeHub)",
+   "roots": [
+    "sondes.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:32:23Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null
+  },
+  "fields-oisst": {
+   "title": "NOAA OISST temperature, anomaly and ice",
+   "roots": [
+    "sst-oisst.json",
+    "ssta-oisst.json",
+    "sic-oisst.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T16:48:37Z",
+   "hour": "2026-09-18T00:00:00Z",
+   "modelRun": null,
+   "source": "NOAA PSL OISST v2.1",
+   "hours": [
+    "2026-09-18T00:00:00Z"
+   ],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": 44.54,
+   "nearestOffsetHours": 44.54
+  },
+  "wind": {
+   "title": "ECMWF 10 m wind, 2 m and 850 hPa temperature, cloud cover and 500 hPa heights",
+   "roots": [
+    "wind.json",
+    "air.json",
+    "cloud.json",
+    "air-850.json",
+    "gh-500.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T20:21:16Z",
+   "hour": "2026-09-19T21:00:00Z",
+   "modelRun": "2026-09-19T12:00:00Z",
+   "source": "ECMWF IFS",
+   "hours": [
+    "2026-09-19T21:00:00Z"
+   ],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": 0.46,
+   "nearestOffsetHours": -0.46
+  },
+  "waves": {
+   "title": "ECWAM significant wave height",
+   "roots": [
+    "waves.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-09-19T20:32:23Z",
+   "updated": "2026-09-19T19:56:47Z",
+   "hour": "2026-09-19T21:00:00Z",
+   "modelRun": "2026-09-19T12:00:00Z",
+   "source": "ECMWF ECWAM",
+   "hours": [
+    "2026-09-19T21:00:00Z"
+   ],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": 0.46,
+   "nearestOffsetHours": -0.46
+  }
+ }
+}

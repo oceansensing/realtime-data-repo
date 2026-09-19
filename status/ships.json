@@ -1,0 +1,19 @@
+{
+ "schema": 1,
+ "product": "ships",
+ "title": "US academic research fleet",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-09-19T20:32:23Z",
+ "updated": "2026-09-19T20:32:23Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "ships.json": {
+   "bytes": 61381,
+   "sha256": "4f4dc9bef0eb7404ea721911b00e28fb3c6471b203427d3fd2ae0e4aa7c65d8a"
+  }
+ }
+}
