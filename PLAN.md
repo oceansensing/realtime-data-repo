@@ -625,3 +625,44 @@ reads `stale (upstream)`; the site's watchdog reads the field with the fate
 rule as its fallback. Three mutations of the orchestrator -- the two causes
 swapped, the field dropped, a cause published within budget -- each fail the
 suite; 53 tests.
+
+## 2026-09-11 — ten runs waited out the `fields` step's thirty minutes
+
+Written 2026-09-19, from the run logs and GitHub's usage report, because the
+owner read that report on 09-12 looking for a saving and found this
+repository's minutes doubled instead.
+
+**What happened.** From about 03:35Z to 12:00Z on 2026-09-11 every run took
+33 to 52 minutes instead of five: 1,996 s, 2,399, 2,609, 2,374, 2,011,
+3,138, 2,580, 1,067, 1,876 and 2,062, against 250–400 s either side of the
+window. In each, `Fetch, validate, assemble` held the time (1,807 s in the
+longest, run 34575908050, against 188 s in a normal run that evening), and
+the log says why in two lines: the OISST fetcher's `! probe inconclusive
+(The read operation timed out) — fetching`, repeated, and then `--- step
+fields: timed out after 30 min` with `held  fields-oisst`. The upstream read
+was stalling; nothing else in the run was slow, and every other product
+published `fresh` each time. The day's wall time was 901 minutes against
+about 313, and the usage report billed 758 minutes against about 385 — all
+of it discounted, since this repository is public.
+
+**The mechanism worth keeping.** An inconclusive probe falls through to the
+fetch. That is the right default for a probe that merely could not tell, and
+it is expensive when the reason it could not tell is that the host is not
+answering: the fetch then waits on the same host until `[defaults]
+timeout_minutes = 30` ends the step, and the next run, twenty minutes later,
+does it again. OISST is a daily analysis with a 60 h budget, so nothing was
+lost by the holds — the product was served from the last publish throughout
+— and nothing was gained by the waiting either.
+
+**What it was not.** Not the OOI collector added the day before (`ooi:` …
+`19 sites, 8 KB`, under a second in the same logs), and not a change here.
+The two runs GitHub shows as `cancelled` in the window never started a job:
+the concurrency group keeps one pending run and replaces it when a newer one
+queues, so they cost nothing.
+
+**Levers, noted and not taken** (the minutes are free; the reason to pull
+one would be politeness to a struggling host, or a plan that stops being
+free): a timed-out probe could hold the product for the rest of the hour
+instead of fetching; the `fields` step could carry a shorter timeout of its
+own than the default. `espc-model-fields-repo` met the same shape the same
+day against HYCOM, and its PLAN has that reading.
