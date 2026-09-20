@@ -350,6 +350,23 @@ write means the restore logic can no longer reason about the stage.
   that produced nothing, and records the absence with its reason — so the
   cache is not saved off it, which is what stops the incomplete-artifact
   trap this repository already has a note about.
+- **`built-<cache>` means "this run changed the tier", whoever built it —
+  and until 2026-09-19 it meant "the `build` command ran".** Sentinel-3's
+  fetcher writes its grids AND its tiles in one 2 GB read, so by the time
+  `settle_tiles` looks there is nothing adrift and nothing missing, the
+  build branch never runs, `built` was never set, and the workflow's cache
+  save — conditional on exactly that output — was skipped. The next run
+  found the key missing and read the whole composite again to rebuild what
+  the first had thrown away: every new overpass fetched twice, invisible in
+  every log because both runs were green. `Run` now snapshots each
+  product's tile indexes before any step (`tiles_before`) and
+  `settle_tiles` compares: a complete tier whose index is not what the
+  stage held before the steps was built by this run and is saved; one the
+  cache restored and nothing touched is not saved again; a held product's
+  tiles are never saved, because they are the tiles of data this pipeline
+  just refused. **A fetcher that produces its own tiles is a supported
+  shape now — but a new one should be checked with two consecutive runs,
+  not one**: the defect only ever showed on the second.
 - **A grid advertised a tier the publish had just withheld.** The same
   outage: `currents.json` went out carrying `tileIndex` while both tile
   directories had been dropped for being another hour, so every reader

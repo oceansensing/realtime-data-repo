@@ -666,3 +666,41 @@ free): a timed-out probe could hold the product for the rest of the hour
 instead of fetching; the `fields` step could carry a shorter timeout of its
 own than the default. `espc-model-fields-repo` met the same shape the same
 day against HYCOM, and its PLAN has that reading.
+
+## 2026-09-19 — a tier its own step built was never reported as built
+
+**Found the evening `sentinel3-data-repo`'s schedule came on**, by reading
+the first scheduled run instead of its green tick. Thirty minutes after a
+dispatched run had published the overpass of 2026-09-17T15:19Z, the
+scheduled one logged `nothing new: newest overpass … is already published`
+and then `tiles chl-s3: building (0 adrift, 1 missing)` — 232 s and the full
+seven-day read from CoastWatch, to rebuild tiles the first run had made and
+not kept. The first run's log has no `Cache saved` line: `Save chlorophyll
+tiles` is conditional on `built-chl-tiles`, and this orchestrator set that
+output only inside the branch that runs a product's `build` command. Every
+sibling's tiles are built there. Sentinel-3's are not — its composite is one
+expensive read, so `fetch-ocean-color.py` writes grids and tiles in a single
+pass, the tier is already complete when `settle_tiles` looks, and the branch
+never runs. **So every new overpass was fetched twice**, once by the run
+that found it and once by the next, and nothing was red.
+
+**The fix is a comparison across the steps, not a special case for one
+repository.** `Run.__init__` snapshots each product's tile indexes
+(`tile_index_times`: directory → `refTime`, or None) before any step; in
+`settle_tiles`, a fresh product whose build command did not run and whose
+indexes now differ from the snapshot — absent then, or another hour — is
+reported built. Three boundaries, each with a test and a mutation that
+fails it: a tier the cache restored and nothing touched is NOT saved again
+(the mutation "any complete tier counts" fails it — without this the same
+23 MB would upload three times a day for ever); a step-built tier over an
+absent one and over an older one are both reported (the mutation "the branch
+never fires" fails both); and a HELD product's tiles are never saved (the
+mutation dropping the `fresh` guard survived the first three tests and is
+why the fourth exists — a step can write its tiles and then be refused by
+the physics check, and saving them would hand the next run, on a cache hit,
+the tiles of data this pipeline had just rejected). 57 tests.
+
+**Not yet read live.** The proof is two consecutive Sentinel-3 runs across a
+new overpass: the first logs `tiles chl-s3: built by its own step — the
+cache will be saved` and `Cache saved`, the second restores and stops on the
+probe. `sentinel3-data-repo`'s PLAN carries the reading when it is taken.

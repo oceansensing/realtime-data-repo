@@ -346,6 +346,20 @@ def tile_dir_state(dirname, grid):
     return ('ok', head.get('refTime'))
 
 
+def tile_index_times(spec):
+    """{directory: its index's refTime, or None} for every tile directory
+    now in the stage — what `Run` compares across its own steps to tell a
+    tier a step built from one the cache restored."""
+    out = {}
+    for dirname, _grid in tile_pairs(spec):
+        try:
+            out[dirname] = json.loads(
+                (STAGE / dirname / 'index.json').read_text()).get('refTime')
+        except (OSError, ValueError):
+            out[dirname] = None
+    return out
+
+
 def unadvertise_tiles(path):
     """Drop `tileIndex` from a grid's header(s). Returns True if it changed.
 
@@ -548,6 +562,13 @@ class Run:
         self.built = {}     # cache name -> bool
         self.withheld = {}  # product -> {dir: why}
         self.tile_state = {}  # product -> {dir: state}
+        # What each product's tile directories held BEFORE any step ran —
+        # the restored cache, or nothing. `settle_tiles` reads it to tell a
+        # tier its own fetch step built, which must be saved, from one the
+        # cache handed back, which already is. See the note there.
+        self.tiles_before = {name: tile_index_times(spec)
+                             for name, spec in self.products.items()
+                             if 'tiles' in spec}
         self.notes = []
         # Products serving old data that newer data existed for — ours to
         # answer for, and what turns the run red. See the note by
@@ -831,6 +852,34 @@ class Run:
                     self.withheld.setdefault(name, {})[d] = 'build produced no tiles'
                 pairs = tile_pairs(spec)
                 states = {d: tile_dir_state(d, g) for d, g in pairs}
+            elif self.fate[name] == 'fresh' and tiles['cache'] not in self.built:
+                # **A tier built inside the fetch step is a tier built, and
+                # for three weeks it was not reported as one.** Every sibling
+                # builds its tiles with the `build` command above, from grids
+                # the step left behind. Sentinel-3's fetcher cannot afford to:
+                # the composite is one 2 GB read, so its step writes the grids
+                # AND the tiles in a single pass, and by the time this method
+                # looks the tier is complete — nothing adrift, nothing
+                # missing, the branch above never runs, `built` is never set,
+                # and the workflow's cache save, conditional on exactly that,
+                # is skipped. The next run finds the key missing, reads the
+                # whole composite a second time to rebuild what the first run
+                # threw away, and saves it. Measured 2026-09-19, the evening
+                # its schedule came on: every new overpass fetched twice.
+                #
+                # So the directories are compared across the steps. A tier
+                # that is complete now and whose index is not what the stage
+                # held before any step ran — absent then, or another
+                # refTime — was built by this run, whoever built it. One the
+                # cache restored and nothing touched is unchanged, and is not
+                # saved again. Only when the build command did not run (it
+                # reports for itself), only for a fresh product, and never
+                # over a verdict already recorded for a cache two products
+                # share.
+                now = tile_index_times(spec)
+                if now and now != self.tiles_before.get(name, {}):
+                    log(f'tiles {name}: built by its own step — the cache will be saved')
+                    self.built[tiles['cache']] = True
 
             # **A directory the stage still owes is absent whatever the fate,
             # and gating that on `fresh` was the 2026-08-28 defect.** The

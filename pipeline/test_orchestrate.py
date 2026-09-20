@@ -58,6 +58,12 @@ if cmd == 'fetch-alpha':
                     'tileIndex': '/map/atiles/index.json',
                     'details': [{'url': '/map/' + extra}]}}))
     MAP.joinpath('alpha-extra.json').write_text(json.dumps({'header': {'refTime': h}}))
+    if (CTL / 'alpha-writes-tiles').is_file():
+        # Sentinel-3's shape: one expensive read, so the step writes the
+        # grids AND their tiles in a single pass and the orchestrator's own
+        # tile command has nothing left to build.
+        d = MAP / 'atiles'; d.mkdir(exist_ok=True)
+        (d / 'index.json').write_text(json.dumps({'refTime': h}))
     if (CTL / 'rogue').is_file():
         MAP.joinpath('rogue.json').write_text('{}')
 elif cmd == 'fetch-beta':
@@ -797,6 +803,65 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(manifest['tiles']['atiles']['state'], 'withheld')
         self.assertFalse(self.env.receipt()['built']['alpha-tiles'])
         self.assertTrue(self.env.receipt()['deploy'])
+
+    def test_a_tier_its_own_step_built_is_reported_built(self):
+        """**A tier built inside the fetch step is a tier built.** Live on
+        2026-09-19, the evening Sentinel-3's schedule came on: its step
+        writes grids and tiles in one 2 GB read, this method found the tier
+        complete, never set `built`, the workflow's cache save — conditional
+        on it — was skipped, and the next run read the whole composite again
+        to rebuild it. Every new overpass was fetched twice.
+
+        `fail-tiles` is the control inside the test: if the orchestrator's
+        own build command ran at all here it would exit 1 and report False."""
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('alpha-writes-tiles')
+        self.env.ctl('fail-tiles')
+        self.assertEqual(self.env.run(), 0)
+        self.assertTrue((orchestrate.OUT / 'map' / 'atiles' / 'index.json').is_file())
+        self.assertIs(self.env.receipt()['built']['alpha-tiles'], True)
+        self.assertIn('built by its own step', self.env.log())
+
+    def test_tiles_the_cache_restored_and_nothing_touched_are_not_saved_again(self):
+        """The other half, and the reason the comparison is across the steps
+        rather than a bare "the tier is complete": a run with nothing new
+        restores the cache, its step rewrites the same hour, and the tier is
+        exactly what it was. Reporting that as built would upload the same
+        cache three times a day for ever."""
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('alpha-writes-tiles')
+        orchestrate.cmd_seed(self.env.cfg)
+        tiles = orchestrate.STAGE / 'atiles'
+        tiles.mkdir()
+        (tiles / 'index.json').write_text(json.dumps({'refTime': H1}))
+        self.assertEqual(orchestrate.cmd_run(self.env.cfg), 0)
+        self.assertTrue((orchestrate.OUT / 'map' / 'atiles' / 'index.json').is_file())
+        self.assertNotIn('alpha-tiles', self.env.receipt()['built'])
+
+    def test_a_step_that_rebuilt_a_tier_over_an_older_one_is_reported_built(self):
+        """Absent-then-present is one way a tier changes; an older index
+        replaced by this hour's is the other, and it is the ordinary case on
+        a runner whose stage still holds yesterday's tiles."""
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('alpha-writes-tiles')
+        orchestrate.cmd_seed(self.env.cfg)
+        tiles = orchestrate.STAGE / 'atiles'
+        tiles.mkdir()
+        (tiles / 'index.json').write_text(json.dumps({'refTime': H0}))
+        self.assertEqual(orchestrate.cmd_run(self.env.cfg), 0)
+        self.assertIs(self.env.receipt()['built']['alpha-tiles'], True)
+
+    def test_tiles_a_rejected_step_wrote_are_never_saved(self):
+        """A step can write its tiles and then be refused — here by the
+        physics check. Its grids go back to the last publish; saving its
+        tiles under the new key would hand the next run, on a cache hit, the
+        tiles of data this pipeline had just rejected."""
+        self.env.ctl('hour-alpha', H1)
+        self.env.ctl('alpha-writes-tiles')
+        self.env.ctl('bad-quality')
+        self.assertEqual(self.env.run(), 0)
+        self.assertEqual(self.env.receipt()['fates']['alpha'], 'held')
+        self.assertNotIn('alpha-tiles', self.env.receipt()['built'])
 
     def test_a_build_that_produced_nothing_is_not_a_success(self):
         """**An exit code says "I did not fail", never "the tiles are
