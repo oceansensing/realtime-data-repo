@@ -704,3 +704,36 @@ the tiles of data this pipeline had just rejected). 57 tests.
 new overpass: the first logs `tiles chl-s3: built by its own step — the
 cache will be saved` and `Cache saved`, the second restores and stops on the
 probe. `sentinel3-data-repo`'s PLAN carries the reading when it is taken.
+
+## 2026-09-20 — every origin publishes its own schedule, because one budget for all of them hid a dead pipeline
+
+**What was believed for a day, and was wrong.** When `sentinel3-data-repo`
+turned out to have published nothing for nineteen days (its crons had never
+been uncommented), the first reading was that the site's watchdog could not
+see a pipeline that stops, because it reads the `stale` flag the last run
+wrote. It can: it compares every origin's `generated` with now. It had been
+saying so twice a day since 2026-08-31, in an issue with 39 comments.
+
+**What actually happened.** The watchdog allowed every origin three hours of
+silence and wrote, of each, "It publishes about three times an hour". That
+is true of three origins. `mercator-model-fields-repo` publishes every six
+hours, so it was reported at 4.4–4.7 h in 36 of the 39 comments; the issue
+could never close; and the Sentinel-3 line beside it — 28.0 h on 09-02,
+220.0 h on 09-10, 450-odd by 09-19 — read as more of the same. Once
+Sentinel-3's eight-hourly schedule came on it began tripping the same
+budget itself.
+
+**The fix is that the origin says how often it is scheduled to speak.**
+`publish_schedule()` reads the crons of the workflow under ROOT that runs
+`orchestrate.py run` — commented lines do not match — and
+`longest_gap_hours()` turns daily patterns into the longest wait between two
+scheduled runs, across midnight: 0.33 h here and in both ESPC repositories,
+6.0 for both Mercator repositories, 8.0 for Sentinel-3, read off the real
+workflows. It rides in `status.json` as `schedule: {crons, longestGapHours}`;
+no cron at all is `null`, which is what Sentinel-3 would have published for
+nineteen days. The watchdog (site repository, same day) allows one and a
+half gaps plus an hour with a floor of three, says the cadence in its
+sentence, and reports an origin with no cron on sight. Three tests here and
+four mutations, each failing the test that names it: a commented cron
+counted, any workflow's cron counted, the gap across midnight dropped, a
+weekly cron read as daily. 60 tests.

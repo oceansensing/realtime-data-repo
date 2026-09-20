@@ -804,6 +804,55 @@ class OrchestrateTests(unittest.TestCase):
         self.assertFalse(self.env.receipt()['built']['alpha-tiles'])
         self.assertTrue(self.env.receipt()['deploy'])
 
+    def test_the_longest_scheduled_gap_is_read_off_the_crons(self):
+        """The arithmetic the watchdog's budget stands on, over the crons the
+        origins actually carry."""
+        gap = orchestrate.longest_gap_hours
+        self.assertEqual(gap(['3,23,43 * * * *']), 0.33)
+        self.assertEqual(gap(['7,27,47 * * * *', '12 0,3,6,9,12,15,18,21 * * *']), 0.33)
+        self.assertEqual(gap(['13 1,7,13,19 * * *']), 6.0)
+        self.assertEqual(gap(['41 3,11,19 * * *']), 8.0)
+        self.assertEqual(gap(['0 6 * * *']), 24.0)
+        self.assertEqual(gap(['*/30 0-11 * * *']), 12.5)
+        # No schedule is None, and so is one this cannot honestly turn into a
+        # daily promise: a weekday, a day of the month, a malformed field.
+        self.assertIsNone(gap([]))
+        self.assertIsNone(gap(['0 6 * * 1']))
+        self.assertIsNone(gap(['0 6 1 * *']))
+        self.assertIsNone(gap(['61 6 * * *']))
+        self.assertIsNone(gap(['nonsense']))
+
+    def test_status_publishes_the_schedule_of_the_workflow_that_runs_it(self):
+        """**The watchdog's budget for an origin's silence comes from the
+        origin.** One constant for all of them cried wolf about a six-hourly
+        origin at nearly every check, and the issue it kept open is where a
+        true alarm — an origin with no schedule at all — sat unread for
+        nineteen days. A commented-out cron is not a schedule, and a workflow
+        that does not run the orchestrator is not this origin's."""
+        wf = orchestrate.ROOT / '.github' / 'workflows'
+        wf.mkdir(parents=True)
+        (wf / 'publish.yml').write_text(
+            "on:\n  schedule:\n    - cron: '13 1,7,13,19 * * *'\n"
+            "    # - cron: '0 * * * *'\n"
+            "jobs:\n  build:\n    steps:\n      - run: python3 engine/pipeline/orchestrate.py run\n")
+        (wf / 'other.yml').write_text(
+            "on:\n  schedule:\n    - cron: '5 * * * *'\njobs: {}\n")
+        self.assertEqual(self.env.run(), 0)
+        self.assertEqual(self.env.status()['schedule'],
+                         {'crons': ['13 1,7,13,19 * * *'], 'longestGapHours': 6.0})
+
+    def test_an_origin_with_no_schedule_says_so(self):
+        """`sentinel3-data-repo` from 2026-08-31 to 2026-09-19: a workflow
+        that ran only when dispatched. The status it publishes has to be able
+        to say that, because its silence afterwards is otherwise ordinary."""
+        wf = orchestrate.ROOT / '.github' / 'workflows'
+        wf.mkdir(parents=True)
+        (wf / 'publish.yml').write_text(
+            "on:\n  workflow_dispatch:\n  # schedule:\n    # - cron: '41 3,11,19 * * *'\n"
+            "jobs:\n  build:\n    steps:\n      - run: python3 engine/pipeline/orchestrate.py run\n")
+        self.assertEqual(self.env.run(), 0)
+        self.assertEqual(self.env.status()['schedule'], {'crons': [], 'longestGapHours': None})
+
     def test_a_tier_its_own_step_built_is_reported_built(self):
         """**A tier built inside the fetch step is a tier built.** Live on
         2026-09-19, the evening Sentinel-3's schedule came on: its step

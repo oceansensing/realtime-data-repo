@@ -450,6 +450,90 @@ def cmd_seed(cfg):
     return 0
 
 
+def _cron_field(field, lo, hi):
+    """The values one cron field names, or None when it is not understood.
+    `*`, `a`, `a,b`, `a-b`, `*/n` and `a-b/n` — what these workflows use."""
+    out = set()
+    for part in field.split(','):
+        step = 1
+        if '/' in part:
+            part, _, s = part.partition('/')
+            if not s.isdigit() or int(s) < 1:
+                return None
+            step = int(s)
+        if part == '*':
+            a, b = lo, hi
+        elif '-' in part:
+            x, _, y = part.partition('-')
+            if not (x.isdigit() and y.isdigit()):
+                return None
+            a, b = int(x), int(y)
+        elif part.isdigit():
+            a = b = int(part)
+        else:
+            return None
+        if a < lo or b > hi or a > b:
+            return None
+        out.update(range(a, b + 1, step))
+    return out
+
+
+def longest_gap_hours(crons):
+    """The longest wait between two scheduled runs, in hours, for a set of
+    DAILY crons (`minute hour * * *`); None when there are none, or when one
+    names a day or a month — a weekly cron has no honest daily gap, and this
+    is a promise a watchdog will hold the origin to."""
+    fires = set()
+    for expr in crons:
+        fields = expr.split()
+        if len(fields) != 5 or fields[2:] != ['*', '*', '*']:
+            return None
+        minutes, hours = _cron_field(fields[0], 0, 59), _cron_field(fields[1], 0, 23)
+        if not minutes or not hours:
+            return None
+        fires.update(h * 60 + m for h in hours for m in minutes)
+    if not fires:
+        return None
+    ordered = sorted(fires)
+    gaps = [b - a for a, b in zip(ordered, ordered[1:])]
+    gaps.append(ordered[0] + 1440 - ordered[-1])
+    return round(max(gaps) / 60, 2)
+
+
+def publish_schedule():
+    """What this repository's own publish workflow is scheduled to do:
+    `{'crons': [...], 'longestGapHours': h or None}`.
+
+    **Published in `status.json` because a budget for silence has to come
+    from the origin's cadence, and the watchdog had one constant for all of
+    them.** It allowed every origin three hours and told the reader each
+    "publishes about three times an hour". Mercator's fields publish every
+    six, so they tripped it at nearly every check — 36 of the 39 comments on
+    the site's watchdog issue between 2026-08-31 and 2026-09-20 — and the
+    issue never closed. The other 39 of 39 were true: `sentinel3-data-repo`
+    had no schedule at all and had not published for nineteen days. A true
+    alarm beside a false one, twice a day, is an alarm nobody reads.
+
+    Read from ROOT, like the cache check beside it: the orchestrator is an
+    engine other repositories check out, and it is *their* workflow whose
+    crons matter — the one that runs `orchestrate.py run`. Commented-out
+    lines do not match, which is the point: a schedule that is "to be turned
+    on later" publishes `longestGapHours: null`, and the watchdog says so.
+    """
+    d = ROOT / '.github' / 'workflows'
+    crons = []
+    if d.is_dir():
+        for f in sorted(d.glob('*.y*ml')):
+            try:
+                text = f.read_text()
+            except OSError:
+                continue
+            if 'orchestrate.py run' not in text:
+                continue
+            crons += re.findall(r"""^\s*-\s*cron:\s*['"]([^'"]+)['"]""", text, re.M)
+    return {'crons': crons, 'longestGapHours': longest_gap_hours(crons)}
+
+
 def caches_without_a_consumer(caches):
     """Declared tile caches that no workflow step in this repository reads.
 
@@ -991,6 +1075,9 @@ class Run:
                         f"{os.environ.get('GITHUB_RUN_ID', '')}"
                         if os.environ.get('GITHUB_RUN_ID') else ''),
             },
+            # How often this origin is scheduled to say anything at all —
+            # the watchdog's budget for its silence. See `publish_schedule`.
+            'schedule': publish_schedule(),
             'products': {},
         }
         for d in (OUT / 'status', BRANCH / 'map', BRANCH / 'status'):

@@ -184,7 +184,10 @@ oceansensing.org/realtime-data-repo/
   map/          the data — same layout, same files, same bytes as the
                 predecessor, so a consumer retargets by changing one base URL
   status/
-    status.json one object per product: fate, reason, checked, updated, hour
+    status.json one object per product: fate, reason, checked, updated, hour;
+                and `schedule` — the crons of the workflow that ran this, and
+                the longest gap between two of them, which is the budget the
+                site's watchdog holds this origin's silence to
     plan.json   what this run intended before it started
     receipt.json  what it actually did: fates, builds, durations, sizes
 ```

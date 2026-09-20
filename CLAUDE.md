@@ -350,6 +350,20 @@ write means the restore logic can no longer reason about the stage.
   that produced nothing, and records the absence with its reason — so the
   cache is not saved off it, which is what stops the incomplete-artifact
   trap this repository already has a note about.
+- **`status.json` says how often the origin is scheduled to speak
+  (`schedule.longestGapHours`), derived from the crons of the workflow that
+  runs `orchestrate.py run` — never typed in.** The site's watchdog had one
+  three-hour budget for every origin and told the reader each "publishes
+  about three times an hour"; the six-hourly Mercator fields tripped it at
+  nearly every check, the issue it opened on 2026-08-31 never closed, and a
+  TRUE line in all 39 of its comments — `sentinel3-data-repo` silent for
+  28 h, then 220, then 450, because its workflow had no cron at all — went
+  unread for nineteen days. A commented-out cron publishes
+  `longestGapHours: null`, and the watchdog reports that on sight. Only
+  daily patterns (`minute hour * * *`) are turned into a gap; a weekday or
+  a day of the month answers `null` rather than a promise this cannot keep.
+  **Changing a repository's cron changes its budget with no other edit,**
+  which is the point.
 - **`built-<cache>` means "this run changed the tier", whoever built it —
   and until 2026-09-19 it meant "the `build` command ran".** Sentinel-3's
   fetcher writes its grids AND its tiles in one 2 GB read, so by the time
