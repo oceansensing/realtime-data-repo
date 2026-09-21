@@ -848,3 +848,47 @@ storm's probabilities stop being drawn. (4) Split the probabilities into a
 product of their own, so the platforms' currency is not the cyclone
 product's. (3) is the smallest change that fixes both consequences; it needs
 a rule for telling quiet from an NHC outage, which is the judgment in it.
+
+## 2026-09-21 — `assets`: eleven, and a quiet tropics is published as a current statement
+
+The owner's ruling on the four options in the entry above: **option 3, with
+11.** Two changes, one here and one in the site's fetcher.
+
+**Here: `max_age_hours` 10 → 11**, with the measured delay term written
+beside it — NHC posts 3.38 h after the synoptic hour at the median and at
+the 90th percentile, the previous cycle is 9.5–9.8 h old when replaced, and
+one scheduled run dropped by GitHub made that 10.1. Eleven absorbs one.
+
+**In the site (`scripts/fetch-ocean-assets.py`): quiet is a published
+state.** `collect_storms` records what NHC's active list said — a count, or
+None when it could not be read — and `wsp_quiet_stamp` decides: when NHC is
+advising on no cyclone and the newest issuance in its bundle is older than
+the cycle that would be up by now (`WSP_POSTED_AFTER_H = 3.5`), the three
+grids are published EMPTY, every cell `null`, stamped with that cycle. "As
+of 12Z there are no wind-speed probabilities" is a current statement; the
+clock keeps moving, `assets` stops reading stale through every quiet spell,
+and the *Wind chance* layer stops offering a dissipated storm's
+probabilities. Three refusals keep it from hiding a fault: **unknown is not
+quiet** (an unreadable list leaves the old product in place, stale and
+saying so), **active is not quiet** (a cyclone with a late product is NHC
+being late), and a product that IS current is published as it is. The empty
+grids pass `test-schema.mjs` as they are — `null` already means "no value,
+never zero" — and the map needs nothing: the field's scale is fixed at
+0–100 and it draws only above 5 %.
+
+**Held by the fetcher's `--self-test`** (run inside the site's
+`test:probes`): the due cycle to the minute, each of the three refusals, the
+issuance read off a member name, the empty grid's stamp, shape and nulls,
+and the chain offline — NHC's list stubbed to answer nothing and then to
+fail, a bundle holding a finished storm's product, a clock two days past
+it. Eight mutations, each failing the case that names it: unknown read as
+quiet, active read as quiet, a current product overwritten, a cycle due at
+its own hour, zeros for nulls, the count never recorded, the collector
+ignoring it, a failed list leaving the last answer standing. Run against
+NHC's live bundle three ways the same night: advising on storms → the real
+00Z product; two days on with the list unreadable → the real product, old;
+two days on with no cyclone → three empty grids as of the due cycle.
+
+**To read live:** the first quiet spell. The log line is `quiet tropics: NHC
+lists no active cyclone … publishing empty grids as of …`, `assets` should
+stay inside its budget through it, and the watchdog should stay silent.

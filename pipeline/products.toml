@@ -142,7 +142,26 @@ writes = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.j
 # be about the cycle alone and would not need a delay term at all.
 # Worth doing if this proves noisy; recorded so the next person
 # sizing it knows the number is compensating for the wrong clock.
-max_age_hours = 10
+#
+# **Eleven since 2026-09-21, and the delay term is measured now.** NHC's own
+# archive listing carries a posting time for every cycle: over 147 cycles
+# from 2026-08-01 the median AND the 90th percentile are 3.38 h after the
+# synoptic hour. So the previous cycle is 9.5-9.8 h old when this pipeline
+# replaces it — inside ten by minutes, and outside it (10.1 h) the first time
+# GitHub drops one scheduled run. Six for the cycle, 3.4 for issuance, and
+# one and a half for a dropped run and the run's own length.
+#
+# **And the same day the clock stopped stopping.** NHC issues these
+# probabilities only while it is advising on a cyclone, so in a quiet
+# tropics the newest product simply aged — 85 h by 2026-09-19, with `assets`
+# reading `stale (upstream)` for 3¼ days while every glider, USV, float and
+# storm in it was current. The fetcher (`wsp_quiet_stamp` in the site's
+# `fetch-ocean-assets.py`) now publishes EMPTY grids stamped with the cycle
+# that would be up by now, when NHC's active list answers with no cyclone and
+# its newest issuance is older than that cycle. Unknown is not quiet: a list
+# that could not be read leaves the old product in place, stale and saying
+# so, which is what this budget is still for.
+max_age_hours = 11
 
 # Its own product on the assets step — the fields pattern, one fetch feeding
 # two products — so an NDBC outage holds the buoys and nothing else. The
