@@ -799,3 +799,52 @@ close, a line that came and went on a twelve-hour timer looked like
 everything else in it. **The next budget to read the same way is `assets`
 (10 h)**, which the owner's screenshot of 2026-09-17 13:38Z also showed
 stale.
+
+## 2026-09-21 — the `assets` budget, measured: the number is about right and the CLOCK is the wrong one. Not changed.
+
+Read the same day as the OISST budget, on the owner's ask, because his
+screenshot of 2026-09-17 13:38Z showed `assets stale (upstream)`.
+
+**The clock.** `assets` holds the storms, gliders, USVs and Argo floats, and
+its `hour` is the only `refTime` among its roots: NHC's wind-speed
+probabilities (`wsp34/50/64.json`), issued at 00/06/12/18Z. The budget of 10
+is six for the cycle, three for issuance, one for margin.
+
+**In an active tropics the number holds, thinly.** NHC's archive listing
+carries a posting time for every cycle: since 2026-08-01 the median lag after
+the synoptic hour is **3.38 h** and the 90th percentile is 3.38 h — the file
+appears at :22–:23 past, like a clock. Picked up by the next run here, the
+previous cycle is 9.5–9.8 h old when it is replaced. One scheduled run
+dropped by GitHub makes it 10.1. The watchdog caught that once in 41 checks
+(09-07 01:41Z, 13.2 h — a cycle late or missed).
+
+**In a quiet tropics the product stops, and that is what the screenshot
+was.** NHC issues wind-speed probabilities only while a tropical cyclone is
+active. Thirteen consecutive cycles, 2026-09-16 06Z to 09-19 06Z, are absent
+from its archive, and in the same directory it posted no storm advisory file
+at all between EP15's last (09-16 02:32Z) and the next systems (AL06, EP16,
+EP17, from 09-19); 38 of August's 124 cycles are absent the same way. For
+those 3¼ days the newest product was the 09-16 00Z one, so `assets` read
+`stale (upstream)` continuously — the watchdog named it in eight consecutive
+checks, 13.4 h on 09-16 13:29Z to 85.3 h on 09-19 13:25Z — while every
+glider, USV, float and storm record in the product was current. The fetcher
+already knows a quiet ocean is not a broken fetch (`collect_wind_probability`
+says so); the budget does not.
+
+**Two consequences, the second not verified.** The health line and the
+watchdog call the whole platform product stale for as long as the tropics are
+quiet, which will be most of the winter. And the *Wind chance (NHC)* layer
+probably goes on drawing the last storm's probabilities after the storm is
+gone: nothing in the map was found that hides a wind-probability grid by its
+age, and what NHC's `latest` archive holds during a gap was not read.
+
+**Options, the owner's call.** (1) Leave it and accept a stale line through
+every quiet spell. (2) Move 10 to 11, which absorbs one dropped run and does
+nothing about quiet spells. (3) Make quiet a published state: when NHC lists
+no active cyclone and `latest` has not moved, the fetcher writes empty grids
+stamped with the current cycle — "as of this cycle there are no
+probabilities" is a current statement, the clock keeps moving, and an old
+storm's probabilities stop being drawn. (4) Split the probabilities into a
+product of their own, so the platforms' currency is not the cyclone
+product's. (3) is the smallest change that fixes both consequences; it needs
+a rule for telling quiet from an NHC outage, which is the judgment in it.
