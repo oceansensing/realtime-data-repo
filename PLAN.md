@@ -650,7 +650,8 @@ fetch. That is the right default for a probe that merely could not tell, and
 it is expensive when the reason it could not tell is that the host is not
 answering: the fetch then waits on the same host until `[defaults]
 timeout_minutes = 30` ends the step, and the next run, twenty minutes later,
-does it again. OISST is a daily analysis with a 60 h budget, so nothing was
+does it again. OISST is a daily analysis with a 60 h budget (72 since
+2026-09-21; see that entry), so nothing was
 lost by the holds — the product was served from the last publish throughout
 — and nothing was gained by the waiting either.
 
@@ -763,3 +764,38 @@ sixth.**
 this can reach a run before the site's half does, and then the key is simply
 absent, which readers are required to take as "as you were built".
 
+## 2026-09-21 — the OISST budget was a guess about when the analysis lands, and it was stale five hours a day
+
+**Found by reading the watchdog's issue once it could finally close.** The
+site's watchdog issue closed itself on 2026-09-21T01:43Z, its first closure
+in three weeks — and the check before it, 13:25Z on 09-20, had stayed open
+on one true, routine-looking line: `fields-oisst (61.4 h old)`. Read across
+the whole issue, that line is in **all 20** afternoon checks from 09-01 to
+09-20, at 61.1–61.4 h, and in **none** of the 21 night ones. An alarm on a
+timer is a budget that is wrong.
+
+**The arithmetic.** The analysis for day D is stamped D 00:00Z and lands on
+D+1 at some time T, so just before it lands the newest frame is 48 h + T
+old. `max_age_hours = 60`, set on 2026-08-14 beside the comment "lands
+mid-morning UTC", is the claim "T is before 12:00Z".
+
+**Measured.** Each run's log states the frame it holds (`probe: oisst: … run
+already staged and complete`, or `base frame advanced to …`), so each day
+was binary-searched for the run where it advanced: **fourteen days of
+fourteen, 2026-09-07 to 09-20, in the run created between 16:31Z and
+16:46Z.** PSL's own server agrees — `Last-Modified: Sun, 20 Sep 2026
+16:34:15 GMT` on `sst.day.mean.2026.nc`, picked up here fourteen minutes
+later. Never mid-morning, not once. Routine peak age about 64.9 h; stale
+from 12:00Z to about 16:50Z every day; a day missed outright would reach
+88.8 h.
+
+**Moved to 72**, with the measurement written beside it in `products.toml`:
+"yesterday's analysis has not arrived by the end of today". Seven hours of
+slack over the measured landing; a missed day reported from 00:00Z. 66–68
+was the tighter alternative and would alarm whenever PSL ran two hours late.
+No test pinned the 60, which is part of how it survived five weeks. What
+made it visible is worth keeping: while the watchdog's issue could never
+close, a line that came and went on a twelve-hour timer looked like
+everything else in it. **The next budget to read the same way is `assets`
+(10 h)**, which the owner's screenshot of 2026-09-17 13:38Z also showed
+stale.

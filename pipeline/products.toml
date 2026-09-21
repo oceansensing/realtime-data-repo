@@ -255,9 +255,25 @@ step = "fields"
 roots = ["sst-oisst.json", "ssta-oisst.json", "sic-oisst.json"]
 writes = ["sst-oisst*.json", "ssta-oisst*.json", "sic-oisst*.json"]
 namespace = ["python3", "scripts/fetch-ocean-fields.py", "--namespace", "--only=oisst"]
-# A daily analysis that lands mid-morning UTC and describes yesterday:
-# two days of quiet is routine, three is not.
-max_age_hours = 60
+# A daily analysis that describes yesterday, stamped 00:00Z of the day it
+# describes, and **it lands at about 16:35Z, not mid-morning** — measured
+# 2026-09-21 over fourteen days of this repository's own run logs
+# (2026-09-07 to 09-20: every day in the run created 16:31-16:46Z) and against
+# PSL's own `Last-Modified` (16:34:15Z on 09-20). So just before each arrival
+# the newest frame is 48 h + 16.9 h = about 64.9 h old, every day.
+#
+# This was 60 until 2026-09-21, written beside "lands mid-morning UTC" on
+# 2026-08-14 and never measured. Sixty means "arrives by 12:00Z", so the
+# product read `stale (upstream)` from 12:00Z to about 16:50Z EVERY day: the
+# site's watchdog named it in all 20 of its afternoon checks from 09-01 to
+# 09-20 and none of its 21 night ones, and the map's health line said so for
+# five hours a day.
+#
+# 72 is "yesterday's analysis has not arrived by the end of today": seven
+# hours of slack over the measured landing, and a day missed outright (88.8 h
+# by the next arrival) is reported from 00:00Z. Two days of quiet is routine;
+# three is not.
+max_age_hours = 72
 
 [products.wind]
 # Four fields off one fetch: the 10 m wind pair, the 2 m air temperature, the
