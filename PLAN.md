@@ -892,3 +892,8 @@ two days on with no cyclone → three empty grids as of the due cycle.
 **To read live:** the first quiet spell. The log line is `quiet tropics: NHC
 lists no active cyclone … publishing empty grids as of …`, `assets` should
 stay inside its budget through it, and the watchdog should stay silent.
+
+**Read on the first run with both changes** (35558886353, created 03:50Z on
+2026-09-21, green): NHC was advising on storms, so the real 00Z product was
+published — 4,013, 2,232 and 1,705 points — with no quiet line, `assets`
+fresh at 3.9 h under 11 and `fields-oisst` fresh at 51.9 h under 72.
