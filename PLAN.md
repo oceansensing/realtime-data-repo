@@ -737,3 +737,29 @@ sentence, and reports an origin with no cron on sight. Three tests here and
 four mutations, each failing the test that names it: a commented cron
 counted, any workflow's cron counted, the gap across midnight dropped, a
 weekly cron read as daily. 60 tests.
+
+## 2026-09-20 — the status document says which edition of the contract the tree speaks
+
+For the iOS port, which the owner ruled that day should find the data
+contract versioned. The site states `CONTRACT = 1` in its `schema.ts` and its
+checker answers `--contract` with that integer; `contract_edition()` asks once
+a run and `write_record()` puts the answer at the top of `status.json`, beside
+`schema`. One orchestrator serves six origins, so this is the whole change on
+the publishing side and no `products.toml` moved.
+
+**What the tests pin, and what each was mutated against.** Five new, 65 in
+all. An edition the site states is published, second key after `schema`. A
+site checkout from before the flag publishes no key — the fake tool now
+answers `--contract` the way an old checker really does, with a page of
+output and exit 0, which is the dangerous case; run by hand against the
+site's own HEAD that evening it printed 98 lines and exited 1. `0`, `-1`,
+`1.5`, `2 editions`, a `FAIL` line and empty output are all no edition. A
+bare integer from a checker that exited non-zero is not believed. And the
+second call leaves the gate's own `--owned=` argv alone. **Parsing the first
+number found fails five of them; believing a failing checker fails the
+sixth.**
+
+**Order of deployment does not matter**, which was the design constraint:
+this can reach a run before the site's half does, and then the key is simply
+absent, which readers are required to take as "as you were built".
+

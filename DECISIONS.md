@@ -303,3 +303,21 @@ ownership; a step is the unit of execution; they are one change, never two.
 will still span two repositories afterwards; only the site, reading both
 origins, can enforce it. That is the site's D10, and it is permanent rather
 than transitional.
+
+## D11 — 2026-09-20 — `status.json` publishes the data contract's edition, and shipped binaries read it
+
+Every origin's status document carries `contract`, an integer, since this
+date. It is the site's number (`CONTRACT` in `packages/ocean-map/schema.ts`,
+where the rules for bumping it live; the site's D15 is the decision), asked
+of the site's checker each run and never stated here.
+
+**Why it is a door.** Its reader is the iOS port, and a binary in somebody's
+pocket is not redeployed: the key's name, its place at the top level, and
+"absent means as you were built" are all things an app will hold this
+repository to for as long as that app exists. `schema` stays 2 — the key is
+additive, and consumers that never heard of it read what they read before.
+
+**The reversal, if it comes.** Stop publishing the key; readers fall back to
+the edition they were built for. What cannot be reversed is a number once
+published higher: a reader that has seen it has been told something.
+

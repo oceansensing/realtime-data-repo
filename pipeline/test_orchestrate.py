@@ -94,6 +94,17 @@ elif cmd == 'tiles-alpha':
 elif cmd == 'key-alpha':
     sys.stderr.write('probing the fake catalog...\\n')
     print('kA')
+elif cmd == 'contract' and '--contract' in sys.argv:
+    # The edition flag, answered BEFORE anything is recorded: it is a second
+    # call to the same tool, and letting it overwrite `contract-argv` would
+    # make the scope test read the wrong call. With no edition staged this
+    # behaves as a site checkout from before the flag did -- it ignores the
+    # flag and prints a page of check output with exit 0.
+    ed = CTL / 'contract-edition'
+    if ed.is_file():
+        sys.stdout.write(ed.read_text())
+        sys.exit(1 if (CTL / 'contract-edition-fails').is_file() else 0)
+    print('ok    80 published file(s) match the contract in schema.ts')
 elif cmd == 'contract':
     # Record what the caller handed over. The contract check is told which
     # share of the contract this tree answers for, and a scope that silently
@@ -840,6 +851,52 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(self.env.run(), 0)
         self.assertEqual(self.env.status()['schedule'],
                          {'crons': ['13 1,7,13,19 * * *'], 'longestGapHours': 6.0})
+
+    def test_status_carries_the_contract_edition_the_site_states(self):
+        """**For the reader that cannot be redeployed.** The iOS port reads
+        every origin's status document to route its roots, so the edition of
+        the data contract rides there — asked of the site's own checker and
+        stated nowhere in this repository. Beside `schema`, which versions
+        this document and is not the same number."""
+        self.env.ctl('contract-edition', '3\n')
+        self.assertEqual(self.env.run(), 0)
+        status = self.env.status()
+        self.assertEqual(status['contract'], 3)
+        self.assertEqual(status['schema'], 2)
+        self.assertEqual(list(status)[:2], ['schema', 'contract'])
+
+    def test_a_site_checkout_from_before_the_flag_publishes_no_edition(self):
+        """The order the two repositories deploy in is not ours to choose. An
+        older `test-schema.mjs` does not refuse `--contract`: it ignores it,
+        checks its default directory and prints a page — here with exit 0,
+        the dangerous case — so the first digit on that page must not become
+        the edition. No key at all,
+        never `null`, and the run publishes as it always did."""
+        self.assertEqual(self.env.run(), 0)
+        self.assertNotIn('contract', self.env.status())
+        self.assertIn('publishing no `contract` key', self.env.log())
+
+    def test_an_edition_that_is_not_one_bare_integer_is_no_edition(self):
+        for answer in ('0\n', '-1\n', '1.5\n', '2 editions\n', 'FAIL  schema.ts declares no CONTRACT\n', ''):
+            with self.subTest(answer=answer):
+                self.env.ctl('contract-edition', answer)
+                self.assertEqual(self.env.run(), 0)
+                self.assertNotIn('contract', self.env.status())
+
+    def test_an_edition_printed_by_a_failing_checker_is_not_believed(self):
+        self.env.ctl('contract-edition', '3\n')
+        self.env.ctl('contract-edition-fails')
+        self.assertEqual(self.env.run(), 0)
+        self.assertNotIn('contract', self.env.status())
+
+    def test_asking_the_edition_does_not_disturb_the_scope_the_gate_was_given(self):
+        """The edition is a second call to the same tool. The gate's own call
+        must still be the one that carried `--owned=`."""
+        self.env.ctl('contract-edition', '3\n')
+        self.assertEqual(self.env.run(), 0)
+        argv = json.loads((orchestrate.SITE / 'ctl' / 'contract-argv').read_text())
+        self.assertTrue(any(a.startswith('--owned=') for a in argv), argv)
+        self.assertNotIn('--contract', argv)
 
     def test_an_origin_with_no_schedule_says_so(self):
         """`sentinel3-data-repo` from 2026-08-31 to 2026-09-19: a workflow

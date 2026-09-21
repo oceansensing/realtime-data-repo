@@ -188,6 +188,11 @@ oceansensing.org/realtime-data-repo/
                 and `schedule` — the crons of the workflow that ran this, and
                 the longest gap between two of them, which is the budget the
                 site's watchdog holds this origin's silence to
+                and `contract` — which edition of the site's data
+                contract this tree speaks (`CONTRACT` in its `schema.ts`),
+                asked of the site's checker each run, for a reader that
+                cannot be redeployed; absent when the site checkout is from
+                before the flag
     plan.json   what this run intended before it started
     receipt.json  what it actually did: fates, builds, durations, sizes
 ```

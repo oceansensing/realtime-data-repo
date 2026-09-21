@@ -364,6 +364,20 @@ write means the restore logic can no longer reason about the stage.
   a day of the month answers `null` rather than a promise this cannot keep.
   **Changing a repository's cron changes its budget with no other edit,**
   which is the point.
+- **`status.json` carries `contract`, the edition of the site's data
+  contract, and the number is never typed in here.** It is for the iOS port
+  — a reader that cannot be redeployed, and which already reads every
+  origin's status document to learn which roots live there.
+  `contract_edition()` runs the contract check with `--contract` from the
+  site checkout, so every origin gets it with no `products.toml` change, and
+  **anything but one bare positive integer from a checker that exited 0
+  publishes no key at all** — never `null`, never a guess. That strictness is
+  load-bearing: a site checkout from before the flag does not refuse it, it
+  ignores it and prints a page of check output, and the first digit on that
+  page is not an edition. `schema` beside it versions this document's own
+  shape and stays 2: the key is additive. The rules for when the number
+  moves live beside `CONTRACT` in the site's `packages/ocean-map/schema.ts`,
+  not here.
 - **`built-<cache>` means "this run changed the tier", whoever built it —
   and until 2026-09-19 it meant "the `build` command ran".** Sentinel-3's
   fetcher writes its grids AND its tiles in one 2 GB read, so by the time

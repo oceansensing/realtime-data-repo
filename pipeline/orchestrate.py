@@ -1058,6 +1058,41 @@ class Run:
         if landing.is_file():
             shutil.copy2(landing, OUT / 'index.html')
 
+    def contract_edition(self):
+        """Which edition of the data contract this tree speaks — the site's
+        `CONTRACT`, asked of the same checker that gates the tree.
+
+        **For a reader that cannot be redeployed.** The website ships beside
+        its data; the iOS port meets next year's tree with this year's binary
+        and, until this existed, could not tell the two had parted. It reads
+        this origin's status document anyway, to learn which roots live here,
+        so the number rides beside them.
+
+        **Asked, never stated here**: `schema.ts` is where the contract lives,
+        every origin's orchestrator is this file, and a constant copied into
+        it would be six places to forget. The command is the contract check
+        with `--contract`, so no origin's `products.toml` changes.
+
+        **Anything but one bare positive integer is no answer**, and no answer
+        publishes no `contract` key at all. That is not politeness: a site
+        checkout from before the flag existed does not reject it — it ignores
+        it, runs the whole check over its default directory, and prints a
+        page, exit 0 or 1 by whatever it happens to find there (run by hand
+        against the site's own HEAD on 2026-09-20: 98 lines, exit 1). Parsed
+        loosely, the first digit in that page becomes the edition of the
+        contract. An absent key tells a
+        reader "as you were built", which is true; a wrong one tells it to
+        stop drawing a tree it can read."""
+        ok, detail, out, _ = run_cmd(
+            self.cfg['contract']['check'] + ['--contract'], SITE, 2, 'contract edition')
+        answer = out.strip()
+        if ok and re.fullmatch(r'[1-9][0-9]*', answer):
+            return int(answer)
+        log('status: the site checkout did not answer --contract with an '
+            f'edition ({detail}, {len(answer)} byte(s) of output) — publishing '
+            'no `contract` key')
+        return None
+
     def write_record(self):
         now = utcnow()
         # **schema 2 adds `roots` and `modelRun` to each product**, and the
@@ -1080,6 +1115,14 @@ class Run:
             'schedule': publish_schedule(),
             'products': {},
         }
+        # Additive, so `schema` stays 2: a consumer that has never heard of
+        # the key reads exactly what it read before. Placed by insertion, not
+        # by literal, so an absent answer leaves no `"contract": null` behind
+        # for a reader to mistake for an edition.
+        edition = self.contract_edition()
+        if edition is not None:
+            status = {'schema': status['schema'], 'contract': edition,
+                      **{k: v for k, v in status.items() if k != 'schema'}}
         for d in (OUT / 'status', BRANCH / 'map', BRANCH / 'status'):
             d.mkdir(parents=True, exist_ok=True)
 
