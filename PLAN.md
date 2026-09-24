@@ -12,7 +12,10 @@ are not copied here.
 
 ## Where it stands
 
-Publishes to <https://oceansensing.org/realtime-data-repo/> on its own cron.
+Publishes to <https://oceansensing.org/realtime-data-repo/> on its own cron,
+and **since 2026-09-24 to Cloudflare R2 beside it** (`publish-r2`, below).
+It also owns `pipeline/publish_r2.py`, which every data repository's R2
+publish runs.
 It owns `pipeline/orchestrate.py` — **the orchestrator every data repository
 runs**: `espc-model-repo`, `espc-model-fields-repo`,
 `mercator-model-currents-repo`, `mercator-model-fields-repo` and
@@ -33,6 +36,33 @@ production pipelines** (as of 2026-09-01), and its unit suite — 53 cases —
 is what stands between an edit and all of them. CI runs
 `python3 pipeline/test_orchestrate.py` before every publish, here and in
 every repository that runs it.
+
+## 2026-09-24: every origin publishes to Cloudflare R2 beside Pages
+
+For the Ocean Now app (its D23 and D24): the app's data moves to a private
+R2 bucket, `oceannow-data`, served at data.oceannow.bluetao.com by a
+Worker that checks every request, and **R2 must stand on its own** — the
+owner: *"When operational R2 server should be able to function on its own
+without GitHub. Cross check with GitHub is a feature but not
+requirement."* So `publish-r2` needs only `build` and its publish decision
+and runs beside the Pages deploy, never after it. `CLAUDE.md` has the rules.
+
+- **The first run refused, safely.** sentinel3-data-repo's manual run of
+  the first draft refused its tree before sending anything: the guard asked
+  for a `map/manifest.json` no origin publishes. The Pages deploy beside it
+  published as designed — the independence, seen working on the first try.
+  The guard is `status/status.json` now, held by two mutants.
+- **The first publishes**: sentinel3-data-repo 8 files; this repository
+  201, all tagged with their spacing, and its next run **21 of 201** — only
+  what changed; espc-model-fields-repo 799. The rest follow on their crons.
+- **Every grid carries its spacing** (`deg` metadata: the smaller of its
+  header's first `dx` and `dy`, or a tile index's `deg`), which the Worker
+  reads to hold the app's line: finer than 0.25° is premium. Checked over
+  the published files: Mercator's 1°, ESPC's 0.96°, the 0.25° globals and
+  the wind chance's 0.5° free; the 1/12° tiles, ESPC's 0.16° Atlantic
+  region, its tile index and chlorophyll's 0.05° premium.
+- **Open**: sentinel3-data-repo's chlorophyll has been `held` since
+  2026-09-22 (*"step color exit 1"*), and its tiles are not on either host.
 
 ## 2026-08-31: the five Navy scalars moved, and one subject is left
 
