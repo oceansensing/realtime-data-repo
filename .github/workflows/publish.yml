@@ -309,3 +309,50 @@ jobs:
         if: needs.build.outputs.deploy == 'true'
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
 
+
+  # **The R2 publish** (ocean-now's D24; the owner, 2026-09-24: *"When
+  # operational R2 server should be able to function on its own without
+  # GitHub. Cross check with GitHub is a feature but not requirement."*).
+  # The tree this run built, published to Cloudflare R2 under this
+  # repository's name — beside the Pages deploy, not after it: it needs only
+  # the build and its publish decision, so a Pages outage never stops it and
+  # a failure here never touches Pages. Only what changed is uploaded, and
+  # the bucket is then compared file by file with what the run built.
+  # `pipeline/publish_r2.py` in realtime-data-repo has the rules.
+  publish-r2:
+    needs: build
+    if: needs.build.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the publish script
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: oceansensing/realtime-data-repo
+          path: engine
+          sparse-checkout: pipeline
+
+      - name: Download the built site
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: github-pages
+          path: pages
+
+      - name: Test the publish script
+        run: python3 engine/pipeline/test_publish_r2.py
+
+      - name: Publish to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          # The CLI's newer default checksums are not every S3-compatible
+          # store's; ask for them only where an operation requires them.
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          mkdir site
+          tar -xf pages/artifact.tar -C site
+          python3 engine/pipeline/publish_r2.py site "$GITHUB_REPOSITORY"
