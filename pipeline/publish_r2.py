@@ -31,6 +31,14 @@ first draft asked for `map/manifest.json`, which no origin publishes; its
 first run refused, sent nothing, and Pages published beside it as designed
 (sentinel3-data-repo, 2026-09-24).
 
+**Every grid carries its spacing** as the object's `deg` metadata — the
+smaller of its header's `dx` and `dy`, or a tile index's `deg` — which the
+data host reads to hold D23's line (the owner, 2026-09-24: anything finer
+than 0.25° is premium). A file that is not a grid carries none and is
+anyone's. The tagging has a version, kept in `<repository>/.publish_r2.json`;
+when it moves, everything is uploaded again once so no object keeps an old
+tag.
+
 Environment: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (the R2 token's
 pair), R2_ENDPOINT, and R2_BUCKET (default `oceannow-data`). Standard
 library only, like the orchestrator beside it, plus the AWS CLI the runner
@@ -40,6 +48,7 @@ carries.
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -51,6 +60,37 @@ BUCKET = os.environ.get('R2_BUCKET', 'oceannow-data')
 # about 25 MB. Past this the CLI uploads in parts and the ETag stops being
 # an MD5, which would read as a difference on every run.
 MULTIPART_THRESHOLD = '256MB'
+# The tagging scheme's version: moving it re-uploads every object once.
+TAGS_VERSION = 1
+STATE = '.publish_r2.json'
+# A grid's header is in its first few hundred bytes; a tile index is small.
+HEAD_BYTES = 65536
+_SPACING = re.compile(rb'"d([xy])"\s*:\s*([0-9.eE+-]+)')
+_INDEX_DEG = re.compile(rb'"deg"\s*:\s*([0-9.eE+-]+)')
+
+
+def spacing(path):
+    """A grid's spacing in degrees, from its own header: the smaller of the
+    first `dx` and `dy`, which in a coarse grid come before any region it
+    links (and a region's own `deg`). A tile index says its cells' `deg`.
+    None for everything else — status, platforms, forecasts' lists."""
+    path = Path(path)
+    if path.suffix != '.json':
+        return None
+    with path.open('rb') as f:
+        head = f.read(HEAD_BYTES)
+    found = {}
+    for m in _SPACING.finditer(head):
+        found.setdefault(m.group(1), float(m.group(2)))
+        if len(found) == 2:
+            break
+    if found:
+        return min(found.values())
+    if path.name == 'index.json' and path.parent.name.startswith('tiles'):
+        m = _INDEX_DEG.search(head)
+        if m:
+            return float(m.group(1))
+    return None
 
 
 def prefix_for(repository):
@@ -80,16 +120,25 @@ def remote_tree(listing, prefix):
     out = {}
     for obj in listing:
         key = obj.get('Key', '')
-        if key.startswith(prefix) and len(key) > len(prefix):
+        if key.startswith(prefix) and len(key) > len(prefix) and key[len(prefix):] != STATE:
             out[key[len(prefix):]] = obj.get('ETag', '').strip('"')
     return out
 
 
-def plan(local, remote):
-    """What to upload (new or changed) and what to delete (gone from the tree)."""
-    uploads = sorted(k for k, md5 in local.items() if remote.get(k) != md5)
+def plan(local, remote, everything=False):
+    """What to upload (new or changed — or all of it, when the tagging moved)
+    and what to delete (gone from the tree)."""
+    uploads = sorted(k for k, md5 in local.items() if everything or remote.get(k) != md5)
     deletes = sorted(k for k in remote if k not in local)
     return uploads, deletes
+
+
+def groups(root, keys):
+    """The keys to upload, by the spacing each is tagged with (None: untagged)."""
+    out = {}
+    for key in keys:
+        out.setdefault(spacing(Path(root, key)), []).append(key)
+    return out
 
 
 def aws(*args):
@@ -103,15 +152,35 @@ def list_remote(prefix):
 
 
 def upload(root, prefix, keys):
-    if not keys:
-        return
-    with tempfile.TemporaryDirectory() as staging:
-        for key in keys:
-            target = Path(staging, key)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(Path(root, key), target)
-        subprocess.run(aws('s3', 'cp', staging, f's3://{BUCKET}/{prefix}', '--recursive',
-                           '--no-progress', '--only-show-errors'), check=True)
+    for deg, batch in groups(root, keys).items():
+        with tempfile.TemporaryDirectory() as staging:
+            for key in batch:
+                target = Path(staging, key)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(Path(root, key), target)
+            tag = [] if deg is None else ['--metadata', f'deg={deg!r}']
+            subprocess.run(aws('s3', 'cp', staging, f's3://{BUCKET}/{prefix}', '--recursive',
+                               *tag, '--no-progress', '--only-show-errors'), check=True)
+
+
+def tags_version(prefix):
+    """The tagging version the bucket's objects were written under, or 0."""
+    result = subprocess.run(aws('s3', 'cp', f's3://{BUCKET}/{prefix}{STATE}', '-'),
+                            capture_output=True, text=True)
+    try:
+        return json.loads(result.stdout).get('tags', 0) if result.returncode == 0 else 0
+    except ValueError:
+        return 0
+
+
+def write_state(prefix):
+    with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+        json.dump({'tags': TAGS_VERSION}, f)
+    try:
+        subprocess.run(aws('s3', 'cp', f.name, f's3://{BUCKET}/{prefix}{STATE}', '--only-show-errors'),
+                       check=True)
+    finally:
+        os.unlink(f.name)
 
 
 def delete(prefix, keys):
@@ -143,9 +212,12 @@ def main(argv):
         return 2
     subprocess.run(['aws', 'configure', 'set', 'default.s3.multipart_threshold', MULTIPART_THRESHOLD],
                    check=True)
-    uploads, deletes = plan(local, remote_tree(list_remote(prefix), prefix))
+    retag = tags_version(prefix) != TAGS_VERSION
+    uploads, deletes = plan(local, remote_tree(list_remote(prefix), prefix), everything=retag)
     upload(root, prefix, uploads)
     delete(prefix, deletes)
+    if retag:
+        write_state(prefix)
     left = plan(local, remote_tree(list_remote(prefix), prefix))
     if left[0] or left[1]:
         print(f'publish_r2: FAIL {BUCKET}/{prefix} still differs from the built tree: '

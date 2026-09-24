@@ -73,6 +73,45 @@ class PublishR2Tests(unittest.TestCase):
                  mock.patch.object(subprocess, 'run'), mock.patch.dict('os.environ', {'R2_ENDPOINT': 'x'}):
                 self.assertEqual(publish_r2.main(['publish_r2.py', d, 'realtime-data-repo']), 0)
 
+    def test_a_grid_is_tagged_with_its_own_spacing(self):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, 'map/tiles-sst').mkdir(parents=True)
+            # A coarse grid names a finer region in its header: its own dx
+            # comes first and is what it is.
+            Path(d, 'map/sst.json').write_text('[{"header":{"nx":360,"dx":1.0,"dy":1.0,'
+                                               '"regions":[{"deg":0.08}]},"data":[1]}]')
+            Path(d, 'map/tiles-sst/0_0.json').write_text('[{"header":{"dx":0.08333333333333333,"dy":0.08333333333333333},"data":[]}]')
+            Path(d, 'map/tiles-sst/index.json').write_text('{"size":20,"deg":0.08333333333333333,"available":[]}')
+            Path(d, 'map/uneven.json').write_text('{"header":{"dx":0.5,"dy":0.25},"data":[]}')
+            # A platform file with a `deg` of its own is not a tile index.
+            Path(d, 'map/assets.json').write_text('{"assets":[{"deg":0.01}]}')
+            Path(d, 'status').mkdir()
+            Path(d, 'status/status.json').write_text('{}')
+            spacing = publish_r2.spacing
+            self.assertEqual(spacing(Path(d, 'map/sst.json')), 1.0)
+            self.assertAlmostEqual(spacing(Path(d, 'map/tiles-sst/0_0.json')), 1 / 12)
+            self.assertAlmostEqual(spacing(Path(d, 'map/tiles-sst/index.json')), 1 / 12)
+            self.assertEqual(spacing(Path(d, 'map/uneven.json')), 0.25)
+            self.assertIsNone(spacing(Path(d, 'map/assets.json')))
+            self.assertIsNone(spacing(Path(d, 'status/status.json')))
+            grouped = publish_r2.groups(d, ['map/sst.json', 'map/tiles-sst/0_0.json', 'status/status.json'])
+            self.assertEqual(grouped[1.0], ['map/sst.json'])
+            self.assertEqual(grouped[None], ['status/status.json'])
+            # The upload tags each group, and leaves the untagged untagged.
+            calls = []
+            with mock.patch.object(subprocess, 'run', side_effect=lambda args, **k: calls.append(args)), \
+                 mock.patch.dict('os.environ', {'R2_ENDPOINT': 'x'}):
+                publish_r2.upload(d, 'r/', ['map/sst.json', 'status/status.json'])
+            tags = sorted(c[c.index('--metadata') + 1] if '--metadata' in c else '-' for c in calls)
+            self.assertEqual(tags, ['-', 'deg=1.0'])
+
+    def test_a_new_tagging_uploads_everything_once_and_the_state_is_not_data(self):
+        local = {'a.json': md5('a'), 'b.json': md5('b')}
+        self.assertEqual(publish_r2.plan(local, dict(local)), ([], []))
+        self.assertEqual(publish_r2.plan(local, dict(local), everything=True), (['a.json', 'b.json'], []))
+        listing = [{'Key': 'r/.publish_r2.json', 'ETag': '"s"'}, {'Key': 'r/a.json', 'ETag': f'"{md5("a")}"'}]
+        self.assertEqual(publish_r2.remote_tree(listing, 'r/'), {'a.json': md5('a')})
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
