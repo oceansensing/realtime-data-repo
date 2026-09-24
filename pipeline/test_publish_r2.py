@@ -28,26 +28,27 @@ class PublishR2Tests(unittest.TestCase):
                 publish_r2.prefix_for(bad)
 
     def test_another_repositorys_keys_are_never_ours(self):
-        listing = [{'Key': 'espc-model-repo/map/manifest.json', 'ETag': '"aa"'},
-                   {'Key': 'espc-model-fields-repo/map/manifest.json', 'ETag': '"bb"'},
+        listing = [{'Key': 'espc-model-repo/status/status.json', 'ETag': '"aa"'},
+                   {'Key': 'espc-model-fields-repo/status/status.json', 'ETag': '"bb"'},
                    {'Key': 'espc-model-repo/', 'ETag': '"cc"'}]
-        self.assertEqual(publish_r2.remote_tree(listing, 'espc-model-repo/'), {'map/manifest.json': 'aa'})
+        self.assertEqual(publish_r2.remote_tree(listing, 'espc-model-repo/'), {'status/status.json': 'aa'})
 
     def test_only_what_changed_is_uploaded_and_what_left_is_deleted(self):
-        local = {'map/manifest.json': md5('new'), 'map/sst.json': md5('same'), 'map/tiles/0_0.json': md5('t')}
-        remote = {'map/manifest.json': md5('old'), 'map/sst.json': md5('same'), 'map/gone.json': md5('x')}
+        local = {'status/status.json': md5('new'), 'map/sst.json': md5('same'), 'map/tiles/0_0.json': md5('t')}
+        remote = {'status/status.json': md5('old'), 'map/sst.json': md5('same'), 'map/gone.json': md5('x')}
         uploads, deletes = publish_r2.plan(local, remote)
-        self.assertEqual(uploads, ['map/manifest.json', 'map/tiles/0_0.json'])
+        self.assertEqual(uploads, ['map/tiles/0_0.json', 'status/status.json'])
         self.assertEqual(deletes, ['map/gone.json'])
         self.assertEqual(publish_r2.plan(local, dict(local)), ([], []))
 
     def test_the_local_tree_is_every_file_with_its_md5(self):
         with tempfile.TemporaryDirectory() as d:
             Path(d, 'map/tiles').mkdir(parents=True)
-            Path(d, 'map/manifest.json').write_text('{}')
+            Path(d, 'status').mkdir()
+            Path(d, 'status/status.json').write_text('{}')
             Path(d, 'map/tiles/0_0.json').write_text('[1]')
             self.assertEqual(publish_r2.local_tree(d),
-                             {'map/manifest.json': md5('{}'), 'map/tiles/0_0.json': md5('[1]')})
+                             {'status/status.json': md5('{}'), 'map/tiles/0_0.json': md5('[1]')})
 
     def test_a_tree_without_its_manifest_is_refused_before_anything_is_sent(self):
         with tempfile.TemporaryDirectory() as d:
@@ -58,15 +59,15 @@ class PublishR2Tests(unittest.TestCase):
 
     def test_a_bucket_that_still_differs_fails_the_job(self):
         with tempfile.TemporaryDirectory() as d:
-            Path(d, 'map').mkdir()
-            Path(d, 'map/manifest.json').write_text('{}')
+            Path(d, 'status').mkdir()
+            Path(d, 'status/status.json').write_text('{}')
             # The bucket never takes the upload: the second listing still
             # lacks the file, and the job must say so rather than pass.
             with mock.patch.object(publish_r2, 'list_remote', return_value=[]), \
                  mock.patch.object(publish_r2, 'upload'), mock.patch.object(publish_r2, 'delete'), \
                  mock.patch.object(subprocess, 'run'), mock.patch.dict('os.environ', {'R2_ENDPOINT': 'x'}):
                 self.assertEqual(publish_r2.main(['publish_r2.py', d, 'realtime-data-repo']), 1)
-            listing = [{'Key': 'realtime-data-repo/map/manifest.json', 'ETag': f'"{md5("{}")}"'}]
+            listing = [{'Key': 'realtime-data-repo/status/status.json', 'ETag': f'"{md5("{}")}"'}]
             with mock.patch.object(publish_r2, 'list_remote', return_value=listing), \
                  mock.patch.object(publish_r2, 'upload'), mock.patch.object(publish_r2, 'delete'), \
                  mock.patch.object(subprocess, 'run'), mock.patch.dict('os.environ', {'R2_ENDPOINT': 'x'}):

@@ -724,7 +724,7 @@ deploy rather than after it, and neither side's failure stops the other.
   a difference fails the job. That check asks nothing of GitHub. Comparing
   the bucket with Pages is a separate, optional feature, not a gate.
 - **Two refusals before anything is sent**: a tree without
-  `map/manifest.json` (a broken artifact would otherwise empty the prefix,
+  `status/status.json` (a broken artifact would otherwise empty the prefix,
   since removed files are deleted), and a repository name that is not one.
   The prefix always ends in `/`, so `espc-model-repo/` can never touch
   `espc-model-fields-repo/`.

@@ -24,8 +24,12 @@ asks nothing of GitHub; comparing the bucket with Pages is a separate,
 optional feature.
 
 Two refusals, both before anything is sent: a tree without
-`map/manifest.json` (an empty or broken artifact would otherwise delete the
-repository's whole prefix), and a repository name that is not one.
+`status/status.json` — every origin publishes one, and it is what the app
+reads first (an empty or broken artifact would otherwise delete the
+repository's whole prefix) — and a repository name that is not one. The
+first draft asked for `map/manifest.json`, which no origin publishes; its
+first run refused, sent nothing, and Pages published beside it as designed
+(sentinel3-data-repo, 2026-09-24).
 
 Environment: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (the R2 token's
 pair), R2_ENDPOINT, and R2_BUCKET (default `oceannow-data`). Standard
@@ -133,8 +137,8 @@ def main(argv):
         print(f'publish_r2: refusing: {e}', file=sys.stderr)
         return 2
     local = local_tree(root)
-    if 'map/manifest.json' not in local:
-        print(f'publish_r2: refusing: {root} has no map/manifest.json '
+    if 'status/status.json' not in local:
+        print(f'publish_r2: refusing: {root} has no status/status.json '
               f'({len(local)} files) — an empty or broken artifact would empty {prefix}', file=sys.stderr)
         return 2
     subprocess.run(['aws', 'configure', 'set', 'default.s3.multipart_threshold', MULTIPART_THRESHOLD],
