@@ -54,7 +54,10 @@ and runs beside the Pages deploy, never after it. `CLAUDE.md` has the rules.
   The guard is `status/status.json` now, held by two mutants.
 - **The first publishes**: sentinel3-data-repo 8 files; this repository
   201, all tagged with their spacing, and its next run **21 of 201** — only
-  what changed; espc-model-fields-repo 799. The rest follow on their crons.
+  what changed; espc-model-fields-repo 799; espc-model-repo 1,667 (its
+  next run 6); mercator-model-currents-repo 1,614; mercator-model-fields-repo
+  1,165 (21:00 UTC). **All six origins are on R2** (2026-09-24), each run
+  ending with the bucket listed again and equal to the built tree.
 - **Every grid carries its spacing** (`deg` metadata: the smaller of its
   header's first `dx` and `dy`, or a tile index's `deg`), which the Worker
   reads to hold the app's line: finer than 0.25° is premium. Checked over
