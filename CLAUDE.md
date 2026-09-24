@@ -699,3 +699,38 @@ to a product" for a product declared in plain sight. When `test-schema.mjs`
 grows a new token shape, the mapper needs the case and its control the same
 day, because a gate that misnames its failure sends the reader into the
 wrong repository.
+
+## The R2 publish (2026-09-24)
+
+**Every origin publishes twice from one build: to GitHub Pages as always,
+and to Cloudflare R2** — the `oceannow-data` bucket, under the repository's
+own name (`realtime-data-repo/map/…` and so on), which the Ocean Now app
+will read at `data.oceannow.bluetao.com` (ocean-now's D24). **R2 stands on
+its own**: the owner, 2026-09-24 — *"When operational R2 server should be
+able to function on its own without GitHub. Cross check with GitHub is a
+feature but not requirement."* So the `publish-r2` job needs only `build`
+and its publish decision (`deploy == 'true'`), runs beside the Pages
+deploy rather than after it, and neither side's failure stops the other.
+
+- **The script is `pipeline/publish_r2.py`**, standard library plus the AWS
+  CLI the runner carries, with `pipeline/test_publish_r2.py` run first in
+  the job. Every origin checks it out of this repository's `main`, like the
+  orchestrator — a change here reaches all six on their next runs.
+- **Only what changed is uploaded**: a file's MD5 against the bucket's
+  ETag (which is the MD5 for a one-part upload, so the multipart threshold
+  is raised to 256 MB). Uploading every tile every run would be three to
+  four million writes a month across the origins, past R2's free million.
+- **Then the bucket is listed again and compared with what the run built**;
+  a difference fails the job. That check asks nothing of GitHub. Comparing
+  the bucket with Pages is a separate, optional feature, not a gate.
+- **Two refusals before anything is sent**: a tree without
+  `map/manifest.json` (a broken artifact would otherwise empty the prefix,
+  since removed files are deleted), and a repository name that is not one.
+  The prefix always ends in `/`, so `espc-model-repo/` can never touch
+  `espc-model-fields-repo/`.
+- **The credentials are organization secrets** of `oceansensing` —
+  `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT` — shared with
+  the six data repositories only, from an R2 token scoped to Object Read &
+  Write on `oceannow-data` alone (the owner made both, 2026-09-24).
+- **The pipeline still runs on GitHub Actions** and seeds from the
+  `published` branch; what stands without GitHub is the serving.
