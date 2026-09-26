@@ -736,3 +736,15 @@ deploy rather than after it, and neither side's failure stops the other.
   Write on `oceannow-data` alone (the owner made both, 2026-09-24).
 - **The pipeline still runs on GitHub Actions** and seeds from the
   `published` branch; what stands without GitHub is the serving.
+- **An origin R2 alone carries passes `--r2-only`** (D13; ocean-now's D26,
+  2026-09-26): its own repository — **private when its data is
+  proprietary**, since a public repository's artifacts and logs are
+  anyone's — that publishes here and never to Pages. Its files are tagged
+  `access=premium`, which the data host refuses to a free pass whatever
+  their spacing, except its `status/` and any path it declares
+  `--free <path>`. Every origin that also publishes to Pages passes neither
+  flag, so its objects and its state file are exactly as before. **Extra
+  files never go inside an existing origin's tree**: the publish makes a
+  prefix equal to its run's build and deletes the rest, and that build is
+  the Pages artifact. A new origin also needs the three `R2_*` organization
+  secrets shared with its repository (the owner's step).

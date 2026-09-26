@@ -2,6 +2,7 @@
 """The R2 publish: the tree this run built, published to Cloudflare R2.
 
   python3 pipeline/publish_r2.py <built-site-dir> <owner/repository>
+  python3 pipeline/publish_r2.py <built-dir> <owner/repository> --r2-only [--free <path>]...
 
 **R2 is a publish target of its own, not a mirror of Pages** (ocean-now's
 D24; the owner, 2026-09-24: *"When operational R2 server should be able to
@@ -38,6 +39,19 @@ than 0.25° is premium). A file that is not a grid carries none and is
 anyone's. The tagging has a version, kept in `<repository>/.publish_r2.json`;
 when it moves, everything is uploaded again once so no object keeps an old
 tag.
+
+**An origin R2 alone carries says so: `--r2-only`** (ocean-now's D26; the
+owner, 2026-09-26: the app's data will outgrow the website's, some of it
+licensed). Such an origin publishes here and never to Pages — its own
+repository, private when its data is proprietary, because a public
+repository's artifacts and logs are anyone's — and **its files are tagged
+`access=premium`** unless they lie under a path it declares `--free`, which
+the data host refuses to a free pass whatever their spacing. Its
+`status/` is never tagged: every reader's app reads each origin's status
+to route, and it carries times and names, not data. An origin that also
+publishes to Pages passes neither flag and tags no access at all, as
+before. The declaration is kept in the state file beside the version, and
+a change to it re-tags the origin's objects once.
 
 Environment: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (the R2 token's
 pair), R2_ENDPOINT, and R2_BUCKET (default `oceannow-data`). Standard
@@ -133,12 +147,32 @@ def plan(local, remote, everything=False):
     return uploads, deletes
 
 
-def groups(root, keys):
-    """The keys to upload, by the spacing each is tagged with (None: untagged)."""
+def access_for(key, declaration):
+    """An object's access class (D26): `premium` for an R2-only origin's
+    file, unless it is the origin's status or lies under a path declared
+    free; None — no class, D23's line alone — for everything else,
+    including every file of an origin that also publishes to Pages."""
+    if declaration is None:
+        return None
+    if key.startswith('status/') or any(key == p.rstrip('/') or key.startswith(p.rstrip('/') + '/')
+                                        for p in declaration['free']):
+        return None
+    return 'premium'
+
+
+def groups(root, keys, declaration=None):
+    """The keys to upload, by the (spacing, access) each is tagged with
+    (None: untagged)."""
     out = {}
     for key in keys:
-        out.setdefault(spacing(Path(root, key)), []).append(key)
+        out.setdefault((spacing(Path(root, key)), access_for(key, declaration)), []).append(key)
     return out
+
+
+def metadata(deg, access):
+    """The `--metadata` value for a group, or None for an untagged one."""
+    pairs = ([f'deg={deg!r}'] if deg is not None else []) + ([f'access={access}'] if access else [])
+    return ','.join(pairs) or None
 
 
 def aws(*args):
@@ -151,31 +185,44 @@ def list_remote(prefix):
     return json.loads(result.stdout or '{}').get('Contents') or []
 
 
-def upload(root, prefix, keys):
-    for deg, batch in groups(root, keys).items():
+def upload(root, prefix, keys, declaration=None):
+    for (deg, access), batch in groups(root, keys, declaration).items():
         with tempfile.TemporaryDirectory() as staging:
             for key in batch:
                 target = Path(staging, key)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(Path(root, key), target)
-            tag = [] if deg is None else ['--metadata', f'deg={deg!r}']
+            meta = metadata(deg, access)
+            tag = [] if meta is None else ['--metadata', meta]
             subprocess.run(aws('s3', 'cp', staging, f's3://{BUCKET}/{prefix}', '--recursive',
                                *tag, '--no-progress', '--only-show-errors'), check=True)
 
 
-def tags_version(prefix):
-    """The tagging version the bucket's objects were written under, or 0."""
+def read_state(prefix):
+    """What the bucket's objects were tagged under — `tags`, the version,
+    and `access`, an R2-only origin's declaration — or {}."""
     result = subprocess.run(aws('s3', 'cp', f's3://{BUCKET}/{prefix}{STATE}', '-'),
                             capture_output=True, text=True)
     try:
-        return json.loads(result.stdout).get('tags', 0) if result.returncode == 0 else 0
-    except ValueError:
-        return 0
+        state = json.loads(result.stdout) if result.returncode == 0 else {}
+        return state if isinstance(state, dict) else {}
+    except (ValueError, TypeError):
+        return {}
 
 
-def write_state(prefix):
+def needs_retag(state, declaration):
+    """Whether every object must be written again: the tagging moved, or
+    the origin's access declaration did."""
+    return state.get('tags', 0) != TAGS_VERSION or state.get('access') != declaration
+
+
+def state_for(declaration):
+    return {'tags': TAGS_VERSION, **({'access': declaration} if declaration is not None else {})}
+
+
+def write_state(prefix, declaration=None):
     with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
-        json.dump({'tags': TAGS_VERSION}, f)
+        json.dump(state_for(declaration), f)
     try:
         subprocess.run(aws('s3', 'cp', f.name, f's3://{BUCKET}/{prefix}{STATE}', '--only-show-errors'),
                        check=True)
@@ -195,13 +242,34 @@ def delete(prefix, keys):
             os.unlink(f.name)
 
 
+def declaration_from(flags):
+    """`--r2-only` and its `--free <path>`s as a declaration, None without
+    `--r2-only`; ValueError for anything else. A free path is relative to
+    the tree and may not climb out of it."""
+    if not flags:
+        return None
+    free, rest = [], list(flags)
+    if rest.pop(0) != '--r2-only':
+        raise ValueError(f'expected --r2-only, not {flags[0]!r}')
+    while rest:
+        flag = rest.pop(0)
+        if flag != '--free' or not rest:
+            raise ValueError(f'expected --free <path>, not {flag!r}')
+        path = rest.pop(0)
+        if not path or path.startswith('/') or '..' in path.split('/') or path.split('/')[0] == 'status':
+            raise ValueError(f'not a free path in the tree: {path!r}')
+        free.append(path)
+    return {'r2Only': True, 'free': sorted(set(free))}
+
+
 def main(argv):
-    if len(argv) != 3:
+    if len(argv) < 3:
         print(__doc__.split('\n\n')[1], file=sys.stderr)
         return 2
     root, repository = Path(argv[1]), argv[2]
     try:
         prefix = prefix_for(repository)
+        declaration = declaration_from(argv[3:])
     except ValueError as e:
         print(f'publish_r2: refusing: {e}', file=sys.stderr)
         return 2
@@ -212,12 +280,12 @@ def main(argv):
         return 2
     subprocess.run(['aws', 'configure', 'set', 'default.s3.multipart_threshold', MULTIPART_THRESHOLD],
                    check=True)
-    retag = tags_version(prefix) != TAGS_VERSION
+    retag = needs_retag(read_state(prefix), declaration)
     uploads, deletes = plan(local, remote_tree(list_remote(prefix), prefix), everything=retag)
-    upload(root, prefix, uploads)
+    upload(root, prefix, uploads, declaration)
     delete(prefix, deletes)
     if retag:
-        write_state(prefix)
+        write_state(prefix, declaration)
     left = plan(local, remote_tree(list_remote(prefix), prefix))
     if left[0] or left[1]:
         print(f'publish_r2: FAIL {BUCKET}/{prefix} still differs from the built tree: '

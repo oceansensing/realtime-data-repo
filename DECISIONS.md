@@ -361,3 +361,40 @@ in `check:live`.
 (`AppModel.dataHost`), and the Pages tree stays published; pointing readers
 back at Pages is an app release, not a change here.
 
+## D13 — 2026-09-26 — Origins R2 alone carries, premium unless declared free
+
+**The owner, 2026-09-26**: the app's data will outgrow the website's — *"More
+data will be put on R2 than GitHub some of them potentially proprietary
+licensed data"* — and, ruling on ocean-now's D26 the same hour, **R2-only
+data arrives as its own origins**, the app reads **its own catalog on R2**,
+and **an R2-only file is premium unless tagged free**.
+
+**What that means here.** D12's rule — the same tree at the same paths on
+both hosts — still holds for every origin that publishes to Pages; an
+origin R2 alone carries is the one exception, by design, and it is a whole
+origin, never extra files inside another's:
+
+- **It is its own repository**, publishing with `publish_r2.py <tree>
+  <repository> --r2-only [--free <path>]...` and no Pages job. **Private
+  when its data is proprietary**: a public repository's Actions artifacts
+  and logs are readable by anyone signed in to GitHub, and the Pages
+  artifact is exactly what `publish-r2` publishes from.
+- **Its files are tagged `access=premium`** beside their `deg`, which the
+  data host's Worker refuses to a free pass whatever the spacing; a class
+  the Worker does not know is refused to everyone, so licensed data fails
+  closed. Its `status/` is never tagged — every reader's app reads it to
+  route, and it carries times and names, not data — nor is a path it
+  declares `--free`, which then keeps D23's line alone.
+- **The declaration is kept in the prefix's state file** beside the tagging
+  version, and a change to it re-tags the origin's objects once. An origin
+  without the flag writes the same `{"tags": 1}` it always has, so nothing
+  already published is uploaded again.
+- **Extra files inside an existing origin are refused by construction**:
+  `publish_r2` makes a prefix equal to its run's build and deletes the
+  rest, so a file put there by anything else is gone at the next run.
+
+**Not yet**: no such origin exists; the first needs its repository, the
+organization's `R2_*` secrets shared with it (the owner's), its own
+contract check (the site's `test-schema.mjs --roots` names only the
+website's roots), and a freshness watch, which the site's watchdog — reading
+Pages — cannot give it.
