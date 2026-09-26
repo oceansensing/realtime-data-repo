@@ -321,3 +321,43 @@ additive, and consumers that never heard of it read what they read before.
 the edition they were built for. What cannot be reversed is a number once
 published higher: a reader that has seen it has been told something.
 
+## D12 — 2026-09-25 — Ocean Now reads the R2 copy alone, so R2 is a production host
+
+**Every origin has published to Cloudflare R2 beside Pages since
+2026-09-24** (the `publish-r2` job, `pipeline/publish_r2.py`; CLAUDE.md's
+"The R2 publish"), into the `oceannow-data` bucket that the Ocean Now app
+reads at `data.oceannow.bluetao.com` through a Worker that checks every
+request (ocean-now's D24). Two rulings of the owner's made that copy what it
+is, and this entry records them here, where the bytes are made:
+
+- **R2 stands on its own** (2026-09-24): *"When operational R2 server should
+  be able to function on its own without GitHub. Cross check with GitHub is
+  a feature but not requirement."* So `publish-r2` runs beside the Pages
+  deploy, not after it, and neither side's failure stops the other.
+- **The app reads R2 alone** (2026-09-25): *"make GitHub just a developer
+  only option then. do make sure it alway works, but pull from R2 only."*
+  Every build a reader runs reads `data.oceannow.bluetao.com` and nothing
+  else; GitHub Pages is a developer's switch in the app and a simulator's
+  default (a simulator cannot attest). When the host cannot be reached, the
+  app shows its offline copy behind its staleness warning — there is no
+  fallback to Pages.
+
+**Why it is a door.** R2 is no longer a mirror of Pages: it is the only
+place the app's readers get data, so a `publish-r2` failure is the app
+going stale while the website, reading Pages, looks healthy. The same tree
+at the same paths on both hosts is the contract the app codes against
+(`DataHost.origin` rewrites an origin's Pages address to the data host);
+a path that exists on one host and not the other is a broken app.
+
+**What watches it.** The site's watchdog reads the Pages copies, and
+ocean-now's `check:live` holds the data host's access from outside (a
+request without a pass is refused) but not its freshness. **Nothing outside
+the app yet says when R2 has fallen behind** — the app's own staleness
+notice, which reads each origin's `status/status.json` from R2, is the only
+reader of it. Open: a freshness check on the R2 copies, in the watchdog or
+in `check:live`.
+
+**The reversal, if it comes.** The app's host is one setting in its build
+(`AppModel.dataHost`), and the Pages tree stays published; pointing readers
+back at Pages is an app release, not a change here.
+

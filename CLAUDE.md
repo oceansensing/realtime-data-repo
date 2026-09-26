@@ -706,7 +706,8 @@ wrong repository.
 and to Cloudflare R2** — the `oceannow-data` bucket, under the repository's
 own name (`realtime-data-repo/map/…` and so on), which the Ocean Now app
 reads at `data.oceannow.bluetao.com` through a Worker that checks every
-request (ocean-now's D24). **R2 stands on
+request (ocean-now's D24) — **and since 2026-09-25 reads alone**, so R2 is
+the app's production host and Pages the website's (D12). **R2 stands on
 its own**: the owner, 2026-09-24 — *"When operational R2 server should be
 able to function on its own without GitHub. Cross check with GitHub is a
 feature but not requirement."* So the `publish-r2` job needs only `build`

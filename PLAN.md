@@ -13,7 +13,10 @@ are not copied here.
 ## Where it stands
 
 Publishes to <https://oceansensing.org/realtime-data-repo/> on its own cron,
-and **since 2026-09-24 to Cloudflare R2 beside it** (`publish-r2`, below).
+and **since 2026-09-24 to Cloudflare R2 beside it** (`publish-r2`, below)
+— **which the Ocean Now app reads alone since 2026-09-25** (D12: R2 is the
+app's production host, and nothing outside the app yet watches its
+freshness).
 It also owns `pipeline/publish_r2.py`, which every data repository's R2
 publish runs.
 It owns `pipeline/orchestrate.py` — **the orchestrator every data repository
