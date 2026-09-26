@@ -3,12 +3,14 @@
 The data pipeline behind the [C4PO ocean
 map](https://oceansensing.org/visualization/) — the production service
 since 2026-08-14. It fetches storms, gliders, USVs, Argo floats, radiosondes,
-buoys, tide gauges, research vessels, NSF OOI's moorings and cabled sites, the
-OISST temperature analysis, and
+buoys, tide gauges, the tropical moored arrays, research vessels, NSF OOI's
+moorings and cabled sites, the OISST temperature analysis, and
 ECMWF wind and waves from their upstream sources through the hour and
 publishes them as static files at
 `https://oceansensing.org/realtime-data-repo/map/`, with a machine-readable
-health record beside them at `/status/status.json`.
+health record beside them at `/status/status.json` — and, since 2026-09-24,
+the same tree to Cloudflare R2, which Ocean Now reads through its data host
+(`data.oceannow.bluetao.com`).
 
 It is the successor to
 [`ocean-data-repo`](https://github.com/oceansensing/ocean-data-repo), designed
@@ -170,11 +172,13 @@ timestamp is arithmetic; the status file is a statement, and the map can say
 "currents: held since 03:00 (HYCOM timeout)" instead of leaving the reader to
 subtract.
 
-**Two jobs, least privilege.** The build job holds no write permission at
+**Three jobs, least privilege.** The build job holds no write permission at
 all: it runs the fetchers, `pip install` and the contract check, and uploads
 what it assembled. The publish job holds `contents: write`, `pages: write`
 and `id-token: write`, and runs nothing but pinned first-party actions and
-ten lines of git. A compromised transitive dependency in the build finds no
+ten lines of git. The R2 job (`publish-r2`, since 2026-09-24) reads the
+build's artifact with `contents: read` and the bucket's own scoped secrets,
+nothing else. A compromised transitive dependency in the build finds no
 token worth stealing in its environment.
 
 ## What publishes where
@@ -234,7 +238,8 @@ the map's own gate has the last word.
    and four lazily-fetched layers 404'd their way to nothing on the live
    map for a day.
 7. **Publish** — the small products and status force-push to `published`;
-   the whole tree deploys to Pages.
+   the whole tree deploys to Pages, and `publish-r2` uploads what changed to
+   R2 beside it.
 
 ## Operating it
 

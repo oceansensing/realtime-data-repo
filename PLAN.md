@@ -21,11 +21,11 @@ runs**: `espc-model-repo`, `espc-model-fields-repo`,
 `mercator-model-currents-repo`, `mercator-model-fields-repo` and
 `sentinel3-data-repo` each point it at their own workspace through
 `PIPELINE_ROOT` (the two ECCOFS repositories are queued to) — plus `pipeline/products.toml`
-for its own **nine** products, and the static half under `map/` that CI cannot
+for its own **ten** products, and the static half under `map/` that CI cannot
 rebuild.
 
-**Nine since 2026-08-31**, when the five Navy scalars left for
-`espc-model-fields-repo`. This repository holds no ESPC product at all now.
+**Ten since 2026-09-10**, when `ooi` joined; nine from 2026-08-31, when the
+five Navy scalars left for `espc-model-fields-repo`. This repository holds no ESPC product at all now.
 
 The fetchers and the data contract live in `oceansensing.github.io` and are
 checked out at run time, so a fetcher or `schema.ts` change lands here on the

@@ -164,9 +164,12 @@ writes = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.j
 max_age_hours = 11
 
 # Its own product on the assets step — the fields pattern, one fetch feeding
-# two products — so an NDBC outage holds the buoys and nothing else. The
-# collector keeps the previous file on failure, and this file's absence from
-# a cold seed is ordinary: the contract's buoys check is presence-conditional.
+# two products — so an NDBC outage holds the buoys and nothing else (since
+# 2026-09-26 it also leaves `ndbc` off that run's OOI sites: `ooi_join_ndbc`
+# moves OOI's NDBC-relayed surface moorings out of this file only when both
+# collectors read). The collector keeps the previous file on failure, and
+# this file's absence from a cold seed is ordinary: the contract's buoys
+# check is presence-conditional.
 [products.buoys]
 title = "NDBC buoys and coastal stations"
 step = "assets"
@@ -199,6 +202,11 @@ max_age_hours = 4
 # M2M. The collector keeps the previous file on failure and refuses to
 # publish an empty layer; the file's absence from a cold seed is ordinary,
 # and the contract's ooi check is presence-conditional like the buoys'.
+# **Not independent of the buoys since 2026-09-26** (one mooring, one mark):
+# when both read, the surface moorings OOI owns (`OOI_NDBC`) carry NDBC's
+# reading here as `ndbc` and leave `buoys.json`; when only `buoys` reads, it
+# publishes unjoined beside this file's previous copy, and those moorings
+# are drawn twice until the next run where both read.
 [products.ooi]
 title = "NSF OOI moorings, profilers and cabled sites"
 step = "assets"
