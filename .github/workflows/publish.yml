@@ -3,9 +3,11 @@ name: Publish realtime ocean data
 # Thin on purpose. The predecessor's workflow was 494 lines of bash-in-YAML,
 # and the night it broke, four of the six faults lived in that bash — grep
 # exit codes under `-e`, cache bookkeeping, a guard reading a deliberate
-# state as damage. Everything with a decision in it now lives in
-# pipeline/orchestrate.py, which has unit tests and runs the same way on a
-# laptop. This file is checkouts, caches, and two uploads.
+# state as damage. Everything with a decision in it now lives in the
+# orchestrator — pipeline/orchestrate.py in the private site repository since
+# 2026-09-26, run from the site checkout below with PIPELINE_ROOT pointing
+# here — which has unit tests and runs the same way on a laptop. This file is
+# checkouts, caches, and two uploads.
 #
 # The full run is at :35, offset from the predecessor's :05 so the two
 # pipelines' tile rebuilds do not land on HYCOM together — GitHub dispatches
@@ -198,8 +200,10 @@ jobs:
           python-version: '3.12'
 
       # A broken orchestrator refuses to run, rather than publishing
-      # something strange with green ticks.
+      # something strange with green ticks. Its code and tests are the site
+      # checkout's (`site/pipeline/`) since 2026-09-26.
       - name: Unit-test the orchestrator
+        working-directory: site
         run: python3 pipeline/test_orchestrate.py
 
       # `github.event.schedule` is the literal cron string — the only signal
@@ -211,11 +215,15 @@ jobs:
       # full for that same reason and not on whatever the fallthrough happens
       # to be.
       - name: Seed the stage from the last publish
-        run: python3 pipeline/orchestrate.py seed
+        env:
+          PIPELINE_ROOT: ${{ github.workspace }}
+        run: python3 site/pipeline/orchestrate.py seed
 
       - name: Plan the run
         id: plan
-        run: python3 pipeline/orchestrate.py plan
+        env:
+          PIPELINE_ROOT: ${{ github.workspace }}
+        run: python3 site/pipeline/orchestrate.py plan
 
       # The one Python dependency in the whole pipeline: ECMWF packs its
       # open GRIB2 with CCSDS, which nothing in the standard library reads.
@@ -246,7 +254,9 @@ jobs:
 
       - name: Fetch, validate, assemble
         id: run
-        run: python3 pipeline/orchestrate.py run
+        env:
+          PIPELINE_ROOT: ${{ github.workspace }}
+        run: python3 site/pipeline/orchestrate.py run
 
       - name: Upload the site
         if: steps.run.outputs.deploy == 'true'
@@ -318,7 +328,7 @@ jobs:
   # the build and its publish decision, so a Pages outage never stops it and
   # a failure here never touches Pages. Only what changed is uploaded, and
   # the bucket is then compared file by file with what the run built.
-  # `pipeline/publish_r2.py` in realtime-data-repo has the rules.
+  # `pipeline/publish_r2.py` in oceansensing.github.io has the rules.
   publish-r2:
     needs: build
     if: needs.build.outputs.deploy == 'true'
@@ -330,9 +340,10 @@ jobs:
       - name: Check out the publish script
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          repository: oceansensing/realtime-data-repo
-          path: engine
+          repository: oceansensing/oceansensing.github.io
+          path: code
           sparse-checkout: pipeline
+          ssh-key: ${{ secrets.PIPELINES_SSH_KEY }}
 
       - name: Download the built site
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -341,7 +352,7 @@ jobs:
           path: pages
 
       - name: Test the publish script
-        run: python3 engine/pipeline/test_publish_r2.py
+        run: python3 code/pipeline/test_publish_r2.py
 
       - name: Publish to R2
         env:
@@ -355,4 +366,4 @@ jobs:
         run: |
           mkdir site
           tar -xf pages/artifact.tar -C site
-          python3 engine/pipeline/publish_r2.py site "$GITHUB_REPOSITORY"
+          python3 code/pipeline/publish_r2.py site "$GITHUB_REPOSITORY"
