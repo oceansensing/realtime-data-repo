@@ -1,6 +1,7 @@
 # The declaration. Everything the pipeline knows about a product is in this
 # file, and everything else — fetch steps, validation, manifests, cache keys,
-# what the published branch carries — is derived from it by orchestrate.py.
+# what the published branch carries — is derived from it by the site's
+# `pipeline/orchestrate.py`.
 #
 # The predecessor kept this knowledge in five hand-maintained lists across a
 # workflow file, and each drifted silently on the newest product. If a change
@@ -102,8 +103,8 @@ timeout_minutes = 20
 #
 #   Going past the budget is only a FAULT when the product's fate is not
 #   `fresh`: old-but-fetched means upstream has nothing newer, which is a note
-#   and not this repository's doing. See `nearest_frame_age` in
-#   orchestrate.py.
+#   and not this repository's doing. See `nearest_frame_age` in the site's
+#   `pipeline/orchestrate.py`.
 #
 #   **Every number here was re-derived on 2026-08-27, and the old ones should
 #   not be trusted as precedent.** They were all calibrated against `updated`,
@@ -113,13 +114,15 @@ timeout_minutes = 20
 #   would have fired for half of every cycle. Size each one to its product's
 #   own cadence plus the delay its upstream takes to publish, and no tighter —
 #   an alarm that is usually on is an alarm nobody reads, and this project has
-#   measured that once already (CLAUDE.md, on red CI).
+#   measured that once already (the site's `pipeline/CLAUDE.md`, on a red
+#   run).
 #
 # There is no cross-product agreement declared here, on purpose. How the
 # ESPC members must relate is the consumer contract's rule (test-schema.mjs
 # owns it, frames and run-raggedness included), and a copy of it here was
 # wrong on the first live run. The gate demotes the offending product when
-# the contract objects; see the note in orchestrate.py's cmd_run.
+# the contract objects; see the note in `cmd_run` in the site's
+# `pipeline/orchestrate.py`.
 
 [products.assets]
 title = "Storms, gliders, USVs and Argo floats"

@@ -38,13 +38,14 @@ name: Publish realtime ocean data
 # three hours.
 #
 # Making a push run *light* was the other candidate and is worse for the case
-# that matters. A push here is usually a change to a fetcher or to the
-# orchestrator, and a light run executes one of the five steps: you would be
-# watching a run that did not do the thing you changed, which is the
-# deploy-and-watch habit defeated rather than served. `workflow_dispatch`
-# makes the choice explicit instead — push freely, then dispatch a full run
-# when there is something to watch. It defaults to full for the same
-# safe-direction reason the mode selector did.
+# that matters. A push here is a change to `products.toml`, a static under
+# `map/`, or a document; the fetchers and the orchestrator are the site's. A
+# light run executes one of the five steps: you would be watching a run that
+# did not do the thing you changed, which is the deploy-and-watch habit
+# defeated rather than served. `workflow_dispatch` makes the choice explicit
+# instead — push freely, then dispatch a full run when there is something to
+# watch. It defaults to full for the same safe-direction reason the mode
+# selector did.
 #
 # Nothing is lost by waiting: an unpushed change is picked up by the next
 # scheduled run either way, within about twenty minutes.
@@ -105,7 +106,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       # The fetchers and the contract, one copy each, in the repository the
-      # map lives in.
+      # map lives in — and since 2026-09-26 the pipeline's code (`pipeline/`).
       - name: Check out the pipelines
         id: pipelines
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -146,8 +147,8 @@ jobs:
           # on its expiry date — and it belongs to no person, so it survives
           # somebody leaving the org. The public half goes on the site repo's
           # Deploy keys page with **write access unchecked**; the private
-          # half is the secret below. Neither is ever committed. README.md
-          # carries the order of operations.
+          # half is the secret below. Neither is ever committed. The site's
+          # `pipeline/README.md` carries the order of operations.
           ssh-key: ${{ secrets.PIPELINES_SSH_KEY }}
 
       # **The message a failure gives is not the message anybody needs.**
@@ -159,8 +160,8 @@ jobs:
       # would attach this explanation to any earlier failure in the job and
       # so describe the wrong fault — the label-that-names-something-else
       # shape.
-      # **The message a failure gives is not the message anybody needs**, and
-      # this step's own first real failure proved it. It used to say: if the
+      #
+      # This step's own first real failure proved it. It used to say: if the
       # secret is set, check the key is on the site repository and not
       # revoked. The failure when it came was neither — the log said
       # `Load key ...: error in libcrypto`, meaning the private key could not
@@ -173,9 +174,9 @@ jobs:
       # than listing causes in prose. **A message that points at the wrong
       # thing is worse than none**, because it is believed.
       #
-      # Corrected in espc-model-repo the day it happened and left here for
-      # another day: the copy was fixed and the original was not, which is
-      # the shape this project keeps paying for.
+      # Corrected in espc-model-repo the day it happened, and here only later
+      # (`c665906`, 2026-08-22): the copy was fixed before the original, which
+      # is the shape this project keeps paying for.
       - name: Say why the pipelines could not be checked out
         if: failure() && steps.pipelines.outcome == 'failure'
         run: |

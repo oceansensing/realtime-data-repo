@@ -3,9 +3,11 @@
 Copyright (c) 2026 Donglai Gong and the Collaboratory for Physical
 Oceanography (C4PO). All rights reserved.
 
-This repository contains the orchestration code, workflow, product
-declaration and documentation of the second-generation C4PO ocean data
-pipeline, publishing at https://oceansensing.org/realtime-data-repo/.
+This repository contains the product declaration, the workflow, the static
+files under `map/`, the landing page and the documentation of the
+second-generation C4PO ocean data pipeline, publishing at
+https://oceansensing.org/realtime-data-repo/ — and the orchestration code it
+held until 2026-09-26, which its history still carries.
 
 No permission is granted to copy, modify, merge, publish, distribute,
 sublicense, or sell any part of this repository, or to create derivative
@@ -26,9 +28,10 @@ CONTENT OR THE USE OR OTHER DEALINGS IN THEM.
 
 ## What this license does and does not cover
 
-**It covers the original work in this repository**: the orchestrator in
-`pipeline/`, the product declaration, the workflow, the landing page and
-the documentation.
+**It covers the original work in this repository**: the product
+declaration, the workflow, the landing page and the documentation — and the
+orchestration code it held in `pipeline/` until 2026-09-26, which its history
+still carries.
 
 **The fetch scripts are not here.** They live in
 [`oceansensing/oceansensing.github.io`](https://github.com/oceansensing/oceansensing.github.io)
