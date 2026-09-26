@@ -321,7 +321,7 @@ jobs:
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
 
 
-  # **The R2 publish** (ocean-now's D24; the owner, 2026-09-24: *"When
+  # **The R2 publish** (the owner, 2026-09-24: *"When
   # operational R2 server should be able to function on its own without
   # GitHub. Cross check with GitHub is a feature but not requirement."*).
   # The tree this run built, published to Cloudflare R2 under this

@@ -83,14 +83,14 @@ owner, who then asked for this doctrine.
 grounds, and both are named because an exclusion nobody wrote down is
 indistinguishable from an oversight.**
 
-`ocean-now`, the iOS port, **consumes this system** — it mirrors the site's
+**A downstream consumer in a private repository** mirrors the site's
 published contract. It is not swept by these six questions and does not carry
-this block; it has a lighter mechanism instead, a pending list in its parity
+this block; it has a lighter mechanism instead, a pending list in its own
 ledger, and the two repositories whose changes can reach it (the engine and
-the site) each say so in their own section. It is named here because "four"
-was read as "all of them" for two weeks while that ledger drifted 176 commits
-behind with nothing noticing — question 6 failing at the granularity of a
-whole repository rather than a document.
+the site, both private) each name it in their own section. It is noted here
+because "four" was read as "all of them" for two weeks while that ledger
+drifted 176 commits behind with nothing noticing — question 6 failing at the
+granularity of a whole repository rather than a document.
 
 `hab-data-repo` is excluded on the opposite ground: **it does not touch the
 ocean map at all** (the owner's call, 2026-08-31). It publishes the bloom
@@ -101,7 +101,8 @@ lighter one — nothing in these ten can falsify a claim in it, and it cannot
 falsify one here. Do not mix it in.
 
 Adding a repository to the list above is therefore a real act: it buys the
-sweep, and leaving one off **silently** costs exactly what `ocean-now` cost.
+sweep, and leaving one off **silently** costs exactly what that consumer's
+ledger cost.
 
 A number in prose is only as good as its anchor. `check:docs` gates every
 claim it can tie to a source constant and nothing else, so when a figure has

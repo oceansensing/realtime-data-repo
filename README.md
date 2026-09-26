@@ -44,9 +44,8 @@ check runs once more; only a tree that passes is published. The contract is
 the consumer's, deliberately: this repository validates what it builds, but
 the map's own gate has the last word.
 
-The same tree also goes to Cloudflare R2 (`oceannow-data/realtime-data-repo/`),
-which the Ocean Now app reads; the site's `pipeline/publish_r2.py` has the
-rules.
+The same tree also goes to a second host, Cloudflare R2, under this
+repository's name; the site's `pipeline/publish_r2.py` has the rules.
 
 ## License
 
