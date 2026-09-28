@@ -30,9 +30,9 @@ check = ["node", "scripts/test-schema.mjs"]
 roots = ["node", "scripts/test-schema.mjs", "--roots"]
 
 # The static half: committed in this repository under map/ and copied into
-# every artifact by assemble, because the seafloor does not change and
-# cannot be rebuilt in CI (contouring GEBCO needs a 7.5 GB grid run by
-# hand). **Declared, because it went missing silently once**: the cutover
+# every artifact by assemble, because none of it changes between runs and
+# none of it can be rebuilt in CI (contouring GEBCO needs a 7.5 GB grid run
+# by hand; `noaa-land/` merges every usage band of NOAA's charts by hand). **Declared, because it went missing silently once**: the cutover
 # carried every pipeline and no static file, and the isobaths, the offline
 # coastline and the borders were dead on the live site for a day — each a
 # lazy layer whose 404 degrades to nothing. Assemble refuses to run when

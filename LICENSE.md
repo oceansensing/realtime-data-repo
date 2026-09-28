@@ -36,14 +36,15 @@ still carries.
 **The fetch scripts are not here.** They live in
 [`oceansensing/oceansensing.github.io`](https://github.com/oceansensing/oceansensing.github.io)
 and are checked out at run time; they are covered by that repository's own
-LICENSE, not this one.
+LICENSE, not this one. Nor are the scripts that built the hand-made statics
+under `map/`, which live in private repositories.
 
 **The scientific data is not ours and never was.** Everything published
 under `map/` — and every snapshot of it on the `published` branch — is
 fetched from the bodies that produced it and remains theirs, under their
 own terms: GEBCO (bathymetry and isobaths), Natural Earth (coastline and
 boundaries), the NOAA Office of Coast Survey (nautical charts' land, public
-domain), Marine Regions/VLIZ (EEZ boundaries), NOAA/NHC (storm
+domain, filled from Natural Earth where uncharted), Marine Regions/VLIZ (EEZ boundaries), NOAA/NHC (storm
 forecasts and wind probabilities), NOAA PMEL (uncrewed surface vehicles),
 US IOOS, NOC/BODC, OTN and VOTO (gliders), Ifremer (Argo floats),
 NOAA/NCEI and NOAA/PSL (OISST), the US Navy via HYCOM (ESPC-D-V02
