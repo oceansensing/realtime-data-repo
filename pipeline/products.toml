@@ -127,8 +127,11 @@ timeout_minutes = 20
 [products.assets]
 title = "Storms, gliders, USVs and Argo floats"
 step = "assets"
-roots = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
-writes = ["ocean-assets.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
+# `asset-tracks.json` (2026-09-28): the gliders' and USVs' whole missions,
+# each fix timed, from the same request per platform that gives
+# `ocean-assets.json` its ten-day window.
+roots = ["ocean-assets.json", "asset-tracks.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
+writes = ["ocean-assets.json", "asset-tracks.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
 # Ten, and the bound is derived rather than tuned: NHC issues the
 # wind-speed probabilities at 00/06/12/18Z, so a 6 h cycle, plus the
 # time they take to appear. **The delay is the part I sized wrong
