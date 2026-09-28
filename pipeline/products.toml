@@ -39,7 +39,7 @@ roots = ["node", "scripts/test-schema.mjs", "--roots"]
 # one of these is absent: a missing static is a repository defect, not an
 # upstream outage, and failing loudly is the correct fate for it.
 [static]
-required = ["bathy-deep.json", "bathy-tiles", "boundaries.json", "coastline.json"]
+required = ["bathy-deep.json", "bathy-tiles", "boundaries.json", "coastline.json", "noaa-land"]
 
 [defaults]
 timeout_minutes = 30

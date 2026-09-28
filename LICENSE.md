@@ -42,7 +42,8 @@ LICENSE, not this one.
 under `map/` — and every snapshot of it on the `published` branch — is
 fetched from the bodies that produced it and remains theirs, under their
 own terms: GEBCO (bathymetry and isobaths), Natural Earth (coastline and
-boundaries), Marine Regions/VLIZ (EEZ boundaries), NOAA/NHC (storm
+boundaries), the NOAA Office of Coast Survey (nautical charts' land, public
+domain), Marine Regions/VLIZ (EEZ boundaries), NOAA/NHC (storm
 forecasts and wind probabilities), NOAA PMEL (uncrewed surface vehicles),
 US IOOS, NOC/BODC, OTN and VOTO (gliders), Ifremer (Argo floats),
 NOAA/NCEI and NOAA/PSL (OISST), the US Navy via HYCOM (ESPC-D-V02
