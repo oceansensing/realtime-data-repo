@@ -20,8 +20,9 @@ checkout of it.
 
 ```
 oceansensing.org/realtime-data-repo/
-  map/          the data — same layout, same files, same bytes as the
-                predecessor, so a consumer retargets by changing one base URL
+  map/          the data — the layout the predecessor used, so a consumer
+                retargets by changing one base URL; the files are the ones
+                the site's schema.ts contract defines
   status/
     status.json one object per product: fate, reason, checked, updated, hour;
                 and `schedule` — the crons of the workflow that ran this, and

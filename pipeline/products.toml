@@ -16,7 +16,7 @@
 
 [contract]
 # The consumer's own gate, run over the assembled tree from the site
-# checkout. `roots` prints every file the map reads, from **every** origin —
+# checkout. `roots` prints every root the contract publishes, from **every** origin — including roots the map does not draw —
 # so this repository's products declare a *subset* of it, and the orchestrator
 # refuses to run on a root declared here that the contract does not publish.
 #
@@ -81,7 +81,7 @@ lane = "ecmwf"
 timeout_minutes = 20
 
 # --- products ---------------------------------------------------------------
-# `roots` are the files nothing else links to — the map's entry points, and
+# `roots` are the files nothing else links to — the entry points a reader fetches by name, and
 #   the level the contract's own `--roots` list is checked against.
 # `writes` is the product's namespace: every filename its step may create,
 #   as globs. A step writing outside every product's namespace fails the run
@@ -127,9 +127,9 @@ timeout_minutes = 20
 [products.assets]
 title = "Storms, gliders, USVs and Argo floats"
 step = "assets"
-# `asset-tracks.json` (2026-09-28): the gliders' and USVs' whole missions,
-# each fix timed, from the same request per platform that gives
-# `ocean-assets.json` its ten-day window.
+# `asset-tracks.json` (2026-09-28): the gliders' and USVs' whole missions
+# (from each dataset's start, at most 365 days), each fix timed, rebuilt on
+# the first run of each UTC day and left byte-identical between runs.
 roots = ["ocean-assets.json", "asset-tracks.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
 writes = ["ocean-assets.json", "asset-tracks.json", "argo.json", "wsp34.json", "wsp50.json", "wsp64.json"]
 # Ten, and the bound is derived rather than tuned: NHC issues the
