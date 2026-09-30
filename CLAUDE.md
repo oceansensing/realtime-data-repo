@@ -2,10 +2,10 @@
 
 Guidance for Claude Code working in this repository.
 
-<!-- DOC-DOCTRINE v1 begin — identical in all twenty repositories; `check:docs` holds them equal. Edit one, sync all. -->
+<!-- DOC-DOCTRINE v1 begin — identical in all twenty-four repositories; `check:docs` holds them equal. Edit one, sync all. -->
 ## Where truth lives, and what "update docs" means
 
-Twenty repositories carry this project. The engine and the site:
+Twenty-four repositories carry this project. The engine and the site:
 `oceanlet.js`, `oceansensing.github.io` (the site, every fetch script, and
 since 2026-09-26 the pipeline's code, `pipeline/`). The observations:
 `realtime-data-repo`. And the data
@@ -23,7 +23,12 @@ one and an **atmosphere** repository for an atmospheric model:
 since 2026-09-27 the University of Delaware ORB lab's satellite products, one
 repository per sensor: `orb-satellite-viirs-repo`, `orb-satellite-goes-repo`
 and `orb-satellite-pace-repo` (the last set up, publishing nothing until its
-upstream is live). Each document answers exactly one question.
+upstream is live). And since 2026-09-30 four set up together: `enc-chart-repo`
+(NOAA's nautical charts — their land now, a chart layer later),
+`river-data-repo` (rivers — USGS's river outlines where no chart reaches now,
+the world's rivers and their gauges later), and `pace-satellite-repo` and
+`viirs-satellite-repo` (satellite products, publishing nothing until their
+sources are chosen). Each document answers exactly one question.
 
 **`espc-model-repo` is the ESPC CURRENTS repository** despite its name — the
 one exception to the convention, kept because its URL is a live origin and
@@ -35,7 +40,7 @@ not superseded — GitHub redirects the old name, which is why a rename was
 free there and is not free for `espc-model-repo`: that one has published
 bytes behind a Pages URL, and Pages does not redirect what the API does.)*
 
-**All twenty carry the same four documents, and since 2026-08-31 a gate holds
+**All twenty-four carry the same four documents, and since 2026-08-31 a gate holds
 them to it** — `check:docs` requires a `DECISIONS.md` tracked in git in every
 repository. The last two landed that day, the site's and
 `realtime-data-repo`'s, reconstructed from records that already existed:
@@ -62,7 +67,7 @@ whose rows are pinned by tests, a guide that introduces the model: each is
 the thing a reader is sent to when the short answer will not do, so each is
 the worst place for a claim that has quietly stopped being true.
 
-**"Update docs" means a sweep of all twenty repositories, not the one in hand.**
+**"Update docs" means a sweep of all twenty-four repositories, not the one in hand.**
 Docs are part of the change, never a follow-up and never a separate ask. Six
 questions, asked of every repository the change touched:
 
@@ -74,7 +79,7 @@ questions, asked of every repository the change touched:
    open question opened or answered? → `PLAN.md`
 4. Did a one-way door close — **or has one already recorded stopped being
    fully true**? → `DECISIONS.md`, in **every** repository the change
-   touched. All twenty carry one, so this is no longer the
+   touched. All twenty-four carry one, so this is no longer the
    engine's question with seven exemptions; the amendment half is here
    because two entries needed one within a day of being written.
 5. Did an interface, a deliberate divergence, or a concept the guide explains
@@ -83,7 +88,7 @@ questions, asked of every repository the change touched:
    this change?** → fix it there, in the same sitting.
 
 **Question 6 is the one that gets missed, and it is why this block is
-identical in twenty places.** Measured 2026-08-28: one tile-tier measurement
+identical in twenty-four places.** Measured 2026-08-28: one tile-tier measurement
 falsified `espc-model-repo`'s README, its `products.toml` header and the
 site's README at once. Two were found; the third took a reminder from the
 owner, who then asked for this doctrine.
@@ -106,7 +111,7 @@ ocean map at all** (the owner's call, 2026-08-31). It publishes the bloom
 photographs for a different part of the website, reached through `HAB_DATA`
 in `src/config.ts`, and carries no interface anything here codes against
 beyond a URL and a filename convention. It needs no mechanism, not even a
-lighter one — nothing in these twenty can falsify a claim in it, and it cannot
+lighter one — nothing in these twenty-four can falsify a claim in it, and it cannot
 falsify one here. Do not mix it in.
 
 Adding a repository to the list above is therefore a real act: it buys the
