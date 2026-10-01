@@ -25,8 +25,8 @@ repository per sensor: `orb-satellite-viirs-repo`, `orb-satellite-goes-repo`
 and `orb-satellite-pace-repo` (the last set up, publishing nothing until its
 upstream is live). And since 2026-09-30 four set up together: `enc-chart-repo`
 (NOAA's nautical charts — their land now, a chart layer later),
-`river-data-repo` (rivers — USGS's river outlines where no chart reaches now,
-the world's rivers and their gauges later), and `pace-satellite-repo` and
+`river-data-repo` (rivers — USGS's river outlines where no chart reaches and
+its water gauges hourly, now; the world's rivers later), and `pace-satellite-repo` and
 `viirs-satellite-repo` (satellite products, publishing nothing until their
 sources are chosen). Each document answers exactly one question.
 
