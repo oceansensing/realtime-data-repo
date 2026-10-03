@@ -33,6 +33,11 @@ oceansensing.org/realtime-data-repo/
                 asked of the site's checker each run, for a reader that
                 cannot be redeployed; absent when the site checkout is from
                 before the flag
+                and, on the platform products, `health` — each server the
+                fetch asked, per feed: `ok`, `partial` or `down`, how many
+                platforms it was asked for, left unanswered and kept from
+                the last run, and `failedRuns`, the runs in a row it has not
+                answered whole (since 2026-10-02)
     plan.json   what this run intended before it started
     receipt.json  what it actually did: fates, builds, durations, sizes
 ```
