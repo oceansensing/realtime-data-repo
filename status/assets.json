@@ -1,0 +1,106 @@
+{
+ "schema": 1,
+ "product": "assets",
+ "title": "Storms, gliders, USVs and Argo floats",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-10-03T22:22:42Z",
+ "updated": "2026-10-03T22:22:42Z",
+ "hour": "2026-10-03T18:00:00Z",
+ "modelRun": null,
+ "source": "National Hurricane Center",
+ "hours": [
+  "2026-10-03T18:00:00Z"
+ ],
+ "files": {
+  "argo.json": {
+   "bytes": 292049,
+   "sha256": "53b1be7163a52a7aa399eb0d8f34188dff62c4f3882881687dc9689a7790c53d"
+  },
+  "asset-tracks.json": {
+   "bytes": 1833129,
+   "sha256": "d8ce2f39f6fab7e5d789283343b6a938b226152f4490466ce73dae87b52d5079"
+  },
+  "ocean-assets.json": {
+   "bytes": 247409,
+   "sha256": "d5822e1fa7ec4d558f92ab50154b602722905b69e3bbb9cb13f01735cee0c6f0"
+  },
+  "wsp34.json": {
+   "bytes": 1008409,
+   "sha256": "51ec26e353c569afa5d9941c05f98240e7794dea512f4a5e29d0cf8095697100"
+  },
+  "wsp50.json": {
+   "bytes": 1009492,
+   "sha256": "273e1698d45b79deafffd196b72e2e129f1e8908e7c06a32d16ca1a0b6daadb2"
+  },
+  "wsp64.json": {
+   "bytes": 1009420,
+   "sha256": "b693c3d4d164b3d3b7ef691c74e926860bd40f1078ab9c9f38198b8263ee49bf"
+  }
+ },
+ "health": {
+  "argo": {
+   "root": "argo.json",
+   "servers": [
+    {
+     "name": "Argo GDAC via Ifremer ERDDAP",
+     "state": "ok",
+     "asked": 4104,
+     "unanswered": 0,
+     "kept": 0,
+     "failedRuns": 0
+    }
+   ]
+  },
+  "glider": {
+   "root": "ocean-assets.json",
+   "servers": [
+    {
+     "name": "US IOOS Glider DAC",
+     "state": "ok",
+     "asked": 52,
+     "unanswered": 0,
+     "kept": 0,
+     "failedRuns": 0
+    },
+    {
+     "name": "NOC / BODC, UK",
+     "state": "ok",
+     "asked": 2,
+     "unanswered": 0,
+     "kept": 0,
+     "failedRuns": 0
+    },
+    {
+     "name": "Ocean Tracking Network, Canada",
+     "state": "ok",
+     "asked": 4,
+     "unanswered": 0,
+     "kept": 0,
+     "failedRuns": 0
+    },
+    {
+     "name": "Voice of the Ocean, Sweden",
+     "state": "ok",
+     "asked": 5,
+     "unanswered": 0,
+     "kept": 0,
+     "failedRuns": 0
+    }
+   ]
+  },
+  "usv": {
+   "root": "ocean-assets.json",
+   "servers": [
+    {
+     "name": "NOAA PMEL ERDDAP",
+     "state": "ok",
+     "asked": 27,
+     "unanswered": 0,
+     "kept": 0,
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}
