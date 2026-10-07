@@ -37,7 +37,10 @@ oceansensing.org/realtime-data-repo/
                 fetch asked, per feed: `ok`, `partial` or `down`, how many
                 platforms it was asked for, left unanswered and kept from
                 the last run, and `failedRuns`, the runs in a row it has not
-                answered whole (since 2026-10-02)
+                answered whole (since 2026-10-02) — and `newest`, the
+                newest reading among the platforms drawn from it, so a
+                server that answers while its data has stopped can be
+                told apart (since 2026-10-07)
     plan.json   what this run intended before it started
     receipt.json  what it actually did: fates, builds, durations, sizes
 ```
