@@ -265,6 +265,18 @@ jobs:
         with:
           path: out
 
+      # What this origin publishes to R2 alone (the site pipeline's D13, its
+      # note of 2026-10-09; here since 2026-10-10, ECMWF's 500 hPa heights as a
+      # grid), and R2's whole status: the R2 job lays it beside the site.
+      # Public for the day it is kept, so open data only.
+      - name: Hand on what R2 alone carries
+        if: steps.run.outputs.deploy == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: r2-only
+          path: out-r2
+          retention-days: 1
+
       # The branch content uploads even when the deploy is refused: a light
       # run that cannot deploy still banks its storms for the next run.
       - name: Upload the branch content
@@ -350,6 +362,12 @@ jobs:
           name: github-pages
           path: pages
 
+      - name: Download what R2 alone carries
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: r2-only
+          path: r2-only
+
       - name: Test the publish script
         run: python3 code/pipeline/test_publish_r2.py
 
@@ -365,4 +383,4 @@ jobs:
         run: |
           mkdir site
           tar -xf pages/artifact.tar -C site
-          python3 code/pipeline/publish_r2.py site "$GITHUB_REPOSITORY"
+          python3 code/pipeline/publish_r2.py site "$GITHUB_REPOSITORY" --with r2-only

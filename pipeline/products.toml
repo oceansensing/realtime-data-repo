@@ -330,8 +330,14 @@ max_age_hours = 72
 # contract cannot see.
 title = "ECMWF 10 m wind, 2 m and 850 hPa temperature, cloud cover and 500 hPa heights"
 step = "wind"
-roots = ["wind.json", "air.json", "cloud.json", "air-850.json", "gh-500.json"]
-writes = ["wind*.json", "air*.json", "cloud*.json", "gh-*.json"]
+roots = ["wind.json", "air.json", "cloud.json", "air-850.json", "gh-500.json", "hgt500-ecmwf.json"]
+writes = ["wind*.json", "air*.json", "cloud*.json", "gh-*.json", "hgt500-ecmwf.json"]
+# **The 500 hPa heights as a grid too, R2's alone** (2026-10-10): the message
+# the contours are cut from, at the model's 0.25 degrees to a tenth of a meter
+# (ECMWF packs it in half meters), 7.1 MB. Published beside the rest on R2 and
+# left out of the Pages site, as every new product layer is since 2026-10-09
+# (the site pipeline's D13, its note of that day).
+r2_only = ["hgt500-ecmwf.json"]
 # Four. ECMWF runs 6-hourly with 3-hourly steps, and the published
 # frame tracked the reader at 1.4 h when this was measured
 # (2026-08-27). Thirteen was an `updated` number and would have let
