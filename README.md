@@ -67,6 +67,17 @@ the map's own gate has the last word.
 The same tree also goes to a second host, Cloudflare R2, under this
 repository's name; the site's `pipeline/publish_r2.py` has the rules.
 
+## Published to R2 alone (since 2026-10-10)
+
+Declared `r2_only` in `pipeline/products.toml`: the same run builds these,
+they are left out of this repository's Pages site and its status, and the R2
+job publishes them beside the rest (the site pipeline's D13, its note of
+2026-10-09). Their roots stay on the `published` branch, as every product's do.
+
+| root | quantity | grid |
+| --- | --- | --- |
+| `hgt500-ecmwf.json` | ECMWF IFS's 500 hPa geopotential height, gpm, to a tenth — the message `gh-500.json`'s contours are cut from (ECMWF packs it in half meters) | global, 0.25 degree |
+
 ## License
 
 Copyright (c) 2026 Donglai Gong and C4PO. All rights reserved — see
