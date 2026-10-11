@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "product": "ships",
+ "title": "US academic research fleet",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-10-11T05:55:15Z",
+ "updated": "2026-10-11T05:55:15Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "ships.json": {
+   "bytes": 70875,
+   "sha256": "114b6d320254d7116a531c4ef47cbbcfe1ab5b6e0354d20d38553c8428daa40f"
+  }
+ },
+ "health": {
+  "ships": {
+   "root": "ships.json",
+   "servers": [
+    {
+     "name": "R2R vessel registry",
+     "state": "down",
+     "asked": 0,
+     "unanswered": 0,
+     "kept": 0,
+     "failedRuns": 229
+    },
+    {
+     "name": "NOAA OSMC",
+     "state": "ok",
+     "asked": 11,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-10-11T05:00:00Z",
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}
