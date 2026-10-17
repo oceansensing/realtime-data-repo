@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "product": "waves",
+ "title": "ECWAM significant wave height",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-10-17T17:23:13Z",
+ "updated": "2026-10-17T16:38:52Z",
+ "hour": "2026-10-17T18:00:00Z",
+ "modelRun": "2026-10-17T06:00:00Z",
+ "source": "ECMWF ECWAM",
+ "hours": [
+  "2026-10-17T18:00:00Z"
+ ],
+ "files": {
+  "waves.json": {
+   "bytes": 4525850,
+   "sha256": "045d1e406f79d822c548546bb2c8a893de9ba6f2e5f2803393efeace6db03889"
+  }
+ }
+}
