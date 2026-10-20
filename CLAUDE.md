@@ -2,10 +2,10 @@
 
 Guidance for Claude Code working in this repository.
 
-<!-- DOC-DOCTRINE v1 begin — identical in all thirty-one repositories; `check:docs` holds them equal. Edit one, sync all. -->
+<!-- DOC-DOCTRINE v1 begin — identical in all thirty-two repositories; `check:docs` holds them equal. Edit one, sync all. -->
 ## Where truth lives, and what "update docs" means
 
-Thirty-one repositories carry this project. The engine and the site:
+Thirty-two repositories carry this project. The engine and the site:
 `oceanlet.js`, `oceansensing.github.io` (the site, every fetch script, and
 since 2026-09-26 the pipeline's code, `pipeline/`). The observations:
 `realtime-data-repo`. And the data
@@ -38,10 +38,11 @@ University's ERDDAP, R2 alone). And since 2026-10-16 `geomagnetic-model-repo`
 each month, R2 alone). And since 2026-10-17 `seaice-product-repo` (satellite sea
 ice from Copernicus Marine — EUMETSAT OSI SAF's, DTU Space's, DMI's, the CryoSat-2
 and SMOS thickness and the Baltic charts — reaching each pole as its satellites do,
-R2 alone). And since 2026-10-20 three for the land, each R2 alone: `public-lands-data-repo` (the US's
+R2 alone). And since 2026-10-20 four for the land, each R2 alone: `public-lands-data-repo` (the US's
 protected areas — PAD-US — and the Forest Service's roads and trails), `facilities-data-repo` (the US's
-hospitals, from the USGS's structures and Medicare's records) and `aviation-data-repo` (the world's airports,
-from OurAirports). Each document answers exactly one question.
+hospitals, from the USGS's structures and Medicare's records), `aviation-data-repo` (the world's airports,
+from OurAirports) and `water-data-repo` (the world's lakes from HydroLAKES and the Americas' rivers from
+HydroSHEDS v2). Each document answers exactly one question.
 
 **`espc-model-repo` is the ESPC CURRENTS repository** despite its name — the
 one exception to the convention, kept because its URL is a live origin and
@@ -53,7 +54,7 @@ not superseded — GitHub redirects the old name, which is why a rename was
 free there and is not free for `espc-model-repo`: that one has published
 bytes behind a Pages URL, and Pages does not redirect what the API does.)*
 
-**All thirty-one carry the same four documents, and since 2026-08-31 a gate holds
+**All thirty-two carry the same four documents, and since 2026-08-31 a gate holds
 them to it** — `check:docs` requires a `DECISIONS.md` tracked in git in every
 repository. The last two landed that day, the site's and
 `realtime-data-repo`'s, reconstructed from records that already existed:
@@ -80,7 +81,7 @@ whose rows are pinned by tests, a guide that introduces the model: each is
 the thing a reader is sent to when the short answer will not do, so each is
 the worst place for a claim that has quietly stopped being true.
 
-**"Update docs" means a sweep of all thirty-one repositories, not the one in hand.**
+**"Update docs" means a sweep of all thirty-two repositories, not the one in hand.**
 Docs are part of the change, never a follow-up and never a separate ask. Six
 questions, asked of every repository the change touched:
 
@@ -92,7 +93,7 @@ questions, asked of every repository the change touched:
    open question opened or answered? → `PLAN.md`
 4. Did a one-way door close — **or has one already recorded stopped being
    fully true**? → `DECISIONS.md`, in **every** repository the change
-   touched. All thirty-one carry one, so this is no longer the
+   touched. All thirty-two carry one, so this is no longer the
    engine's question with seven exemptions; the amendment half is here
    because two entries needed one within a day of being written.
 5. Did an interface, a deliberate divergence, or a concept the guide explains
@@ -101,7 +102,7 @@ questions, asked of every repository the change touched:
    this change?** → fix it there, in the same sitting.
 
 **Question 6 is the one that gets missed, and it is why this block is
-identical in thirty-one places.** Measured 2026-08-28: one tile-tier measurement
+identical in thirty-two places.** Measured 2026-08-28: one tile-tier measurement
 falsified `espc-model-repo`'s README, its `products.toml` header and the
 site's README at once. Two were found; the third took a reminder from the
 owner, who then asked for this doctrine.
@@ -124,7 +125,7 @@ ocean map at all** (the owner's call, 2026-08-31). It publishes the bloom
 photographs for a different part of the website, reached through `HAB_DATA`
 in `src/config.ts`, and carries no interface anything here codes against
 beyond a URL and a filename convention. It needs no mechanism, not even a
-lighter one — nothing in these thirty-one can falsify a claim in it, and it cannot
+lighter one — nothing in these thirty-two can falsify a claim in it, and it cannot
 falsify one here. Do not mix it in.
 
 Adding a repository to the list above is therefore a real act: it buys the
