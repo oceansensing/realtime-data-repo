@@ -1,6 +1,6 @@
 # realtime-data-repo
 
-The observations for the [oceansensing.org ocean map](https://oceansensing.org/visualization/):
+The observations for the [ocean map](https://oceansensing.org/visualization/):
 storms, gliders, USVs, Argo floats, radiosondes, buoys, tide gauges, the
 tropical moored arrays, research vessels, NSF OOI's moorings and cabled
 sites, the OISST temperature analysis, and ECMWF wind and waves — fetched
