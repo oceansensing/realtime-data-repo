@@ -1,6 +1,6 @@
 # realtime-data-repo
 
-The observations for the [C4PO ocean map](https://oceansensing.org/visualization/):
+The observations for the [oceansensing.org ocean map](https://oceansensing.org/visualization/):
 storms, gliders, USVs, Argo floats, radiosondes, buoys, tide gauges, the
 tropical moored arrays, research vessels, NSF OOI's moorings and cabled
 sites, the OISST temperature analysis, and ECMWF wind and waves — fetched
@@ -80,7 +80,7 @@ job publishes them beside the rest (the site pipeline's D13, its note of
 
 ## License
 
-Copyright (c) 2026 Donglai Gong and C4PO. All rights reserved — see
+Copyright (c) 2026 Donglai Gong. All rights reserved — see
 [LICENSE.md](LICENSE.md). The repository is public so the data can be
 served from GitHub Pages; that is not a grant of any license. The
 scientific data itself belongs to the bodies that produced it, each named

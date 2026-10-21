@@ -1,11 +1,10 @@
 # License
 
-Copyright (c) 2026 Donglai Gong and the Collaboratory for Physical
-Oceanography (C4PO). All rights reserved.
+Copyright (c) 2026 Donglai Gong. All rights reserved.
 
 This repository contains the product declaration, the workflow, the static
 files under `map/`, the landing page and the documentation of the
-second-generation C4PO ocean data pipeline, publishing at
+second-generation ocean data pipeline, publishing at
 https://oceansensing.org/realtime-data-repo/ — and the orchestration code it
 held until 2026-09-26, which its history still carries.
 
@@ -15,8 +14,6 @@ works from it, whether in source or compiled form, without the prior written
 permission of the copyright holder. The repository is public so that the
 data can be served from GitHub Pages and so that the work is open to
 inspection; publishing it is not a grant of any license.
-
-Requests for permission: info@c4po.science
 
 THE SOFTWARE AND CONTENT ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
