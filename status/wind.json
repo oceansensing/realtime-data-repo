@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "product": "wind",
+ "title": "ECMWF 10 m wind, 2 m and 850 hPa temperature, cloud cover and 500 hPa heights",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-10-24T13:49:54Z",
+ "updated": "2026-10-24T13:34:14Z",
+ "hour": "2026-10-24T15:00:00Z",
+ "modelRun": "2026-10-24T06:00:00Z",
+ "source": "ECMWF IFS",
+ "hours": [
+  "2026-10-24T15:00:00Z"
+ ],
+ "files": {
+  "air-850.json": {
+   "bytes": 5252522,
+   "sha256": "3480606ff59c16899176b2509584d8f0370208a3d426508f99bf7e235c31211d"
+  },
+  "air.json": {
+   "bytes": 5225418,
+   "sha256": "48e9847ca47f40ec8ead5e1082f3040fb7fe9948e6e6637bd5fda44d10b9bda9"
+  },
+  "cloud.json": {
+   "bytes": 4714347,
+   "sha256": "f4f015c0a68c60a07a4a60f716159bb2c78ea68bdd66646e6461ff90d967d26c"
+  },
+  "gh-500.json": {
+   "bytes": 162004,
+   "sha256": "03d591e38e606a0eb29585e1d22eab3f8cf45389f48b1e678c800d1f2c025cfc"
+  },
+  "hgt500-ecmwf.json": {
+   "bytes": 7267884,
+   "sha256": "690de548e66a153c803ee0aeaeff3ea9f3c80d30be963e0935c44bffee4f7657"
+  },
+  "wind.json": {
+   "bytes": 9465417,
+   "sha256": "e5b7108ba89aae4701d6075eb66376b6d694eeae35357b3a7a1c287269766d53"
+  }
+ }
+}

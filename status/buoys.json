@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "product": "buoys",
+ "title": "NDBC buoys and coastal stations",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-10-24T13:49:54Z",
+ "updated": "2026-10-24T13:49:54Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "buoys.json": {
+   "bytes": 136403,
+   "sha256": "6f503e30d27a0526e0e834ead865a6f7d7eff40a5e1498bbc33c8d4f205a9471"
+  }
+ },
+ "health": {
+  "buoys": {
+   "root": "buoys.json",
+   "servers": [
+    {
+     "name": "NOAA NDBC",
+     "state": "ok",
+     "asked": 585,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-10-24T13:30:00Z",
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}
