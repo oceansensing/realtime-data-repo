@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "product": "fields-oisst",
+ "title": "NOAA OISST temperature, anomaly and ice",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-10-31T22:28:54Z",
+ "updated": "2026-10-31T16:50:06Z",
+ "hour": "2026-10-30T00:00:00Z",
+ "modelRun": null,
+ "source": "NOAA PSL OISST v2.1",
+ "hours": [
+  "2026-10-30T00:00:00Z"
+ ],
+ "files": {
+  "sic-oisst.json": {
+   "bytes": 4758033,
+   "sha256": "e797b2938365ea0461dab038dbbfc2aec63f45e2712331b97402c81b6db22546"
+  },
+  "sst-oisst.json": {
+   "bytes": 4765593,
+   "sha256": "f4d95185d3a5fd6e0fabecf62cfc924d70349c130bc15f9387cff21e183b80cf"
+  },
+  "ssta-oisst.json": {
+   "bytes": 4379149,
+   "sha256": "c695bcd0b32cce0ba444f0fc825736b9288b85ca6f343c2f4b7c5d88edde6363"
+  }
+ }
+}

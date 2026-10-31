@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "product": "ooi",
+ "title": "NSF OOI moorings, profilers and cabled sites",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-10-31T22:28:54Z",
+ "updated": "2026-10-31T22:28:54Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "ooi.json": {
+   "bytes": 10204,
+   "sha256": "024f82e75415ec5cabade802cb27c50cf2be75f2356f795ea0ee67bf322e862b"
+  }
+ },
+ "health": {
+  "ooi": {
+   "root": "ooi.json",
+   "servers": [
+    {
+     "name": "NSF OOI ERDDAP",
+     "state": "ok",
+     "asked": 22,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-10-31T12:00:00Z",
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}
