@@ -3,7 +3,7 @@
 The observations for the [ocean map](https://oceansensing.org/visualization/):
 storms, gliders, USVs, Argo floats, radiosondes, buoys, tide gauges, the
 tropical moored arrays, research vessels, NSF OOI's moorings and cabled
-sites, the OISST temperature analysis, and ECMWF wind and waves — fetched
+sites and the OISST temperature analysis — fetched
 from their upstream sources through the hour and published as static files
 at `https://oceansensing.org/realtime-data-repo/map/`, with a
 machine-readable health record beside them at `/status/status.json`.
@@ -67,16 +67,14 @@ the map's own gate has the last word.
 The same tree also goes to a second host, Cloudflare R2, under this
 repository's name; the site's `pipeline/publish_r2.py` has the rules.
 
-## Published to R2 alone (since 2026-10-10)
+## ECMWF's products moved (2026-11-09)
 
-Declared `r2_only` in `pipeline/products.toml`: the same run builds these,
-they are left out of this repository's Pages site and its status, and the R2
-job publishes them beside the rest (the site pipeline's D13, its note of
-2026-10-09). Their roots stay on the `published` branch, as every product's do.
-
-| root | quantity | grid |
-| --- | --- | --- |
-| `hgt500-ecmwf.json` | ECMWF IFS's 500 hPa geopotential height, gpm, to a tenth — the message `gh-500.json`'s contours are cut from (ECMWF packs it in half meters) | global, 0.25 degree |
+ECMWF's wind, air temperatures, cloud cover and 500 hPa heights, and ECWAM's
+wave height — `wind.json`, `air.json`, `cloud.json`, `air-850.json`,
+`gh-500.json`, `waves.json`, and `hgt500-ecmwf.json` on R2 alone — were
+published here from August 2026 and moved to `ecmwf-model-atmosphere-repo`
+on 2026-11-09 under the same names. Nothing here is published to R2 alone
+since; the R2 job still carries this repository's whole tree and status.
 
 ## License
 

@@ -77,9 +77,10 @@ on:
     # there) rather than being left here to spend runner minutes on a
     # rollover no product in this repository follows any more.
     #
-    # Nothing left here is ESPC-anchored: OISST is a daily analysis, the
-    # ECMWF wind and waves have their own cycles, and the observation
-    # products are continuous. Three attempts an hour is the whole schedule.
+    # Nothing left here is ESPC-anchored: OISST is a daily analysis and the
+    # observation products are continuous (ECMWF's wind and waves, with
+    # their own cycles, moved to `ecmwf-model-atmosphere-repo` on
+    # 2026-11-09). Three attempts an hour is the whole schedule.
   workflow_dispatch:
 
 # Nothing at workflow level: each job says what it holds, and the job that
@@ -226,10 +227,10 @@ jobs:
           PIPELINE_ROOT: ${{ github.workspace }}
         run: python3 site/pipeline/orchestrate.py plan
 
-      # The one Python dependency in the whole pipeline: ECMWF packs its
-      # open GRIB2 with CCSDS, which nothing in the standard library reads.
-      - name: Install the ECMWF pipelines' dependency
-        run: pip install -r site/scripts/requirements-wind.txt
+      # **No `pip install` here since 2026-11-09**: its one dependency was
+      # ECMWF's (`requirements-wind.txt`, eccodes for CCSDS-packed GRIB2),
+      # and ECMWF's products moved to `ecmwf-model-atmosphere-repo`. What is
+      # left runs on the standard library.
 
       # **No cache steps here since 2026-08-31, and the absence is the
       # correct state.** Every product that declared one — `fields-navy` with
@@ -266,8 +267,9 @@ jobs:
           path: out
 
       # What this origin publishes to R2 alone (the site pipeline's D13, its
-      # note of 2026-10-09; here since 2026-10-10, ECMWF's 500 hPa heights as a
-      # grid), and R2's whole status: the R2 job lays it beside the site.
+      # note of 2026-10-09; here from 2026-10-10, ECMWF's 500 hPa heights as a
+      # grid, until they moved on 2026-11-09 — none since), and R2's whole
+      # status: the R2 job lays it beside the site.
       # Public for the day it is kept, so open data only.
       - name: Hand on what R2 alone carries
         if: steps.run.outputs.deploy == 'true'

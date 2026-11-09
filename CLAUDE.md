@@ -145,7 +145,8 @@ fact from a guess that aged.
 ## This repository
 
 **The observations origin**: the products `pipeline/products.toml` declares
-— storms, platforms, the analyses and the ECMWF fields — fetched on the
+— storms, platforms and the analyses (ECMWF's fields moved to
+`ecmwf-model-atmosphere-repo` on 2026-11-09) — fetched on the
 schedule in `.github/workflows/publish.yml` and published to
 `https://oceansensing.org/realtime-data-repo/map/` (the README has the
 layout). The static files CI cannot rebuild live in `map/`.
