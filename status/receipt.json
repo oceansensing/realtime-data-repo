@@ -1,0 +1,22 @@
+{
+ "schema": 1,
+ "generated": "2026-11-14T11:50:34Z",
+ "mode": "full",
+ "fates": {
+  "assets": "fresh",
+  "buoys": "fresh",
+  "tides": "fresh",
+  "gtmba": "fresh",
+  "ooi": "fresh",
+  "ships": "fresh",
+  "sondes": "fresh",
+  "fields-oisst": "fresh"
+ },
+ "reasons": {},
+ "built": {},
+ "withheld": {},
+ "deploy": true,
+ "notes": [],
+ "behind": [],
+ "tile_keys": {}
+}

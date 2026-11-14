@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "product": "gtmba",
+ "title": "Tropical moored arrays (GTMBA)",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-11-14T11:50:34Z",
+ "updated": "2026-11-14T11:50:34Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "gtmba.json": {
+   "bytes": 13883,
+   "sha256": "4fac52d34ebedf73e72882cf466c8ca6cee67e5adab15292c3884df789ed7994"
+  }
+ },
+ "health": {
+  "gtmba": {
+   "root": "gtmba.json",
+   "servers": [
+    {
+     "name": "NOAA OSMC",
+     "state": "ok",
+     "asked": 43,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-11-14T10:10:00Z",
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}

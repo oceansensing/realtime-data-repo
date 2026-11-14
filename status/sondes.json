@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "product": "sondes",
+ "title": "Radiosondes aloft (SondeHub)",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-11-14T11:50:34Z",
+ "updated": "2026-11-14T11:50:34Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "sondes.json": {
+   "bytes": 101644,
+   "sha256": "4653cc6137c81f443195b5482943256eff6f34c0d13167a29ec5430cb2d2eb34"
+  }
+ },
+ "health": {
+  "sondes": {
+   "root": "sondes.json",
+   "servers": [
+    {
+     "name": "SondeHub",
+     "state": "ok",
+     "asked": 185,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-11-14T11:49:25Z",
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,112 @@
+{
+ "schema": 1,
+ "product": "assets",
+ "title": "Storms, gliders, USVs and Argo floats",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-11-14T11:50:34Z",
+ "updated": "2026-11-14T11:50:34Z",
+ "hour": "2026-11-14T06:00:00Z",
+ "modelRun": null,
+ "source": "National Hurricane Center",
+ "hours": [
+  "2026-11-14T06:00:00Z"
+ ],
+ "files": {
+  "argo.json": {
+   "bytes": 289081,
+   "sha256": "334d9a3f2f0f6f952ff5bc75bd5b4d1cc004f858163651d5faaa33dfd4661bcc"
+  },
+  "asset-tracks.json": {
+   "bytes": 1284549,
+   "sha256": "022759316fed3be03075c3426edff015ad5bd829cfb4e7e79028526c91e73454"
+  },
+  "ocean-assets.json": {
+   "bytes": 122942,
+   "sha256": "d8de2e4768a15bb9fcc5ec7118cfe0282da027ecd446636d195d4ea1f402b4e1"
+  },
+  "wsp34.json": {
+   "bytes": 1011761,
+   "sha256": "07ea777e59a1b487efc553d22a7bc07e9e04d1fc20724a4aa99a62978b737b75"
+  },
+  "wsp50.json": {
+   "bytes": 1011761,
+   "sha256": "07ea777e59a1b487efc553d22a7bc07e9e04d1fc20724a4aa99a62978b737b75"
+  },
+  "wsp64.json": {
+   "bytes": 1011761,
+   "sha256": "07ea777e59a1b487efc553d22a7bc07e9e04d1fc20724a4aa99a62978b737b75"
+  }
+ },
+ "health": {
+  "argo": {
+   "root": "argo.json",
+   "servers": [
+    {
+     "name": "Argo GDAC via Ifremer ERDDAP",
+     "state": "ok",
+     "asked": 4062,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-12-27T14:48:00Z",
+     "failedRuns": 0
+    }
+   ]
+  },
+  "glider": {
+   "root": "ocean-assets.json",
+   "servers": [
+    {
+     "name": "US IOOS Glider DAC",
+     "state": "ok",
+     "asked": 42,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-11-14T10:11:30Z",
+     "failedRuns": 0
+    },
+    {
+     "name": "NOC / BODC, UK",
+     "state": "ok",
+     "asked": 2,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2027-11-10T01:00:04Z",
+     "failedRuns": 0
+    },
+    {
+     "name": "Ocean Tracking Network, Canada",
+     "state": "ok",
+     "asked": 3,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-11-14T09:42:59Z",
+     "failedRuns": 0
+    },
+    {
+     "name": "Voice of the Ocean, Sweden",
+     "state": "ok",
+     "asked": 4,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-11-14T11:00:09Z",
+     "failedRuns": 0
+    }
+   ]
+  },
+  "usv": {
+   "root": "ocean-assets.json",
+   "servers": [
+    {
+     "name": "NOAA PMEL ERDDAP",
+     "state": "ok",
+     "asked": 7,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-11-14T11:00:00Z",
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}
