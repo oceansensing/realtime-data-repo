@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "product": "tides",
+ "title": "CO-OPS tide gauges",
+ "fate": "fresh",
+ "reason": null,
+ "checked": "2026-11-21T21:13:41Z",
+ "updated": "2026-11-21T21:13:41Z",
+ "hour": null,
+ "modelRun": null,
+ "source": null,
+ "hours": [],
+ "files": {
+  "tides.json": {
+   "bytes": 148548,
+   "sha256": "a3954df486951c2782434588dd4499f08387131e9b70b99887e06d3a24e3bbf1"
+  }
+ },
+ "health": {
+  "tides": {
+   "root": "tides.json",
+   "servers": [
+    {
+     "name": "NOAA CO-OPS",
+     "state": "ok",
+     "asked": 284,
+     "unanswered": 0,
+     "kept": 0,
+     "newest": "2026-11-21T21:06:00Z",
+     "failedRuns": 0
+    }
+   ]
+  }
+ }
+}

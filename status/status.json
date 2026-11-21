@@ -1,0 +1,348 @@
+{
+ "schema": 2,
+ "contract": 1,
+ "generated": "2026-11-21T21:13:41Z",
+ "mode": "full",
+ "run": {
+  "id": "44950089254",
+  "url": "https://github.com/oceansensing/realtime-data-repo/actions/runs/44950089254"
+ },
+ "schedule": {
+  "crons": [
+   "3,23,43 * * * *"
+  ],
+  "longestGapHours": 0.33
+ },
+ "products": {
+  "assets": {
+   "title": "Storms, gliders, USVs and Argo floats",
+   "roots": [
+    "ocean-assets.json",
+    "asset-tracks.json",
+    "argo.json",
+    "wsp34.json",
+    "wsp50.json",
+    "wsp64.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T21:13:41Z",
+   "hour": "2026-11-21T12:00:00Z",
+   "modelRun": null,
+   "source": "National Hurricane Center",
+   "hours": [
+    "2026-11-21T12:00:00Z"
+   ],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": 9.23,
+   "nearestOffsetHours": 9.23,
+   "health": {
+    "argo": {
+     "root": "argo.json",
+     "servers": [
+      {
+       "name": "Argo GDAC via Ifremer ERDDAP",
+       "state": "ok",
+       "asked": 4012,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-12-27T14:48:00Z",
+       "failedRuns": 0
+      }
+     ]
+    },
+    "glider": {
+     "root": "ocean-assets.json",
+     "servers": [
+      {
+       "name": "US IOOS Glider DAC",
+       "state": "ok",
+       "asked": 37,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T17:39:45Z",
+       "failedRuns": 0
+      },
+      {
+       "name": "NOC / BODC, UK",
+       "state": "ok",
+       "asked": 3,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2027-11-10T01:00:04Z",
+       "failedRuns": 0
+      },
+      {
+       "name": "Ocean Tracking Network, Canada",
+       "state": "ok",
+       "asked": 3,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T13:00:17Z",
+       "failedRuns": 0
+      },
+      {
+       "name": "Voice of the Ocean, Sweden",
+       "state": "ok",
+       "asked": 4,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T13:59:55Z",
+       "failedRuns": 0
+      }
+     ]
+    },
+    "usv": {
+     "root": "ocean-assets.json",
+     "servers": [
+      {
+       "name": "NOAA PMEL ERDDAP",
+       "state": "ok",
+       "asked": 5,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T20:00:00Z",
+       "failedRuns": 0
+      }
+     ]
+    }
+   }
+  },
+  "buoys": {
+   "title": "NDBC buoys and coastal stations",
+   "roots": [
+    "buoys.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T21:13:41Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null,
+   "health": {
+    "buoys": {
+     "root": "buoys.json",
+     "servers": [
+      {
+       "name": "NOAA NDBC",
+       "state": "ok",
+       "asked": 551,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T21:05:00Z",
+       "failedRuns": 0
+      }
+     ]
+    }
+   }
+  },
+  "tides": {
+   "title": "CO-OPS tide gauges",
+   "roots": [
+    "tides.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T21:13:41Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null,
+   "health": {
+    "tides": {
+     "root": "tides.json",
+     "servers": [
+      {
+       "name": "NOAA CO-OPS",
+       "state": "ok",
+       "asked": 284,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T21:06:00Z",
+       "failedRuns": 0
+      }
+     ]
+    }
+   }
+  },
+  "gtmba": {
+   "title": "Tropical moored arrays (GTMBA)",
+   "roots": [
+    "gtmba.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T21:13:41Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null,
+   "health": {
+    "gtmba": {
+     "root": "gtmba.json",
+     "servers": [
+      {
+       "name": "NOAA OSMC",
+       "state": "ok",
+       "asked": 42,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T19:40:00Z",
+       "failedRuns": 0
+      }
+     ]
+    }
+   }
+  },
+  "ooi": {
+   "title": "NSF OOI moorings, profilers and cabled sites",
+   "roots": [
+    "ooi.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T21:13:41Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null,
+   "health": {
+    "ooi": {
+     "root": "ooi.json",
+     "servers": [
+      {
+       "name": "NSF OOI ERDDAP",
+       "state": "ok",
+       "asked": 22,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T11:39:00Z",
+       "failedRuns": 0
+      }
+     ]
+    }
+   }
+  },
+  "ships": {
+   "title": "US academic research fleet",
+   "roots": [
+    "ships.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T21:13:41Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null,
+   "health": {
+    "ships": {
+     "root": "ships.json",
+     "servers": [
+      {
+       "name": "R2R vessel registry",
+       "state": "ok",
+       "asked": 0,
+       "unanswered": 0,
+       "kept": 0,
+       "failedRuns": 0
+      },
+      {
+       "name": "NOAA OSMC",
+       "state": "ok",
+       "asked": 9,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T20:00:00Z",
+       "failedRuns": 0
+      }
+     ]
+    }
+   }
+  },
+  "sondes": {
+   "title": "Radiosondes aloft (SondeHub)",
+   "roots": [
+    "sondes.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T21:13:41Z",
+   "hour": null,
+   "modelRun": null,
+   "source": null,
+   "hours": [],
+   "stale": false,
+   "staleCause": null,
+   "ageHours": null,
+   "nearestOffsetHours": null,
+   "health": {
+    "sondes": {
+     "root": "sondes.json",
+     "servers": [
+      {
+       "name": "SondeHub",
+       "state": "ok",
+       "asked": 4,
+       "unanswered": 0,
+       "kept": 0,
+       "newest": "2026-11-21T21:12:27Z",
+       "failedRuns": 0
+      }
+     ]
+    }
+   }
+  },
+  "fields-oisst": {
+   "title": "NOAA OISST temperature, anomaly and ice",
+   "roots": [
+    "sst-oisst.json",
+    "ssta-oisst.json",
+    "sic-oisst.json"
+   ],
+   "fate": "fresh",
+   "reason": null,
+   "checked": "2026-11-21T21:13:41Z",
+   "updated": "2026-11-21T17:48:55Z",
+   "hour": "2026-11-18T00:00:00Z",
+   "modelRun": null,
+   "source": "NOAA PSL OISST v2.1",
+   "hours": [
+    "2026-11-18T00:00:00Z"
+   ],
+   "stale": true,
+   "staleCause": "upstream",
+   "ageHours": 93.23,
+   "nearestOffsetHours": 93.23
+  }
+ }
+}
